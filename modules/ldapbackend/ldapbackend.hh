@@ -110,6 +110,7 @@ class LdapBackend : public DNSBackend
         PowerLDAP::sentry_t::iterator m_attribute;
         vector<string>::iterator m_value, m_adomain;
         vector<string> m_adomains;
+        int m_reconnect_attempts;
 
         bool (LdapBackend::*m_list_fcnt)( const string&, int );
         void (LdapBackend::*m_lookup_fcnt)( const QType&, const string&, DNSPacket*, int );
@@ -127,6 +128,8 @@ class LdapBackend : public DNSBackend
         bool prepare_strict();
 
         bool getDomainInfo( const string& domain, DomainInfo& di );
+
+        bool reconnect();
 
 public:
 
