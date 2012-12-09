@@ -1,1 +1,1 @@
-ldapbackend.o powerldap.o
+ldapbackend.o powerldap.o ldaputils.o

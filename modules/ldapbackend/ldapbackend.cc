@@ -1,3 +1,4 @@
+#include "exceptions.hh"
 #include "ldapbackend.hh"
 
 
