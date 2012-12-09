@@ -131,11 +131,33 @@ void PowerLDAP::simpleBind( const string& ldapbinddn, const string& ldapsecret )
 int PowerLDAP::search( const string& base, int scope, const string& filter, const char** attr )
 {
         int msgid, rc;
+	bool finished = false;
 
-        if( ( rc = ldap_search_ext( d_ld, base.c_str(), scope, filter.c_str(), const_cast<char**> (attr), 0, NULL, NULL, NULL, LDAP_NO_LIMIT, &msgid ) ) != LDAP_SUCCESS )
-        {
-        	throw LDAPException( "Starting LDAP search: " + getError( rc ) );
-        }
+	while ( !m_results.empty() ) {
+		ldap_msgfree( m_results.front() );
+		m_results.pop_front();
+	}
+
+        rc = ldap_search_ext( d_ld, base.c_str(), scope, filter.c_str(), const_cast<char**> (attr), 0, NULL, NULL, NULL, LDAP_NO_LIMIT, &msgid );
+        if ( rc != LDAP_SUCCESS )
+		throw LDAPException( "Starting LDAP search: " + getError( rc ) );
+
+	while ( !finished ) {
+		LDAPMessage *result = NULL;
+		int i = waitResult( msgid, 5, &result );
+		switch ( i ) {
+			case LDAP_RES_SEARCH_REFERENCE:
+				ldap_msgfree( result );
+				break;
+			case LDAP_RES_SEARCH_RESULT:
+				finished = true;
+				ldap_msgfree( result );
+				break;
+			case LDAP_RES_SEARCH_ENTRY:
+				m_results.push_back( result );
+				break;
+		}
+	}
 
         return msgid;
 }
@@ -170,17 +192,11 @@ bool PowerLDAP::getSearchEntry( int msgid, sentry_t& entry, bool dn, int timeout
         LDAPMessage* object;
 
 
-        if( ( i = waitResult( msgid, timeout, &result ) ) == LDAP_RES_SEARCH_RESULT )
-        {
-        	ldap_msgfree( result );
-        	return false;
-        }
+	if ( m_results.empty() )
+		return false;
 
-        if( i != LDAP_RES_SEARCH_ENTRY )
-        {
-        	ldap_msgfree( result );
-        	throw LDAPException( "Search returned an unexpected result" );
-        }
+	result = m_results.front();
+	m_results.pop_front();
 
         if( ( object = ldap_first_entry( d_ld, result ) ) == NULL )
         {
