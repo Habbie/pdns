@@ -76,6 +76,20 @@ PowerLDAP::~PowerLDAP()
 }
 
 
+bool PowerLDAP::connect()
+{
+	try
+	{
+		ensureConnect();
+		return true;
+	}
+	catch( LDAPException &le )
+	{
+		return false;
+	}
+}
+
+
 void PowerLDAP::setOption( int option, int value )
 {
         ldapSetOption( d_ld, option, (void*) &value );
@@ -150,7 +164,12 @@ int PowerLDAP::search( const string& base, int scope, const string& filter, cons
 		int i = waitResult( msgid, 5, &result );
 		switch ( i ) {
 			case -1:
-				throw LDAPException( "PowerLDAP::search(): Error waiting for LDAP result: " + getError( i ) );
+				int err_code;
+				ldapGetOption( d_ld, LDAP_OPT_ERROR_NUMBER, &err_code );
+				if ( err_code == LDAP_SERVER_DOWN || err_code == LDAP_CONNECT_ERROR )
+					throw LDAPNoConnection();
+				else
+					throw LDAPException( "PowerLDAP::search(): Error waiting for LDAP result: " + getError( err_code ) );
 				break;
 			case 0:
 				throw LDAPTimeout();
