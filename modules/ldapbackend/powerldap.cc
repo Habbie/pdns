@@ -1,4 +1,5 @@
 #include "exceptions.hh"
+#include "ldapauthenticator.hh"
 #include "ldaputils.hh"
 #include "powerldap.hh"
 #include <pdns/misc.hh>
@@ -81,6 +82,13 @@ void PowerLDAP::setOption( int option, int value )
 void PowerLDAP::getOption( int option, int *value )
 {
         ldapGetOption( d_ld, option, (void*) value );
+}
+
+
+void PowerLDAP::bind( LdapAuthenticator* authenticator )
+{
+        if ( !authenticator->authenticate( d_ld ) )
+        	throw LDAPException( "Failed to bind to LDAP server: " + authenticator->getError() );
 }
 
 

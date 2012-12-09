@@ -1,4 +1,5 @@
 #include "exceptions.hh"
+#include "ldapauthenticator_p.hh"
 #include "ldapbackend.hh"
 
 
@@ -19,6 +20,7 @@ LdapBackend::LdapBackend( const string &suffix )
         	m_msgid = 0;
         	m_qname = "";
         	m_pldap = NULL;
+        	m_authenticator = NULL;
         	m_qlog = arg().mustDo( "query-logging" );
         	m_default_ttl = arg().asNum( "default-ttl" );
         	m_myname = "[LdapBackend]";
@@ -56,6 +58,8 @@ LdapBackend::LdapBackend( const string &suffix )
         	m_pldap = new PowerLDAP( hoststr.c_str(), LDAP_PORT, mustDo( "starttls" ) );
         	m_pldap->setOption( LDAP_OPT_DEREF, LDAP_DEREF_ALWAYS );
         	m_pldap->bind( getArg( "binddn" ), getArg( "secret" ), LDAP_AUTH_SIMPLE, getArgAsNum( "timeout" ) );
+        	m_authenticator = new LdapSimpleAuthenticator( getArg( "binddn" ), getArg( "secret" ), getArgAsNum( "timeout" ) );
+        	m_pldap->bind( m_authenticator );
 
         	L << Logger::Notice << m_myname << " Ldap connection succeeded" << endl;
         	return;
@@ -81,7 +85,8 @@ LdapBackend::LdapBackend( const string &suffix )
 
 LdapBackend::~LdapBackend()
 {
-        if( m_pldap != NULL ) { delete( m_pldap ); }
+        delete( m_pldap );
+        delete( m_authenticator );
         L << Logger::Notice << m_myname << " Ldap connection closed" << endl;
 }
 
