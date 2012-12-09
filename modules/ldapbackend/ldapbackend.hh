@@ -44,7 +44,7 @@
 using std::string;
 using std::vector;
 
-
+class LdapAuthenticator;
 
 /*
  *  Known DNS RR types
@@ -102,6 +102,7 @@ class LdapBackend : public DNSBackend
         string m_myname;
         DNSName m_qname;
         PowerLDAP* m_pldap;
+        LdapAuthenticator *m_authenticator;
         PowerLDAP::sentry_t m_result;
         PowerLDAP::sentry_t::iterator m_attribute;
         vector<string>::iterator m_value;
