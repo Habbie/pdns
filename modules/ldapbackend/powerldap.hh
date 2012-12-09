@@ -19,6 +19,7 @@
 
 
 
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -34,6 +35,7 @@
 #ifndef POWERLDAP_HH
 #define POWERLDAP_HH
 
+using std::list;
 using std::map;
 using std::string;
 using std::vector;
@@ -46,6 +48,7 @@ class PowerLDAP
         string d_hosts;
         int d_port;
         bool d_tls;
+        list<LDAPMessage*> m_results;
 
         const string getError( int rc = -1 );
         int waitResult( int msgid = LDAP_RES_ANY, int timeout = 0, LDAPMessage** result = NULL );
