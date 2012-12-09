@@ -146,6 +146,12 @@ int PowerLDAP::search( const string& base, int scope, const string& filter, cons
 		LDAPMessage *result = NULL;
 		int i = waitResult( msgid, 5, &result );
 		switch ( i ) {
+			case -1:
+				throw LDAPException( "PowerLDAP::search(): Error waiting for LDAP result: " + getError( i ) );
+				break;
+			case 0:
+				throw LDAPTimeout();
+				break;
 			case LDAP_RES_SEARCH_REFERENCE:
 				ldap_msgfree( result );
 				break;
@@ -171,13 +177,7 @@ int PowerLDAP::search( const string& base, int scope, const string& filter, cons
 
 int PowerLDAP::waitResult( int msgid, int timeout, LDAPMessage** result )
 {
-        try {
-        	ldapWaitResult( d_ld, msgid, timeout, result );
-        }
-        catch ( LDAPException &e ) {
-        	ensureConnect();
-        	throw; // Not sure why this was done, but the original behavior.
-        }
+	return ldapWaitResult( d_ld, msgid, timeout, result );
 }
 
 
