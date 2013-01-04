@@ -4,6 +4,7 @@
 #include "exceptions.hh"
 #include "ldapauthenticator_p.hh"
 #include "ldapbackend.hh"
+#include <cstdlib>
 
 unsigned int ldap_host_index = 0;
 
@@ -63,6 +64,7 @@ LdapBackend::LdapBackend( const string &suffix )
 
         	string bindmethod = getArg( "bindmethod" );
         	if ( bindmethod == "gssapi" ) {
+			setenv( "KRB5CCNAME", getArg( "krb5-ccache" ).c_str(), 1 );
         		m_authenticator = new LdapGssapiAuthenticator( getArg( "krb5-keytab" ), getArg( "krb5-ccache" ), getArgAsNum( "timeout" ) );
         	}
         	else {
