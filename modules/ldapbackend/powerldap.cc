@@ -156,8 +156,10 @@ int PowerLDAP::search( const string& base, int scope, const string& filter, cons
 	}
 
         rc = ldap_search_ext( d_ld, base.c_str(), scope, filter.c_str(), const_cast<char**> (attr), 0, NULL, NULL, NULL, LDAP_NO_LIMIT, &msgid );
-        if ( rc != LDAP_SUCCESS )
-		throw LDAPException( "Starting LDAP search: " + getError( rc ) );
+        if ( rc == LDAP_SERVER_DOWN || rc == LDAP_CONNECT_ERROR )
+            throw LDAPNoConnection();
+        else if ( rc != LDAP_SUCCESS )            
+    		throw LDAPException( "Starting LDAP search: " + getError( rc ) );
 
 	while ( !finished ) {
 		LDAPMessage *result = NULL;
