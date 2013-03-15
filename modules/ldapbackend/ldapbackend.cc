@@ -653,6 +653,8 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
 {
   string filter;
   SOAData sd;
+  int msgid;
+  PowerLDAP::sentry_t result;
   const char* attronly[] = {
     "sOARecord",
     "PdnsDomainId",
@@ -668,7 +670,7 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
     // search for SOARecord of domain
     filter = "(&(associatedDomain=" + toLower( m_pldap->escape( domain ) ) + ")(SOARecord=*))";
     m_msgid = m_pldap->search( getArg( "basedn" ), LDAP_SCOPE_SUBTREE, filter, attronly );
-    m_pldap->getSearchEntry( m_msgid, m_result );
+    m_pldap->getSearchEntry( msgid, result );
   }
   catch( LDAPTimeout &lt )
   {
@@ -693,35 +695,34 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
     throw( DBException( "STL exception" ) );
   }
 
-        if( m_result.count( "sOARecord" ) && !m_result["sOARecord"].empty() )
-        {
-        	sd.serial = 0;
-        	fillSOAData( m_result["sOARecord"][0], sd );
+  if( result.count( "sOARecord" ) && !result["sOARecord"].empty() )
+  {
+    sd.serial = 0;
+    fillSOAData( result["sOARecord"][0], sd );
 
-
-    if ( m_result.count( "PdnsDomainId" ) && !m_result["PdnsDomainId"].empty() )
-      di.id = boost::lexical_cast<int>( m_result["PdnsDomainId"][0] );
+    if ( result.count( "PdnsDomainId" ) && !result["PdnsDomainId"].empty() )
+      di.id = boost::lexical_cast<int>( result["PdnsDomainId"][0] );
     else
       di.id = 0;
 
     di.serial = sd.serial;
     di.zone = DNSName(domain);
 
-    if( m_result.count( "PdnsDomainLastCheck" ) && !m_result["PdnsDomainLastCheck"].empty() )
-      di.last_check = boost::lexical_cast<time_t>( m_result["PdnsDomainLastCheck"][0] );
+    if( result.count( "PdnsDomainLastCheck" ) && !result["PdnsDomainLastCheck"].empty() )
+      di.last_check = boost::lexical_cast<time_t>( result["PdnsDomainLastCheck"][0] );
     else
       di.last_check = 0;
 
-    if ( m_result.count( "PdnsDomainNotifiedSerial" ) && !m_result["PdnsDomainNotifiedSerial"].empty() )
-      di.notified_serial = boost::lexical_cast<uint32_t>( m_result["PdnsDomainNotifiedSerial"][0] );
+    if ( result.count( "PdnsDomainNotifiedSerial" ) && !result["PdnsDomainNotifiedSerial"].empty() )
+      di.notified_serial = boost::lexical_cast<uint32_t>( result["PdnsDomainNotifiedSerial"][0] );
     else
       di.notified_serial = 0;
 
-    if ( m_result.count( "PdnsDomainMaster" ) && !m_result["PdnsDomainMaster"].empty() )
-      di.masters = m_result["PdnsDomainMaster"];
+    if ( result.count( "PdnsDomainMaster" ) && !result["PdnsDomainMaster"].empty() )
+      di.masters = result["PdnsDomainMaster"];
 
-    if ( m_result.count( "PdnsDomainType" ) && !m_result["PdnsDomainType"].empty() ) {
-      string kind = m_result["PdnsDomainType"][0];
+    if ( result.count( "PdnsDomainType" ) && !result["PdnsDomainType"].empty() ) {
+      string kind = result["PdnsDomainType"][0];
       if ( kind == "master" )
         di.kind = DomainInfo::Master;
       else if ( kind == "slave" )
