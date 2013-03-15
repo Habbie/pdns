@@ -134,9 +134,14 @@ public:
         LdapBackend( const string &suffix="" );
         ~LdapBackend();
 
+        // Native backend
         bool list( const DNSName& target, int domain_id, bool include_disabled=false );
         void lookup( const QType& qtype, const DNSName& qdomain, DNSPacket* p = 0, int zoneid = -1 );
         bool get( DNSResourceRecord& rr );
+
+        // Master backend
+        void getUpdatedMasters( vector<DomainInfo>* domains );
+        void setNotified( uint32_t id, uint32_t serial );
 };
 
 #endif /* LDAPBACKEND_HH */
