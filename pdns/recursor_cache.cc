@@ -130,7 +130,7 @@ int MemRecursorCache::get(time_t now, const string &qname, const QType& qt, set<
           if(k->d_ttd < 1000000000 || k->d_ttd > (uint32_t) now) {  // FIXME what does the 100000000 number mean?
             ttd=k->d_ttd;
             if(res) {
-              DNSResourceRecord rr=String2DNSRR(qname, QType(i->d_qtype),  k->d_string, ttd); 
+              DNSResourceRecord rr=String2DNSRR(qname, QType(k->d_qtype),  k->d_string, ttd); 
               res->insert(rr);
             }
           }
@@ -146,6 +146,10 @@ int MemRecursorCache::get(time_t now, const string &qname, const QType& qt, set<
       }
 
     //    cerr<<"time left : "<<ttd - now<<", "<< (res ? res->size() : 0) <<"\n";
+    if(res)
+      cerr<<"MRC::get returning "<<res->size()<<" items for "<<qname<<"/"<<qt.getName()<<endl;
+    else
+      cerr<<"MRC::get res=0"<<endl;
     return (int)ttd-now;
   }
   return -1;
@@ -201,7 +205,7 @@ void MemRecursorCache::replace(time_t now, const string &qname, const QType& qt,
   StoredRecord dr;
   CacheEntry ce=*stored;
 
-  //~ cerr<<"asked to store "<< qname+"|"+qt.getName()<<" -> '"<<content.begin()->content<<"', isnew="<<isNew<<", auth="<<auth<<", ce.auth="<<ce.d_auth<<"\n";
+  cerr<<"asked to store "<< qname+"|"+qt.getName()<<" -> '"<<content.begin()->content<<"', isnew="<<isNew<<", auth="<<auth<<", ce.auth="<<ce.d_auth<<"\n";
 
   if(qt.getCode()==QType::SOA || qt.getCode()==QType::CNAME)  { // you can only have one (1) each of these
     //    cerr<<"\tCleaning out existing store because of SOA and CNAME\n";
@@ -233,7 +237,7 @@ void MemRecursorCache::replace(time_t now, const string &qname, const QType& qt,
 
   // make sure that we CAN refresh the root
   if(auth && ((qname.length()==1 && qname[0]=='.') || !attemptToRefreshNSTTL(qt, content, ce) ) ) {
-    // cerr<<"\tGot auth data, and it was not refresh attempt of an unchanged NS set, nuking storage"<<endl;
+    cerr<<"\tGot auth data, and it was not refresh attempt of an unchanged NS set, nuking storage"<<endl;
     ce.d_records.clear(); // clear non-auth data
     ce.d_auth = true;
     isNew=true;           // data should be sorted again
@@ -246,10 +250,11 @@ void MemRecursorCache::replace(time_t now, const string &qname, const QType& qt,
     isNew=true;
   }
 
-  // cerr<<"\tHave "<<content.size()<<" records to store\n";
+  cerr<<"\tHave "<<content.size()<<" records to store\n";
   for(set<DNSResourceRecord>::const_iterator i=content.begin(); i != content.end(); ++i) {
-    // cerr<<"To store: "<<i->content<<" with ttl/ttd "<<i->ttl<<endl;
+    cerr<<"To store: "<<i->content<<" with ttl/ttd "<<i->ttl<<endl;
     dr.d_ttd=min(maxTTD, i->ttl);
+    dr.d_qtype=i->qtype;
     dr.d_string=DNSRR2String(*i);
     
     if(isNew) 
@@ -388,8 +393,8 @@ uint64_t MemRecursorCache::doDump(int fd)
     for(vector<StoredRecord>::const_iterator j=i->d_records.begin(); j != i->d_records.end(); ++j) {
       count++;
       try {
-        DNSResourceRecord rr=String2DNSRR(i->d_qname, QType(i->d_qtype), j->d_string, j->d_ttd - now);
-        fprintf(fp, "%s %d IN %s %s\n", rr.qname.c_str(), rr.ttl, rr.qtype.getName().c_str(), rr.content.c_str());
+        DNSResourceRecord rr=String2DNSRR(i->d_qname, QType(j->d_qtype), j->d_string, j->d_ttd - now);
+        fprintf(fp, "%s/%d %s %d IN %s %s\n", i->d_qname.c_str(), i->d_qtype, rr.qname.c_str(), rr.ttl, rr.qtype.getName().c_str(), rr.content.c_str());
       }
       catch(...) {
         fprintf(fp, "; error printing '%s'\n", i->d_qname.c_str());

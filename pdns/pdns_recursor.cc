@@ -512,6 +512,9 @@ void startDoResolve(void *p)
 
     DNSPacketWriter pw(packet, dc->d_mdp.d_qname, dc->d_mdp.d_qtype, dc->d_mdp.d_qclass); 
 
+    // pw.addOpt(bufsize, 0, EDNSOpts::DNSSECOK);
+    // pw.commit();
+
     pw.getHeader()->aa=0;
     pw.getHeader()->ra=1;
     pw.getHeader()->qr=1;

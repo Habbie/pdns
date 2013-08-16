@@ -61,20 +61,23 @@ int asyncresolve(const ComboAddress& ip, const string& domain, int type, bool do
   pw.getHeader()->rd=sendRDQuery;
   pw.getHeader()->id=dns_random(0xffff);
   
+  pw.addOpt(1200, 0, EDNSOpts::DNSSECOK);
+  pw.commit();
+
   string ping;
 
   uint32_t nonce=dns_random(0xffffffff);
   ping.assign((char*) &nonce, 4);
 
-  if(EDNS0Level && !doTCP) {
-    DNSPacketWriter::optvect_t opts;
-    if(EDNS0Level > 1) {
-      opts.push_back(make_pair(5, ping));
-    }
+  // if(EDNS0Level && !doTCP) {
+  //   DNSPacketWriter::optvect_t opts;
+  //   if(EDNS0Level > 1) {
+  //     opts.push_back(make_pair(5, ping));
+  //   }
 
-    pw.addOpt(1200, 0, 0, opts); // 1200 bytes answer size
-    pw.commit();
-  }
+  //   pw.addOpt(1200, 0, 0, opts); // 1200 bytes answer size
+  //   pw.commit();
+  // }
   lwr->d_rcode = 0;
   lwr->d_pingCorrect = false;
   lwr->d_haveEDNS = false;

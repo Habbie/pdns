@@ -42,6 +42,7 @@
 #include "dns_random.hh"
 #include "lock.hh"
 #include "cachecleaner.hh"
+#include "dnsrecords.hh"
 
 __thread SyncRes::StaticStorage* t_sstorage;
 
@@ -615,7 +616,8 @@ string SyncRes::getBestNSNamesFromCache(const string &qname, set<string, CIStrin
   getBestNSFromCache(subdomain, bestns, flawedNSSet, depth, beenthere);
 
   for(set<DNSResourceRecord>::const_iterator k=bestns.begin();k!=bestns.end();++k) {
-    nsset.insert(k->content);
+    if(k->qtype == QType::NS)
+      nsset.insert(k->content);
     if(k==bestns.begin())
       subdomain=k->qname;
   }
@@ -638,30 +640,33 @@ bool SyncRes::doCNAMECacheCheck(const string &qname, const QType &qtype, vector<
   
   LOG(prefix<<qname<<": Looking for CNAME cache hit of '"<<(qname+"|CNAME")<<"'"<<endl);
   set<DNSResourceRecord> cset;
+  bool done=false;
   if(t_RC->get(d_now.tv_sec, qname,QType(QType::CNAME),&cset) > 0) {
 
     for(set<DNSResourceRecord>::const_iterator j=cset.begin();j!=cset.end();++j) {
       if(j->ttl>(unsigned int) d_now.tv_sec) {
-        LOG(prefix<<qname<<": Found cache CNAME hit for '"<< (qname+"|CNAME") <<"' to '"<<j->content<<"'"<<endl);    
         DNSResourceRecord rr=*j;
         rr.ttl-=d_now.tv_sec;
         ret.push_back(rr);
-        if(!(qtype==QType(QType::CNAME))) { // perhaps they really wanted a CNAME!
-          set<GetBestNSAnswer>beenthere;
-          res=doResolve(j->content, qtype, ret, depth+1, beenthere);
+        if(j->qtype==QType::CNAME)
+        {
+          LOG(prefix<<qname<<": Found cache CNAME hit for '"<< (qname+"|CNAME") <<"' to '"<<j->content<<"'"<<endl);    
+          if(!(qtype==QType(QType::CNAME))) { // perhaps they really wanted a CNAME!
+            set<GetBestNSAnswer>beenthere;
+            res=doResolve(j->content, qtype, ret, depth+1, beenthere);
+          }
+          else
+            res=0;
+          done=true;
         }
-        else
-          res=0;
-        return true;
       }
     }
   }
+  if(done)
+    return true;
   LOG(prefix<<qname<<": No CNAME cache hit of '"<< (qname+"|CNAME") <<"' found"<<endl);
   return false;
 }
-
-
-
 
 bool SyncRes::doCacheCheck(const string &qname, const QType &qtype, vector<DNSResourceRecord>&ret, int depth, int &res)
 {
@@ -1046,7 +1051,14 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
             if(rr.qtype.getCode() == QType::NS) // people fiddle with the case
               rr.content=toLower(rr.content); // this must stay! (the cache can't be case-insensitive on the RHS of records)
             
-            tcache[make_pair(i->qname,i->qtype)].insert(rr);
+            QType qtkey;
+            qtkey=i->qtype;
+            if(qtkey.getCode() == QType::RRSIG)
+            {
+              RRSIGRecordContent rrc = *dynamic_cast<RRSIGRecordContent*>(DNSRecordContent::mastermake(QType::RRSIG, 1, i->content));
+              qtkey = rrc.d_type;
+            }
+            tcache[make_pair(i->qname,qtkey)].insert(rr);
           }
         }          
         else
@@ -1109,6 +1121,10 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
           LOG(prefix<<qname<<": answer is in: resolved to '"<< i->content<<"|"<<i->qtype.getName()<<"'"<<endl);
 
           done=true;
+          ret.push_back(*i);
+        }
+        else if(i->qtype==QType::RRSIG && i->d_place==DNSResourceRecord::ANSWER)
+        {
           ret.push_back(*i);
         }
         else if(i->d_place==DNSResourceRecord::AUTHORITY && dottedEndsOn(qname,i->qname) && i->qtype.getCode()==QType::NS) { 
