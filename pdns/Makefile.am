@@ -37,6 +37,7 @@ endif
 
 EXTRA_PROGRAMS=pdns_recursor sdig saxfr dnstcpbench dnsdist tsig-tests speedtest pdns_control dnsscope dnsgram rec_control \
 testrunner dnsreplay \
+oneshot \
 toysdig dnsdemog dnswasher dnsscan nproxy notify pdnssec dnsbulktest nsec3dig saxfr
 
 pdns_server_SOURCES=dnspacket.cc nameserver.cc tcpreceiver.hh \
@@ -159,6 +160,12 @@ endif
 if ORACLE
 pdnssec_LDADD += $(ORACLE_LIBS)
 endif
+
+oneshot_SOURCES=oneshot.cc  sstuff.hh dnsparser.cc dnsparser.hh dnsrecords.cc dnswriter.cc dnslabeltext.cc \
+    dnswriter.hh dnssecinfra.cc \
+	misc.cc misc.hh rcpgenerator.cc rcpgenerator.hh base64.cc base64.hh unix_utility.cc \
+	logger.cc statbag.cc qtype.cc sillyrecords.cc nsecrecords.cc base32.cc polarrsakeyinfra.cc
+oneshot_LDADD= $(POLARSSL_LIBS)
 
 sdig_SOURCES=sdig.cc sstuff.hh dnsparser.cc dnsparser.hh dnsrecords.cc dnswriter.cc dnslabeltext.cc dnswriter.hh \
 	misc.cc misc.hh rcpgenerator.cc rcpgenerator.hh base64.cc base64.hh unix_utility.cc \

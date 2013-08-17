@@ -29,6 +29,7 @@
 /dnswasher
 /notify
 /nproxy
+/oneshot
 /speedtest
 /toysdig
 /tsig-tests
