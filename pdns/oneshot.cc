@@ -127,7 +127,8 @@ bool compareDS(DSRecordContent a, DSRecordContent b)
 
 recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0)
 {
-  recmap_t recs;
+  recmap_t recs; // all records that we fetched
+  recmap_t vrecs; // verified subset of recs
   sigmap_t sigs;
   nsecmap_t nsecs;
 
@@ -188,9 +189,9 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
           DNSKEYRecordContent drc=dynamic_cast<DNSKEYRecordContent&> (*(i->second));
           pair<recmap_t::const_iterator,recmap_t::const_iterator> r = ds.equal_range(NT(qname, QType::DS));
           cerr<<"got "<<ds.count(NT(qname, QType::DS))<<" DSs to check against DNSKEY"<<endl;
-          for(recmap_t::const_iterator i=r.first; i!=r.second; ++i)
+          for(recmap_t::const_iterator j=r.first; j!=r.second; ++j)
           {
-            DSRecordContent dsrc=dynamic_cast<DSRecordContent&> (*(i->second));
+            DSRecordContent dsrc=dynamic_cast<DSRecordContent&> (*(j->second));
             cerr<<"need to check DNSKEY "<<drc.getTag()<<"/"<<" against DS "<<dsrc.d_tag<<endl;
             cerr<<"DS from DNSKEY "<<makeDSFromDNSKey(qname, drc, dsrc.d_digesttype).getZoneRepresentation()<<endl;
             cerr<<"DS content "<<dsrc.getZoneRepresentation()<<endl;
@@ -199,8 +200,8 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
             {
               if(compareDS(dsrc, dsrc2))
               {
-                cerr<<"matches!"<<endl;
-                return recs;
+                cerr<<"DNSKEY verified against DS "<<dsrc.getZoneRepresentation()<<endl;
+                vrecs.insert(make_pair(NT(qname, qtype), i->second));
               }
               else
               {
@@ -209,9 +210,17 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
             }
           }
         }
-        cerr<<"returning empty (no DS/DNSKEY match) at depth "<<depth<<endl;
-        recs.clear();
-        return recs;
+        cerr<<"returning "<<vrecs.size()<<" DS-verified DNSKEYs for "<<qname<<endl;
+        r = make_pair(vrecs.begin(), vrecs.end());
+        for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
+        {
+          cout<<i->first.first<<" "<<i->first.second<<" "<<i->second->getZoneRepresentation()<<endl;
+        }
+        cerr<<"END"<<endl;
+        return vrecs;
+        // cerr<<"returning empty (no DS/DNSKEY match) at depth "<<depth<<endl;
+        // recs.clear();
+        // return recs;
       }
     }
     else
@@ -244,7 +253,7 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
         {
           if(DNSCryptoKeyEngine::makeFromPublicKeyString(drc.d_algorithm, drc.d_key)->verify(msg, rrc.d_signature))
           {
-            cerr<<"verified with DNSKEY "<<drc.getTag()<<endl;
+            cerr<<"RRSIG "<<rrc.getZoneRepresentation()<<" verified with DNSKEY "<<drc.getZoneRepresentation()<<endl;
             return recs;
           }
           else
@@ -291,7 +300,7 @@ try
   pair<recmap_t::const_iterator,recmap_t::const_iterator> r = make_pair(recs.begin(), recs.end());
   for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
   {
-    cout<<i->first.first<<" "<<i->first.second<<" "<<i->second->getZoneRepresentation()<<endl;
+    cout<<i->first.first<<" "<<DNSRecordContent::NumberToType(i->first.second)<<" "<<i->second->getZoneRepresentation()<<endl;
   }
   // // fetch requested result
   // MOADNSParser mdpA(tr.query(qname, qtype));
