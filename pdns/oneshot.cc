@@ -125,18 +125,18 @@ bool compareDS(DSRecordContent a, DSRecordContent b)
          a.d_digest == b.d_digest;
 }
 
-recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0)
+recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0, bool needDS=false)
 {
   recmap_t recs; // all records that we fetched
   recmap_t vrecs; // verified subset of recs
   sigmap_t sigs;
   nsecmap_t nsecs;
 
-  cerr<<"at depth "<<depth<<" fetching "<<qname<<"/"<<qtype<<endl;
+  cerr<<"at depth "<<depth<<" fetching "<<qname<<"/"<<DNSRecordContent::NumberToType(qtype)<<" ("<<(needDS ? "KSK" : "ZSK")<<")"<<endl;
   if(qname=="" and qtype==QType::DS) {
-    recs.insert(make_pair(NT("", QType::DS), DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
+    vrecs.insert(make_pair(NT("", QType::DS), DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
     cerr<<"DS/. - returning root anchor"<<endl;
-    return recs;
+    return vrecs;
   }
 
   MOADNSParser mdp(tr.query(qname, qtype));
@@ -168,7 +168,7 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
   {
     RRSIGRecordContent rrc=i->second;
     cerr<<"got RRSIG "<<(i->first.first)<<"/"<<(i->first.second)<<": "<<rrc.getZoneRepresentation()<<endl;
-    if(qname == stripDot(rrc.d_signer) && qtype == QType::DNSKEY)
+    if(qname == stripDot(rrc.d_signer) && needDS)
     {
       cerr<<"finding upstream DS for "<<rrc.d_signer<<endl;
       recmap_t ds=getAndVerify(tr, stripDot(rrc.d_signer), QType::DS, depth+1);
@@ -177,8 +177,7 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
         cerr<<"no DS for "<<rrc.d_signer<<", giving up"<<endl;
         cerr<<"returning empty (no DS) depth "<<depth<<endl;
 
-        recs.clear();
-        return recs;
+        // return vrecs;
       }
       else
       {
@@ -217,7 +216,7 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
           cout<<i->first.first<<" "<<i->first.second<<" "<<i->second->getZoneRepresentation()<<endl;
         }
         cerr<<"END"<<endl;
-        return vrecs;
+        // return vrecs;
         // cerr<<"returning empty (no DS/DNSKEY match) at depth "<<depth<<endl;
         // recs.clear();
         // return recs;
@@ -226,12 +225,11 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
     else
     {
       cerr<<"finding DNSKEYs for "<<rrc.d_signer<<endl;
-      recmap_t keys=getAndVerify(tr, stripDot(rrc.d_signer), QType::DNSKEY, depth+1);
+      recmap_t keys=getAndVerify(tr, stripDot(rrc.d_signer), QType::DNSKEY, depth+1, qtype == QType::DNSKEY);
       if(!keys.size())
       {
         cerr<<"returning empty (no DNSKEY for ["<<stripDot(rrc.d_signer)<<"]) at depth "<<depth<<endl;
-        recs.clear();
-        return recs;
+        // return vrecs;
       }
 
       vector<shared_ptr<DNSRecordContent> > toSign;
@@ -240,7 +238,6 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
       {
         toSign.push_back(i->second);
       }
-
 
       string msg=getMessageForRRSET(qname, rrc, toSign);
 
@@ -254,7 +251,11 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
           if(DNSCryptoKeyEngine::makeFromPublicKeyString(drc.d_algorithm, drc.d_key)->verify(msg, rrc.d_signature))
           {
             cerr<<"RRSIG "<<rrc.getZoneRepresentation()<<" verified with DNSKEY "<<drc.getZoneRepresentation()<<endl;
-            return recs;
+            for(vector<shared_ptr<DNSRecordContent> >::const_iterator i=toSign.begin(); i!=toSign.end(); i++)
+            {
+              vrecs.insert(make_pair(NT(qname, qtype), *i));
+            }
+            // return vrecs;
           }
           else
           {
@@ -267,9 +268,8 @@ recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0
   // cerr<<"signer is "<<rrc.d_signer<<endl;
   // fetch DNSKEY
   // MOADNSParser mdpDNSKEY(tr.query(rrc.d_signer, QType::DNSKEY));
-  cerr<<"returning empty (fallthrough) at depth "<<depth<<endl;
-  recs.clear();
-  return recs;
+  cerr<<"returning "<<vrecs.size()<<" records at depth "<<depth<<endl;
+  return vrecs;
 }
 
 
@@ -277,11 +277,6 @@ int main(int argc, char** argv)
 try
 {
   reportAllTypes();
-  cerr<<DNSRecordContent::TypeToNumber("A")<<endl;
-  cerr<<DNSRecordContent::TypeToNumber("DS")<<endl;
-  cerr<<DNSRecordContent::NumberToType(1)<<endl;
-  cerr<<DNSRecordContent::NumberToType(46)<<endl;
-  // exit(0);
 
   if(argc < 5) {
     cerr<<"Syntax: oneshot IP-address port question question-type\n";
