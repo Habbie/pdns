@@ -68,6 +68,7 @@ public:
 
   string query(string qname, uint16_t qtype)
   {
+    cerr<<"Q "<<qname<<"/"<<DNSRecordContent::NumberToType(qtype)<<endl;
     vector<uint8_t> packet;
     DNSPacketWriter pw(packet, qname, qtype);
 
