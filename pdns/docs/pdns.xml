@@ -22639,6 +22639,10 @@ Now add TLSRecordContent::report() to <ulink url="http://wiki.powerdns.com/trac/
     Please see the blog post for context.
   </para>
   <para>
+    To understand this section, it helps to assume the Recursor is running on 127.0.0.1 and the Validator is
+    running on some IP that clients talk to.
+  </para>
+  <para>
     The Recursor will be modified to behave like a security-aware resolver, meaning it understands the DO, CD and AD flags on questions, and will set these flags appropriately on responses.
   </para>
   <para>
