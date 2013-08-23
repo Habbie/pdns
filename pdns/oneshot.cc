@@ -10,6 +10,10 @@
 
 StatBag S;
 
+// 4033 5
+enum vState { Indeterminate, Bogus, Insecure, Secure };
+const char *states[]={"Indeterminate", "Bogus", "Insecure", "Secure"};
+
 typedef std::pair<string,string> nsec3;
 typedef set<nsec3> nsec3set;
 
@@ -113,7 +117,7 @@ public:
   Socket *d_rsock;
 };
 
-typedef pair<string, uint16_t> NT;
+typedef pair<string, uint16_t> NT; // Name/Type pair
 typedef std::multimap<NT, shared_ptr<DNSRecordContent> > recmap_t;
 typedef std::multimap<NT, RRSIGRecordContent> sigmap_t;
 typedef std::multimap<NT, shared_ptr<DNSRecordContent> > nsecmap_t;
@@ -126,153 +130,181 @@ bool compareDS(DSRecordContent a, DSRecordContent b)
          a.d_digest == b.d_digest;
 }
 
-recmap_t getAndVerify(TCPResolver &tr, string qname, uint16_t qtype, int depth=0, bool needDS=false)
+typedef pair<string, uint16_t> ZT; //Zonename/keyTag pair
+typedef std::multimap<ZT, DNSKEYRecordContent> keymap_t;
+// recmap_t g_recs; // fetched recs for full chain validation
+// keymap_t g_keys; // fetched keys
+// keymap_t g_vkeys; // validated keys
+
+vState getKeysFor(TCPResolver &tr, string zone)
+{
+  vector<string> labels;
+  vState state;
+
+  state = Indeterminate;
+
+  stringtok(labels, zone, ".");
+
+  string qname="";
+  uint16_t qtype=QType::DNSKEY;
+  typedef std::multimap<uint16_t, DSRecordContent> dsmap_t;
+  dsmap_t dsmap;
+  typedef std::multimap<uint16_t, DNSKEYRecordContent> keymap_t;
+  keymap_t keymap;
+  recmap_t recs;
+
+  state =  Secure;
+  while(qname.size() < zone.size())
+  {
+    if(qname == "")
+    {
+      DSRecordContent rootanchor=dynamic_cast<DSRecordContent&> (*(DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
+      dsmap.clear();
+      dsmap.insert(make_pair(19036, rootanchor));
+    }
+  
+    recs.clear();
+    vector<RRSIGRecordContent> sigs;
+    vector<shared_ptr<DNSRecordContent> > toSign;
+
+    keymap_t tkeymap; // tentative keys
+
+    // start of this iteration
+    // we can trust that dsmap has valid DS records for qname
+
+    cerr<<"got DS for ["<<qname<<"], grabbing DNSKEYs"<<endl;
+    MOADNSParser mdp(tr.query(qname, QType::DNSKEY));
+
+    for(MOADNSParser::answers_t::const_iterator i=mdp.d_answers.begin(); i!=mdp.d_answers.end(); ++i) {
+      if(stripDot(i->first.d_label) != qname)
+        continue;
+
+      if(i->first.d_type == QType::RRSIG)
+      {
+        RRSIGRecordContent rrc=dynamic_cast<RRSIGRecordContent&> (*(i->first.d_content));
+        if(rrc.d_type != QType::DNSKEY)
+          continue;
+        sigs.push_back(rrc);
+      }
+      else if(i->first.d_type == QType::DNSKEY)
+      {
+        DNSKEYRecordContent drc=dynamic_cast<DNSKEYRecordContent&> (*(i->first.d_content));
+        tkeymap.insert(make_pair(drc.getTag(), drc));
+        toSign.push_back(i->first.d_content);
+      }
+    }
+    cerr<<"got "<<keymap.size()<<" keys and "<<sigs.size()<<" sigs"<<endl;
+
+    for(dsmap_t::const_iterator i=dsmap.begin(); i!=dsmap.end(); i++)
+    {
+      DSRecordContent dsrc=i->second;
+      cerr<<"got DS with tag "<<dsrc.d_tag<<", got "<<tkeymap.count(i->first)<<" DNSKEYs for tag"<<endl;
+      pair<keymap_t::const_iterator, keymap_t::const_iterator> r = tkeymap.equal_range(i->first);
+      for(keymap_t::const_iterator j=r.first; j!=r.second; j++)
+      {
+        DNSKEYRecordContent drc=j->second;
+        DSRecordContent dsrc2=makeDSFromDNSKey(qname, drc, dsrc.d_digesttype);
+        if(compareDS(dsrc, dsrc2))
+        {
+          cerr<<"got valid DNSKEY"<<endl;
+          keymap.insert(make_pair(drc.getTag(), drc));
+        }
+      }
+    }
+
+    // these counts could be off if we somehow ended up with 
+    // duplicate keys. Should switch to a type that prevents that.
+    if(keymap.size() < tkeymap.size())
+    {
+      // this should mean that we have one or more DS-validated DNSKEYs
+      // but not a fully validated DNSKEY set, yet
+      // one of these valid DNSKEYs should be able to validate the
+      // whole set
+      for(vector<RRSIGRecordContent>::const_iterator i=sigs.begin(); i!=sigs.end(); i++)
+      {
+        cerr<<"got sig for keytag "<<i->d_tag<<" matching "<<tkeymap.count(i->d_tag)<<" keys of which "<<keymap.count(i->d_tag)<<" valid"<<endl;
+        string msg=getMessageForRRSET(qname, *i, toSign);
+        pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keymap.equal_range(i->d_tag);
+        for(keymap_t::const_iterator j=r.first; j!=r.second; j++) {
+          cerr<<"validating"<<endl;
+          cerr<<DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature)<<endl;
+          if(DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature))
+          {
+            cerr<<"validation succeeded - whole DNSKEY set is valid"<<endl;
+            keymap=tkeymap;
+            break;
+          }
+        }
+        cerr<<"did not manage to validate DNSKEY set based on DS-validated KSK, only passing KSK on"<<endl;
+      }
+    }
+
+    if(!keymap.size())
+    {
+      cerr<<"ended up with zero valid DNSKEYs, going Bogus"<<endl;
+      state=Bogus;
+      break;
+    }
+    cerr<<"situation: we have one or more valid DNSKEYs; walking downwards to find DS"<<endl;
+    // FIXME: continue here
+
+    break;
+  }
+
+  return state;
+}
+
+void get(recmap_t &res, TCPResolver &tr, string qname, uint16_t qtype, int depth=0)
 {
   recmap_t recs; // all records that we fetched
-  recmap_t vrecs; // verified subset of recs
   sigmap_t sigs;
   nsecmap_t nsecs;
 
-  cerr<<"at depth "<<depth<<" fetching "<<qname<<"/"<<DNSRecordContent::NumberToType(qtype)<<" ("<<(needDS ? "KSK" : "ZSK")<<")"<<endl;
+  cerr<<"at depth "<<depth<<" fetching "<<qname<<"/"<<DNSRecordContent::NumberToType(qtype)<<endl;
+  if(res.count(NT(qname, qtype)))
+  {
+    cerr<<"already got those, returning"<<endl;
+    return;
+  }
   if(qname=="" and qtype==QType::DS) {
-    vrecs.insert(make_pair(NT("", QType::DS), DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
+    res.insert(make_pair(NT("", QType::DS), DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
     cerr<<"DS/. - returning root anchor"<<endl;
-    return vrecs;
+    return;
   }
 
   MOADNSParser mdp(tr.query(qname, qtype));
 
+  set<string> signers;
   for(MOADNSParser::answers_t::const_iterator i=mdp.d_answers.begin(); i!=mdp.d_answers.end(); ++i) {
     cerr<<"ZR ("<<i->first.d_place<<") "<<i->first.d_label<<" "<<DNSRecordContent::NumberToType(i->first.d_type)<<" "<<i->first.d_content->getZoneRepresentation()<<endl;    
-    if(i->first.d_type == QType::RRSIG) {
+    if(i->first.d_type == QType::RRSIG)
+    {
       RRSIGRecordContent rrc=dynamic_cast<RRSIGRecordContent&> (*(i->first.d_content));
-      sigs.insert(make_pair(NT(stripDot(i->first.d_label), rrc.d_type), rrc));
+      signers.insert(stripDot(rrc.d_signer));
     }
-    else if(i->first.d_place == DNSRecord::Answer) {
-      recs.insert(make_pair(NT(stripDot(i->first.d_label), i->first.d_type), i->first.d_content));
+
+    if(i->first.d_type == QType::RRSIG || i->first.d_place == DNSRecord::Answer) {
+      res.insert(make_pair(NT(stripDot(i->first.d_label), i->first.d_type), i->first.d_content));
     }
   }
-  cerr<<"got "<<recs.size()<<" recs, "<<sigs.size()<<" sigs"<<endl;
-  cerr<<"question was "<<qname<<"/"<<DNSRecordContent::NumberToType(qtype)<<", got "<<recs.count(NT(qname,qtype))<<" recs"<<endl;
-  pair<recmap_t::const_iterator,recmap_t::const_iterator> b = make_pair(recs.begin(), recs.end()); // recs.equal_range(NT(qname, qtype));
-  for(recmap_t::const_iterator i=b.first; i!= b.second; ++i) cerr<<(i->first.first)<<"/"<<(i->first.second)<<": "<<i->second->getZoneRepresentation()<<endl;
-  cerr<<"END"<<endl;
-  cerr<<"got "<<sigs.count(NT(qname,qtype))<<" related sigs"<<endl;
-  // typedef std::multimap<NT, RRSIGRecordContent >::const_iterator J;
-  // pair<J,J> c = sigs.equal_range(NT(qname, qtype));
-  // for(J i=c.first; i!= c.second; ++i) cerr<<(i->first.first)<<"/"<<(i->first.second)<<": "<<i->second.getZoneRepresentation()<<endl;
 
-  cerr<<"fetching keys for validation"<<endl;
-  pair<sigmap_t::const_iterator,sigmap_t::const_iterator> r = sigs.equal_range(NT(qname, qtype));
-  cerr<<"got "<<sigs.size()<<" sigs, "<<sigs.count(NT(qname, qtype))<<" match"<<endl;
-  for(sigmap_t::const_iterator i=r.first; i!=r.second; ++i)
+  if(qtype == QType::DNSKEY)
   {
-    RRSIGRecordContent rrc=i->second;
-    cerr<<"got RRSIG "<<(i->first.first)<<"/"<<(i->first.second)<<": "<<rrc.getZoneRepresentation()<<endl;
-    if(qname == stripDot(rrc.d_signer) && needDS)
-    {
-      cerr<<"finding upstream DS for "<<rrc.d_signer<<endl;
-      recmap_t ds=getAndVerify(tr, stripDot(rrc.d_signer), QType::DS, depth+1);
-      if(!ds.size())
-      {
-        cerr<<"no DS for "<<rrc.d_signer<<", giving up"<<endl;
-        cerr<<"returning empty (no DS) depth "<<depth<<endl;
-
-        // return vrecs;
-      }
-      else
-      {
-        pair<recmap_t::const_iterator,recmap_t::const_iterator> r = recs.equal_range(NT(qname, qtype));
-        cerr<<"got "<<recs.count(NT(qname, qtype))<<" DNSKEYs to check against DS"<<endl;
-        for(recmap_t::const_iterator i=r.first; i!=r.second; ++i)
-        {
-          DNSKEYRecordContent drc=dynamic_cast<DNSKEYRecordContent&> (*(i->second));
-          pair<recmap_t::const_iterator,recmap_t::const_iterator> r = ds.equal_range(NT(qname, QType::DS));
-          cerr<<"got "<<ds.count(NT(qname, QType::DS))<<" DSs to check against DNSKEY"<<endl;
-          for(recmap_t::const_iterator j=r.first; j!=r.second; ++j)
-          {
-            DSRecordContent dsrc=dynamic_cast<DSRecordContent&> (*(j->second));
-            cerr<<"need to check DNSKEY "<<drc.getTag()<<"/"<<" against DS "<<dsrc.d_tag<<endl;
-            cerr<<"DS from DNSKEY "<<makeDSFromDNSKey(qname, drc, dsrc.d_digesttype).getZoneRepresentation()<<endl;
-            cerr<<"DS content "<<dsrc.getZoneRepresentation()<<endl;
-            DSRecordContent dsrc2=makeDSFromDNSKey(qname, drc, dsrc.d_digesttype);
-            if(dsrc.d_tag == dsrc2.d_tag)
-            {
-              if(compareDS(dsrc, dsrc2))
-              {
-                cerr<<"DNSKEY verified against DS "<<dsrc.getZoneRepresentation()<<endl;
-                vrecs.insert(make_pair(NT(qname, qtype), i->second));
-              }
-              else
-              {
-                cerr<<"FAILED to match"<<endl;
-              }
-            }
-          }
-        }
-        cerr<<"returning "<<vrecs.size()<<" DS-verified DNSKEYs for "<<qname<<endl;
-        r = make_pair(vrecs.begin(), vrecs.end());
-        for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
-        {
-          cout<<i->first.first<<" "<<i->first.second<<" "<<i->second->getZoneRepresentation()<<endl;
-        }
-        cerr<<"END"<<endl;
-        // return vrecs;
-        // cerr<<"returning empty (no DS/DNSKEY match) at depth "<<depth<<endl;
-        // recs.clear();
-        // return recs;
-      }
-    }
-    else
-    {
-      cerr<<"finding DNSKEYs for "<<rrc.d_signer<<endl;
-      recmap_t keys=getAndVerify(tr, stripDot(rrc.d_signer), QType::DNSKEY, depth+1, qtype == QType::DNSKEY);
-      if(!keys.size())
-      {
-        cerr<<"returning empty (no DNSKEY for ["<<stripDot(rrc.d_signer)<<"]) at depth "<<depth<<endl;
-        // return vrecs;
-      }
-
-      vector<shared_ptr<DNSRecordContent> > toSign;
-      pair<recmap_t::const_iterator,recmap_t::const_iterator> r = recs.equal_range(NT(qname, qtype));
-      for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
-      {
-        toSign.push_back(i->second);
-      }
-
-      string msg=getMessageForRRSET(qname, rrc, toSign);
-
-      r = keys.equal_range(NT(stripDot(rrc.d_signer), QType::DNSKEY));
-
-      for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
-      {
-        DNSKEYRecordContent drc=dynamic_cast<DNSKEYRecordContent&> (*(i->second));
-        if(rrc.d_tag == drc.getTag())
-        {
-          if(DNSCryptoKeyEngine::makeFromPublicKeyString(drc.d_algorithm, drc.d_key)->verify(msg, rrc.d_signature))
-          {
-            cerr<<"RRSIG "<<rrc.getZoneRepresentation()<<" verified with DNSKEY "<<drc.getZoneRepresentation()<<endl;
-            for(vector<shared_ptr<DNSRecordContent> >::const_iterator i=toSign.begin(); i!=toSign.end(); i++)
-            {
-              vrecs.insert(make_pair(NT(qname, qtype), *i));
-            }
-            // return vrecs;
-          }
-          else
-          {
-            cerr<<"FAILED with DNSKEY "<<drc.getTag()<<endl;
-          }
-        }
-      }
-    }
+    cerr<<"got DNSKEYs, grabbing DSes"<<endl;
+    get(res, tr, qname, QType::DS, depth+1);
+    return;
   }
-  // cerr<<"signer is "<<rrc.d_signer<<endl;
-  // fetch DNSKEY
-  // MOADNSParser mdpDNSKEY(tr.query(rrc.d_signer, QType::DNSKEY));
-  cerr<<"returning "<<vrecs.size()<<" records at depth "<<depth<<endl;
-  return vrecs;
-}
 
+  if(signers.size())
+  {
+    cerr<<"got RRSIGs, getting DNSKEYs"<<endl;
+    for(set<string>::const_iterator i=signers.begin(); i!=signers.end(); ++i)
+    {
+      get(res, tr, *i, QType::DNSKEY, depth+1);
+    }
+    return;
+  }
+}
 
 int main(int argc, char** argv)
 try
@@ -290,14 +322,17 @@ try
   ComboAddress dest(argv[1] + (*argv[1]=='@'), atoi(argv[2]));
   TCPResolver tr(dest);
 
-  recmap_t recs=getAndVerify(tr, qname, qtype, 0);
-  cout<<"got "<<recs.size()<<" verified records"<<endl;
+  recmap_t recs;
+  cout<<"end state "<<states[getKeysFor(tr, qname)]<<endl;
+  // cout<<"got "<<recs.size()<<" unverified records"<<endl;
 
-  pair<recmap_t::const_iterator,recmap_t::const_iterator> r = make_pair(recs.begin(), recs.end());
-  for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
-  {
-    cout<<i->first.first<<" "<<DNSRecordContent::NumberToType(i->first.second)<<" "<<i->second->getZoneRepresentation()<<endl;
-  }
+  // pair<recmap_t::const_iterator,recmap_t::const_iterator> r = make_pair(recs.begin(), recs.end());
+  // for(recmap_t::const_iterator i=r.first; i!=r.second; i++)
+  // {
+  //   cout<<i->first.first<<" "<<DNSRecordContent::NumberToType(i->first.second)<<" "<<i->second->getZoneRepresentation()<<endl;
+  // }
+
+  // cout<<"verify result: "<<verify(recs, qname, qtype)<<endl;
   // // fetch requested result
   // MOADNSParser mdpA(tr.query(qname, qtype));
 
