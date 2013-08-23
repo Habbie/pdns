@@ -22634,9 +22634,38 @@ Now add TLSRecordContent::report() to <ulink url="http://wiki.powerdns.com/trac/
 	And that's it. For completeness, add TLSA and 52 to the QType enum in qtype.hh, which makes it easier to refer to the TLSA record in code if so required.
 </para>
   </sect1>
-
-
-
+  <sect1 id="validating-recursor"><title>Design of the validating recursor</title>
+  <para>
+    Please see the blog post for context.
+  </para>
+  <para>
+    The Recursor will be modified to behave like a security-aware resolver, meaning it understands the DO, CD and AD flags on questions, and will set these flags appropriately on responses.
+  </para>
+  <para>
+    Queries to the Recursor with DO set, regardless of CD and AD, will get
+    DNSSEC meta-data (RRSIG, NSEC[3]) returned exactly as the Recursor got them
+    from the auth (RFC4035 4.5). The response will have DO set. CD is invalid in responses, and the Recursor will never set AD in responses. This should mean that the Recursor mimics the behaviour of other validators when they get +DO +CD -AD queries.
+  </para>
+  <para>
+    The Validator keeps a set of TCP connections to the Recursor. These connections may be remote and there is no need to secure them in any way. TCP allows us to ignore response size issues. Questions from Validator to Recursor are always +DO +CD -AD. The Recursor ignores two of these flags, but other recursors need these flags to do what we expect from them (which is: be DNSSEC and EDNS aware while recursing, but do no validation, and give us what we need to validate on our end).
+  </para>
+  <para>
+    It may be useful to extend the Validator to drop +DO +CD when it knows a domain (and thus everything under it) is Insecure (NSEC[3] has told us a delegation was insecure) or Indeterminate (there is no applicable trust anchor). If we do this consistently, the Recursor can rely on our use of EDNS and/or +DO to decide whether to use EDNS/+DO in upstream queries, as secure delegations from Secure domains
+    should either yield validating results, or cause SERVFAIL.
+  </para>
+  <para>
+    +CD queries received by the Validator are proxied to the Recursor without any processing.
+  </para>
+  <para>
+    Because the Validator is always talking to a Recursor, a query (assume A www.example.com) will initially yield just the final auth response for that specific query (assume a positive response with one RRSIG). Because of this, the Validator will have to iterate upwards to find the whole DNSKEY/DS chain. If the whole chain is valid, this can be done strictly based on RRSIG Signer Names.
+  </para>
+  <para>
+    The first prototype did RRSIG and DS validation while iterating upwards, but it turns out this causes two problems. One, if there is no valid chain to the (root) anchor, we just spent a bunch of CPU doing crypto for no purpose. Two, even if validating while iterating upwards finds a broken security relation, there may be an Insecure delegation further upwards, meaning that even though we thought something was Bogus, we should consider it Insecure. Because of this, the Recursor iterates upwards to grab the whole RRSIG/DNSKEY/DS chain up to an anchor, falling back to per-label DS iteration (from anchor to leaf) if SERVFAILs are encountered due to pre-DNSSEC auths.
+  </para>
+  <para>
+    Only after enough data has been gathered, validation will begin at an anchor and iterate down until a useful conclusion has been reached. If there is no anchor, we do not iterate at all and consider our result Indeterminate. If there is an anchor and the whole path checks out, our result is Secure. If there is a proven insecure delegation in the path, we stop doing crypto and define our result as Insecure. Finally, if at any point while we our path down, so far, is Secure, we encounter validation issues, our result is Bogus and we return SERVFAIL.
+  </para>
+  </sect1>
   </appendix>
   <appendix id="backend-writers-guide"><title>Backend writers' guide</title>
     <para>
