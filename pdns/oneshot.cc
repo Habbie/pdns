@@ -146,7 +146,6 @@ vState getKeysFor(TCPResolver &tr, string zone)
   stringtok(labels, zone, ".");
 
   string qname="";
-  uint16_t qtype=QType::DNSKEY;
   typedef std::multimap<uint16_t, DSRecordContent> dsmap_t;
   dsmap_t dsmap;
   typedef std::multimap<uint16_t, DNSKEYRecordContent> keymap_t;
@@ -168,7 +167,8 @@ vState getKeysFor(TCPResolver &tr, string zone)
     vector<shared_ptr<DNSRecordContent> > toSign;
 
     keymap_t tkeymap; // tentative keys
-
+    keymap.clear();
+    
     // start of this iteration
     // we can trust that dsmap has valid DS records for qname
 
@@ -212,6 +212,7 @@ vState getKeysFor(TCPResolver &tr, string zone)
       }
     }
 
+    cerr<<"got "<<keymap.size()<<"/"<<tkeymap.size()<<" valid/tentative keys"<<endl;
     // these counts could be off if we somehow ended up with 
     // duplicate keys. Should switch to a type that prevents that.
     if(keymap.size() < tkeymap.size())
@@ -235,7 +236,7 @@ vState getKeysFor(TCPResolver &tr, string zone)
             break;
           }
         }
-        cerr<<"did not manage to validate DNSKEY set based on DS-validated KSK, only passing KSK on"<<endl;
+        if(!keymap.size()) cerr<<"did not manage to validate DNSKEY set based on DS-validated KSK, only passing KSK on"<<endl;
       }
     }
 
@@ -245,10 +246,67 @@ vState getKeysFor(TCPResolver &tr, string zone)
       state=Bogus;
       break;
     }
-    cerr<<"situation: we have one or more valid DNSKEYs; walking downwards to find DS"<<endl;
-    // FIXME: continue here
+    cerr<<"situation: we have one or more valid DNSKEYs for ["<<qname<<"]; walking downwards to find DS"<<endl;
+    do {
+      qname=stripDot(labels.back()+"."+qname);
+      labels.pop_back();
+      cerr<<"next name ["<<qname<<"], trying to get DS"<<endl;
 
-    break;
+      recs.clear();
+      sigs.clear();
+      dsmap_t tdsmap; // tentative DSes
+      dsmap.clear();
+      toSign.clear();
+
+      MOADNSParser mdp(tr.query(qname, QType::DS));
+
+      for(MOADNSParser::answers_t::const_iterator i=mdp.d_answers.begin(); i!=mdp.d_answers.end(); ++i) {
+        cerr<<"res "<<i->first.d_label<<"/"<<i->first.d_type<<endl;
+        if(stripDot(i->first.d_label) != qname)
+          continue;
+
+        if(i->first.d_type == QType::RRSIG)
+        {
+          RRSIGRecordContent rrc=dynamic_cast<RRSIGRecordContent&> (*(i->first.d_content));
+          if(rrc.d_type != QType::DS)
+            continue;
+          sigs.push_back(rrc);
+        }
+        else if(i->first.d_type == QType::DS)
+        {
+          DSRecordContent drc=dynamic_cast<DSRecordContent&> (*(i->first.d_content));
+          tdsmap.insert(make_pair(drc.d_tag, drc));
+          toSign.push_back(i->first.d_content);
+        }
+      }
+      cerr<<"got "<<tdsmap.size()<<" DS and "<<sigs.size()<<" sigs"<<endl;
+      if(tdsmap.size())
+      {
+        for(vector<RRSIGRecordContent>::const_iterator i=sigs.begin(); i!=sigs.end(); i++)
+        {
+          cerr<<"got sig for keytag "<<i->d_tag<<" matching "<<keymap.count(i->d_tag)<<" valid keys"<<endl;
+          string msg=getMessageForRRSET(qname, *i, toSign);
+          pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keymap.equal_range(i->d_tag);
+          for(keymap_t::const_iterator j=r.first; j!=r.second; j++) {
+            // cerr<<"validating msg ["<<makeHexDump(msg)<<"]"<<endl; //"/"<<j->second.d_key<<endl; //" against "<<i->d_signature<<endl;
+            if(DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature))
+            {
+              cerr<<"validation succeeded - whole DS set is valid"<<endl;
+              dsmap=tdsmap;
+              break;
+            }
+            else
+            {
+              cerr<<"validation failed?!"<<endl;
+            }
+          }
+        }
+        if(!dsmap.size())cerr<<"did not manage to validate DS set based on valid DNSKEYs"<<endl;
+      }
+    } while(!dsmap.size() && labels.size());
+
+    if(!labels.size()) exit(0);
+    // break;
   }
 
   return state;
@@ -317,7 +375,6 @@ try
   }
 
   string qname=argv[3];
-  uint16_t qtype=DNSRecordContent::TypeToNumber(argv[4]);
 
   ComboAddress dest(argv[1] + (*argv[1]=='@'), atoi(argv[2]));
   TCPResolver tr(dest);
