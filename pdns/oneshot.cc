@@ -17,6 +17,9 @@ const char *states[]={"Indeterminate", "Bogus", "Insecure", "Secure"};
 typedef std::pair<string,string> nsec3;
 typedef set<nsec3> nsec3set;
 
+typedef std::multimap<uint16_t, DNSKEYRecordContent> keymap_t;
+
+
 string nsec3Hash(const string &qname, const string &salt, unsigned int iters)
 {
   return toBase32Hex(hashQNameWithSalt(iters, salt, qname));
@@ -117,6 +120,22 @@ public:
   Socket *d_rsock;
 };
 
+// lifted from syncres with some changes
+struct RRIDComp
+{
+  bool operator()(const pair<string, QType>& a, const pair<string, QType>& b) const
+  {
+    if(pdns_ilexicographical_compare(a.first, b.first))
+      return true;
+    if(pdns_ilexicographical_compare(b.first, a.first))
+      return false;
+
+    return a.second < b.second;
+  }
+};
+
+typedef map<pair<string, QType>, set<shared_ptr<DNSRecordContent> >, RRIDComp > rrsetmap_t;
+
 typedef pair<string, uint16_t> NT; // Name/Type pair
 typedef std::multimap<NT, shared_ptr<DNSRecordContent> > recmap_t;
 typedef std::multimap<NT, RRSIGRecordContent> sigmap_t;
@@ -131,12 +150,41 @@ bool compareDS(DSRecordContent a, DSRecordContent b)
 }
 
 typedef pair<string, uint16_t> ZT; //Zonename/keyTag pair
-typedef std::multimap<ZT, DNSKEYRecordContent> keymap_t;
 // recmap_t g_recs; // fetched recs for full chain validation
 // keymap_t g_keys; // fetched keys
 // keymap_t g_vkeys; // validated keys
 
-vState getKeysFor(TCPResolver &tr, string zone)
+void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& validated, keymap_t& keys)
+{
+  for(rrsetmap_t::const_iterator i=rrsets.begin(); i!=rrsets.end(); i++)
+  {
+    cerr<<"validating "<<(i->first.first)<<"/"<<i->first.second.getName()<<endl;
+    pair<rrsetmap_t::const_iterator, rrsetmap_t::const_iterator> r = rrsigs.equal_range(make_pair(i->first.first, i->first.second));
+    for(rrsetmap_t::const_iterator j=r.first; j!=r.second; j++) {
+      for(set<shared_ptr<DNSRecordContent> >::const_iterator k=j->second.begin(); k!=j->second.end(); k++) {
+        vector<shared_ptr<DNSRecordContent> > toSign;
+        set<shared_ptr<DNSRecordContent> > rrs = rrsets[make_pair(stripDot(j->first.first), j->first.second)];
+        toSign.assign(rrs.begin(), rrs.end());
+
+        const RRSIGRecordContent rrc=dynamic_cast<const RRSIGRecordContent&> (*(*k));
+
+        if(!keys.count(rrc.d_tag)) continue;
+
+        string msg=getMessageForRRSET(j->first.first, rrc, toSign);
+        pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keys.equal_range(rrc.d_tag);
+        for(keymap_t::const_iterator l=r.first; l!=r.second; l++) {
+          if(DNSCryptoKeyEngine::makeFromPublicKeyString(l->second.d_algorithm, l->second.d_key)->verify(msg, rrc.d_signature)) {
+            validated[make_pair(stripDot(j->first.first), j->first.second)] = rrs;
+            cerr<<"valid"<<endl;
+            // FIXME: break out enough levels
+          }
+        }
+      }
+    }
+  }
+}
+
+vState getKeysFor(TCPResolver& tr, string zone)
 {
   vector<string> labels;
   vState state;
@@ -148,7 +196,6 @@ vState getKeysFor(TCPResolver &tr, string zone)
   string qname="";
   typedef std::multimap<uint16_t, DSRecordContent> dsmap_t;
   dsmap_t dsmap;
-  typedef std::multimap<uint16_t, DNSKEYRecordContent> keymap_t;
   keymap_t keymap;
   recmap_t recs;
 
@@ -260,52 +307,45 @@ vState getKeysFor(TCPResolver &tr, string zone)
 
       MOADNSParser mdp(tr.query(qname, QType::DS));
 
+      rrsetmap_t rrsets;
+      rrsetmap_t rrsigs;
+
       for(MOADNSParser::answers_t::const_iterator i=mdp.d_answers.begin(); i!=mdp.d_answers.end(); ++i) {
         cerr<<"res "<<i->first.d_label<<"/"<<i->first.d_type<<endl;
-        if(stripDot(i->first.d_label) != qname)
-          continue;
+        if(i->first.d_type == QType::OPT) continue;
 
-        if(i->first.d_type == QType::RRSIG)
-        {
-          RRSIGRecordContent rrc=dynamic_cast<RRSIGRecordContent&> (*(i->first.d_content));
-          if(rrc.d_type != QType::DS)
-            continue;
-          sigs.push_back(rrc);
+        if(i->first.d_type == QType::RRSIG) {
+          RRSIGRecordContent rrc = dynamic_cast<RRSIGRecordContent&> (*(i->first.d_content));
+          rrsigs[make_pair(stripDot(i->first.d_label),rrc.d_type)].insert(i->first.d_content);
         }
-        else if(i->first.d_type == QType::DS)
-        {
-          DSRecordContent drc=dynamic_cast<DSRecordContent&> (*(i->first.d_content));
-          tdsmap.insert(make_pair(drc.d_tag, drc));
-          toSign.push_back(i->first.d_content);
+        else {
+          rrsets[make_pair(stripDot(i->first.d_label),i->first.d_type)].insert(i->first.d_content);
         }
       }
-      cerr<<"got "<<tdsmap.size()<<" DS and "<<sigs.size()<<" sigs"<<endl;
-      if(tdsmap.size())
-      {
-        for(vector<RRSIGRecordContent>::const_iterator i=sigs.begin(); i!=sigs.end(); i++)
+
+      rrsetmap_t validrrsets;
+      validateWithKeySet(rrsets, rrsigs, validrrsets, keymap);
+
+      cerr<<"got "<<rrsets.count(make_pair(qname,QType::DS))<<" DS of which "<<validrrsets.count(make_pair(qname,QType::DS))<<" valid "<<endl;
+
+      pair<rrsetmap_t::const_iterator, rrsetmap_t::const_iterator> r = validrrsets.equal_range(make_pair(qname, QType::DS));
+      for(rrsetmap_t::const_iterator i=r.first; i!=r.second; i++) {
+        for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); j++)
         {
-          cerr<<"got sig for keytag "<<i->d_tag<<" matching "<<keymap.count(i->d_tag)<<" valid keys"<<endl;
-          string msg=getMessageForRRSET(qname, *i, toSign);
-          pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keymap.equal_range(i->d_tag);
-          for(keymap_t::const_iterator j=r.first; j!=r.second; j++) {
-            // cerr<<"validating msg ["<<makeHexDump(msg)<<"]"<<endl; //"/"<<j->second.d_key<<endl; //" against "<<i->d_signature<<endl;
-            if(DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature))
-            {
-              cerr<<"validation succeeded - whole DS set is valid"<<endl;
-              dsmap=tdsmap;
-              break;
-            }
-            else
-            {
-              cerr<<"validation failed?!"<<endl;
-            }
-          }
+          const DSRecordContent dsrc=dynamic_cast<const DSRecordContent&> (**j);
+          dsmap.insert(make_pair(dsrc.d_tag, dsrc));
         }
-        if(!dsmap.size())cerr<<"did not manage to validate DS set based on valid DNSKEYs"<<endl;
+      }
+      if(!dsmap.size()) {
+        cerr<<"no DS at this level, aborting, FIXME: check denial for bogus vs. insecure etc."<<endl;
+        exit(0);
       }
     } while(!dsmap.size() && labels.size());
 
-    if(!labels.size()) exit(0);
+    if(!labels.size()) {
+      cerr<<"ran out of labels, aborting"<<endl;
+      exit(0);
+    }
     // break;
   }
 
