@@ -11,11 +11,15 @@
 StatBag S;
 
 // 4033 5
+// FIXME: namespace this
 enum vState { Indeterminate, Bogus, Insecure, Secure };
-const char *states[]={"Indeterminate", "Bogus", "Insecure", "Secure"};
+const char *vStates[]={"Indeterminate", "Bogus", "Insecure", "Secure"};
 
-typedef std::pair<string,string> nsec3;
-typedef set<nsec3> nsec3set;
+// NSEC(3) results
+// FIXME: namespace this
+enum dState { NODATA, NXDOMAIN, ENT, INSECURE };
+const char *dStates[]={"nodata", "nxdomain", "empty non-terminal", "insecure (no-DS proof)"};
+
 
 typedef std::multimap<uint16_t, DNSKEYRecordContent> keymap_t;
 
@@ -25,39 +29,40 @@ string nsec3Hash(const string &qname, const string &salt, unsigned int iters)
   return toBase32Hex(hashQNameWithSalt(iters, salt, qname));
 }
 
-void proveOrDeny(const nsec3set &nsec3s, const string &qname, const string &salt, unsigned int iters, set<string> &proven, set<string> &denied)
-{
-  string hashed = nsec3Hash(qname, salt, iters);
 
-  // cerr<<"proveOrDeny(.., '"<<qname<<"', ..)"<<endl;
-  // cerr<<"hashed: "<<hashed<<endl;
-  for(nsec3set::const_iterator pos=nsec3s.begin(); pos != nsec3s.end(); ++pos) {
-    string base=(*pos).first;
-    string next=(*pos).second;
+// void proveOrDeny(const nsec3set &nsec3s, const string &qname, const string &salt, unsigned int iters, set<string> &proven, set<string> &denied)
+// {
+//   string hashed = nsec3Hash(qname, salt, iters);
 
-    if(hashed == base)
-    {
-      proven.insert(qname);
-      cout<<qname<<" ("<<hashed<<") proven by base of "<<base<<".."<<next<<endl;
-    }
-    if(hashed == next)
-    {
-      proven.insert(qname);
-      cout<<qname<<" ("<<hashed<<") proven by next of "<<base<<".."<<next<<endl;
-    }
-    if((hashed > base && hashed < next) ||
-       (next < base && (hashed < next || hashed > base)))
-    {
-      denied.insert(qname);
-      cout<<qname<<" ("<<hashed<<") denied by "<<base<<".."<<next<<endl;
-    }
-    if (base == next && base != hashed)
-    {
-      denied.insert(qname);
-      cout<<qname<<" ("<<hashed<<") denied by "<<base<<".."<<next<<endl;
-    }
-  }
-}
+//   // cerr<<"proveOrDeny(.., '"<<qname<<"', ..)"<<endl;
+//   // cerr<<"hashed: "<<hashed<<endl;
+//   for(nsec3set::const_iterator pos=nsec3s.begin(); pos != nsec3s.end(); ++pos) {
+//     string base=(*pos).first;
+//     string next=(*pos).second;
+
+//     if(hashed == base)
+//     {
+//       proven.insert(qname);
+//       cout<<qname<<" ("<<hashed<<") proven by base of "<<base<<".."<<next<<endl;
+//     }
+//     if(hashed == next)
+//     {
+//       proven.insert(qname);
+//       cout<<qname<<" ("<<hashed<<") proven by next of "<<base<<".."<<next<<endl;
+//     }
+//     if((hashed > base && hashed < next) ||
+//        (next < base && (hashed < next || hashed > base)))
+//     {
+//       denied.insert(qname);
+//       cout<<qname<<" ("<<hashed<<") denied by "<<base<<".."<<next<<endl;
+//     }
+//     if (base == next && base != hashed)
+//     {
+//       denied.insert(qname);
+//       cout<<qname<<" ("<<hashed<<") denied by "<<base<<".."<<next<<endl;
+//     }
+//   }
+// }
 
 class TCPResolver : public boost::noncopyable
 {
@@ -154,6 +159,47 @@ typedef pair<string, uint16_t> ZT; //Zonename/keyTag pair
 // keymap_t g_keys; // fetched keys
 // keymap_t g_vkeys; // validated keys
 
+// FIXME: needs a zone argument, to avoid things like 6840 4.1
+dState getDenial(rrsetmap_t &validrrsets, string qname, uint16_t qtype)
+{
+  std::multimap<string, NSEC3RecordContent> nsec3s;
+
+  for(rrsetmap_t::const_iterator i=validrrsets.begin(); i!=validrrsets.end(); ++i)
+  {
+    // FIXME also support NSEC
+    if(i->first.second != QType::NSEC3) continue;
+    
+    for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); ++j) {
+      NSEC3RecordContent ns3r = dynamic_cast<NSEC3RecordContent&> (**j);
+      // nsec3.insert(new nsec3()
+      // cerr<<toBase32Hex(r.d_nexthash)<<endl;
+      nsec3s.insert(make_pair(i->first.first, ns3r));
+    }
+  }
+  cerr<<"got "<<nsec3s.size()<<" NSEC3s"<<endl;
+  for(std::multimap<string,NSEC3RecordContent>::const_iterator i=nsec3s.begin(); i != nsec3s.end(); ++i) {
+      vector<string> parts;
+      // FIXME: should strip zone name instead of just finding first dot
+      boost::split(parts, i->first, boost::is_any_of("."));
+      string base=toLower(parts[0]);
+      string next=toLower(toBase32Hex(i->second.d_nexthash));
+      string salt = i->second.d_salt;
+      uint16_t iters = i->second.d_iterations;
+      string hashed = nsec3Hash(qname, salt, iters);
+      cerr<<base<<" .. ? "<<hashed<<" ? .. "<<next<<endl;
+      if(base==hashed) {
+        // positive name proof, need to check type
+        cerr<<"positive name proof, checking type bitmap"<<endl;
+        cerr<<"d_set.count("<<qtype<<": "<<i->second.d_set.count(qtype)<<endl;
+      } else if ((hashed > base && hashed < next) ||
+                (next < base && (hashed < next || hashed > base))) {
+        bool optout=(1 & i->second.d_flags);
+        cerr<<"negative name proof, optout = "<<optout<<endl;
+        if(qtype == QType::DS && optout) return INSECURE;
+      }
+  }
+}
+
 void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& validated, keymap_t& keys)
 {
   for(rrsetmap_t::const_iterator i=rrsets.begin(); i!=rrsets.end(); i++)
@@ -184,6 +230,12 @@ void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& vali
   }
 }
 
+// returns vState
+// should return vState, zone cut and validated keyset
+// i.e. www.7bits.nl -> insecure/7bits.nl/[]
+//      www.powerdnssec.org -> secure/powerdnssec.org/[keys]
+//      www.dnssec-failed.org -> bogus/dnssec-failed.org/[]
+
 vState getKeysFor(TCPResolver& tr, string zone)
 {
   vector<string> labels;
@@ -199,7 +251,7 @@ vState getKeysFor(TCPResolver& tr, string zone)
   keymap_t keymap;
   recmap_t recs;
 
-  state =  Secure;
+  state = Secure;
   while(qname.size() < zone.size())
   {
     if(qname == "")
@@ -337,8 +389,9 @@ vState getKeysFor(TCPResolver& tr, string zone)
         }
       }
       if(!dsmap.size()) {
-        cerr<<"no DS at this level, aborting, FIXME: check denial for bogus vs. insecure etc."<<endl;
-        exit(0);
+        cerr<<"no DS at this level, checking for denials"<<endl;
+        dState dres = getDenial(validrrsets, qname, QType::DS);
+        if(dres == INSECURE) return Insecure;
       }
     } while(!dsmap.size() && labels.size());
 
@@ -419,8 +472,9 @@ try
   ComboAddress dest(argv[1] + (*argv[1]=='@'), atoi(argv[2]));
   TCPResolver tr(dest);
 
-  recmap_t recs;
-  cout<<"end state "<<states[getKeysFor(tr, qname)]<<endl;
+
+
+  cout<<"end state "<<vStates[getKeysFor(tr, qname)]<<endl;
   // cout<<"got "<<recs.size()<<" unverified records"<<endl;
 
   // pair<recmap_t::const_iterator,recmap_t::const_iterator> r = make_pair(recs.begin(), recs.end());
