@@ -306,6 +306,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         if(compareDS(dsrc, dsrc2))
         {
           cerr<<"got valid DNSKEY"<<endl;
+          cout<<"    DS_"<<boost::replace_all_copy(qname, ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<" [ label = \""<<dsrc.d_tag<<"/"<<static_cast<int>(dsrc.d_digesttype)<<"\" ];"<<endl;
           keymap.insert(make_pair(drc.getTag(), drc));
         }
       }
@@ -331,6 +332,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
           if(DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature))
           {
             cerr<<"validation succeeded - whole DNSKEY set is valid"<<endl;
+            cout<<"    DNSKEY_"<<boost::replace_all_copy(stripDot(i->d_signer), ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<";"<<endl;
             keymap=tkeymap;
             break;
           }
@@ -352,6 +354,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
       return Secure;
     }
     cerr<<"walking downwards to find DS"<<endl;
+    string keyqname=qname;
     do {
       qname=stripDot(labels.back()+"."+qname);
       labels.pop_back();
@@ -392,6 +395,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         {
           const DSRecordContent dsrc=dynamic_cast<const DSRecordContent&> (**j);
           dsmap.insert(make_pair(dsrc.d_tag, dsrc));
+          cout<<"    DNSKEY_"<<boost::replace_all_copy(keyqname, ".", "_")<<" -> DS_"<<boost::replace_all_copy(qname, ".", "_")<<";"<<endl;
         }
       }
       if(!dsmap.size()) {
@@ -416,6 +420,8 @@ try
     cerr<<"Syntax: oneshot IP-address port question question-type\n";
     exit(EXIT_FAILURE);
   }
+
+  cout<<"digraph oneshot {"<<endl;
 
   string qname=argv[3];
   uint16_t qtype = DNSRecordContent::TypeToNumber(argv[4]);
@@ -463,6 +469,7 @@ try
   rrsetmap_t validrrsets;
   validateWithKeySet(rrsets, rrsigs, validrrsets, keys);
   cerr<<"now have "<<validrrsets.size()<<" out of "<<rrsets.size()<<endl;
+  cout<<"}"<<endl;
   exit(0);
 
   // cout<<"end state "<<vStates[getKeysFor(tr, qname)]<<endl;
