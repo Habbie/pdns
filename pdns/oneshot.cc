@@ -309,7 +309,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         if(compareDS(dsrc, dsrc2))
         {
           cerr<<"got valid DNSKEY"<<endl;
-          cout<<"    DS_"<<boost::replace_all_copy(qname, ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<" [ label = \""<<dsrc.d_tag<<"/"<<static_cast<int>(dsrc.d_digesttype)<<"\" ];"<<endl;
+          cout<<"    subgraph cluster_"<<boost::replace_all_copy(qname, ".", "_")<<" { DS_"<<boost::replace_all_copy(qname, ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<" [ label = \""<<dsrc.d_tag<<"/"<<static_cast<int>(dsrc.d_digesttype)<<"\" ]; label = \"zone: "<<qname<<"\"; }"<<endl;
           keymap.insert(make_pair(drc.getTag(), drc));
         }
       }
