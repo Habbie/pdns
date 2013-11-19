@@ -292,7 +292,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         toSign.push_back(i->first.d_content);
       }
     }
-    cerr<<"got "<<keymap.size()<<" keys and "<<sigs.size()<<" sigs"<<endl;
+    cerr<<"got "<<tkeymap.size()<<" keys and "<<sigs.size()<<" sigs"<<endl;
 
     for(dsmap_t::const_iterator i=dsmap.begin(); i!=dsmap.end(); i++)
     {
