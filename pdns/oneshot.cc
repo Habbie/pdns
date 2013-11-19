@@ -186,11 +186,12 @@ dState getDenial(rrsetmap_t &validrrsets, string qname, uint16_t qtype)
       string salt = i->second.d_salt;
       uint16_t iters = i->second.d_iterations;
       string hashed = nsec3Hash(qname, salt, iters);
-      cerr<<base<<" .. ? "<<hashed<<" ? .. "<<next<<endl;
+      cerr<<base<<" .. ? "<<hashed<<" ("<<qname<<") ? .. "<<next<<endl;
       if(base==hashed) {
         // positive name proof, need to check type
         cerr<<"positive name proof, checking type bitmap"<<endl;
-        cerr<<"d_set.count("<<qtype<<": "<<i->second.d_set.count(qtype)<<endl;
+        cerr<<"d_set.count("<<qtype<<"): "<<i->second.d_set.count(qtype)<<endl;
+        if(qtype == QType::DS && i->second.d_set.count(qtype) == 0) return INSECURE;
       } else if ((hashed > base && hashed < next) ||
                 (next < base && (hashed < next || hashed > base))) {
         bool optout=(1 & i->second.d_flags);
