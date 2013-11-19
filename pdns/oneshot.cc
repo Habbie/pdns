@@ -236,6 +236,8 @@ void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& vali
 //      www.powerdnssec.org -> secure/powerdnssec.org/[keys]
 //      www.dnssec-failed.org -> bogus/dnssec-failed.org/[]
 
+char *rootDS;
+
 vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
 {
   vector<string> labels;
@@ -256,9 +258,9 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
   {
     if(qname == "")
     {
-      DSRecordContent rootanchor=dynamic_cast<DSRecordContent&> (*(DNSRecordContent::mastermake(QType::DS, 1, "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5")));
+      DSRecordContent rootanchor=dynamic_cast<DSRecordContent&> (*(DNSRecordContent::mastermake(QType::DS, 1, rootDS)));
       dsmap.clear();
-      dsmap.insert(make_pair(19036, rootanchor));
+      dsmap.insert(make_pair(rootanchor.d_tag, rootanchor));
     }
   
     recs.clear();
@@ -297,7 +299,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
     for(dsmap_t::const_iterator i=dsmap.begin(); i!=dsmap.end(); i++)
     {
       DSRecordContent dsrc=i->second;
-      cerr<<"got DS with tag "<<dsrc.d_tag<<", got "<<tkeymap.count(i->first)<<" DNSKEYs for tag"<<endl;
+      cerr<<"got DS with tag "<<dsrc.d_tag<<"/"<<i->first<<", got "<<tkeymap.count(i->first)<<" DNSKEYs for tag"<<endl;
       pair<keymap_t::const_iterator, keymap_t::const_iterator> r = tkeymap.equal_range(i->first);
       for(keymap_t::const_iterator j=r.first; j!=r.second; j++)
       {
@@ -420,6 +422,11 @@ try
     cerr<<"Syntax: oneshot IP-address port question question-type\n";
     exit(EXIT_FAILURE);
   }
+
+  rootDS =  "19036 8 2 49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5";
+
+  if(argv[5])
+    rootDS = argv[5];
 
   cout<<"digraph oneshot {"<<endl;
 
