@@ -49,7 +49,7 @@ $ORIGIN .
     chdir("zones")
     ksk = check_output(['ldns-keygen', '-a', 'RSASHA256', '-k', myname or '.']).strip()
     zsk = check_output(['ldns-keygen', '-a', 'RSASHA256', myname or '.']).strip()
-    check_call(['ldns-signzone', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
+    check_call(['ldns-signzone', '-b', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
     chdir("..")
 
     conffile.write("""
