@@ -1,0 +1,5 @@
+/named.conf
+/pdns.conf
+/dnssec.sqlite3
+/rootDS
+/zones
