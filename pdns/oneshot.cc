@@ -461,21 +461,28 @@ try
   cerr<<"got "<<rrsigs.count(make_pair(qname, qtype))<<" applicable sigs"<<endl;
 
   keymap_t keys;
-
-  for(rrsetmap_t::const_iterator i=r.first; i!=r.second; i++) {
-    cerr<<"A"<<endl;
-    for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); j++)
-    {
-      cerr<<"B"<<endl;
-      const RRSIGRecordContent rrc=dynamic_cast<const RRSIGRecordContent&> (*(*j));
-      cerr<<"got rrsig "<<rrc.d_signer<<"/"<<rrc.d_tag<<endl;
-      vState state = getKeysFor(tr, rrc.d_signer, keys);
-      cerr<<"state = "<<vStates[state]<<", now have "<<keys.size()<<" keys"<<endl;
-      // dsmap.insert(make_pair(dsrc.d_tag, dsrc));
-    }
-  }
   rrsetmap_t validrrsets;
-  validateWithKeySet(rrsets, rrsigs, validrrsets, keys);
+
+  if(rrsigs.count(make_pair(qname, qtype))) {
+    for(rrsetmap_t::const_iterator i=r.first; i!=r.second; i++) {
+      cerr<<"A"<<endl;
+      for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); j++)
+      {
+        cerr<<"B"<<endl;
+        const RRSIGRecordContent rrc=dynamic_cast<const RRSIGRecordContent&> (*(*j));
+        cerr<<"got rrsig "<<rrc.d_signer<<"/"<<rrc.d_tag<<endl;
+        vState state = getKeysFor(tr, rrc.d_signer, keys);
+        cerr<<"state = "<<vStates[state]<<", now have "<<keys.size()<<" keys"<<endl;
+        // dsmap.insert(make_pair(dsrc.d_tag, dsrc));
+      }
+    }
+    validateWithKeySet(rrsets, rrsigs, validrrsets, keys);
+  }
+  else {
+    cerr<<"no sigs, hoping for Insecure"<<endl;
+    vState state = getKeysFor(tr, qname, keys);
+    cerr<<"state = "<<vStates[state]<<", now have "<<keys.size()<<" keys"<<endl;
+  }
   cerr<<"now have "<<validrrsets.size()<<" out of "<<rrsets.size()<<endl;
   cout<<"}"<<endl;
   exit(0);
