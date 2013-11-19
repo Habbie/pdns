@@ -1,0 +1,2 @@
+#!/bin/sh
+exec ../pdns/oneshot 127.0.0.1 5300 $1 $2 "$(cat rootDS)"
