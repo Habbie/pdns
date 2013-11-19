@@ -39,10 +39,9 @@ $ORIGIN .
 """ % dict(myname=myname or '.'))
 
     for next in FLAVORS:
-        dsset = genzone(myname, next, depth+1, conffile)
-        if dsset:
-            if next != 'nods':
-                f.write('\n'.join(dsset)+'\n')
+        delegation = genzone(myname, next, depth+1, conffile)
+        if delegation:
+            f.write('\n'.join(delegation)+'\n')
 
     f.close()
 
@@ -65,7 +64,14 @@ zone "%(zone)s"{
         with open('rootDS', 'w') as f:
             f.write(open('zones/%s.ds' % ksk).read().strip().split('\t')[3])
 
-    return [open('zones/%s.ds' % ksk).read().strip()]
+    delegation = ["%(myname)s   86400   IN NS  %(myname)s" % dict(myname=myname or '.'),
+                  "%(myname)s   86400   IN A   127.0.0.127" % dict(myname=myname or '.')]
+
+    if flavor != 'nods':
+        delegation.append(open('zones/%s.ds' % ksk).read().strip())
+
+    return delegation
+
 
 if __name__ == '__main__':
     try:
