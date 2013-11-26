@@ -58,7 +58,7 @@ zone "%(zone)s"{
 };
 """ % dict(zone = myname or '.', fbase = myname or 'ROOT'))
 
-    check_call(['../pdns/pdnssec', '--config-dir=.', 'set-presigned', myname])
+    # check_call(['../pdns/pdnssec', '--config-dir=.', 'set-presigned', myname])
 
     if myname == '':
         with open('rootDS', 'w') as f:
@@ -86,7 +86,7 @@ launch=bind
 bind-dnssec-db=./dnssec.sqlite3
 bind-config=./named.conf
 """)
-    check_call(['../pdns/pdnssec', '--config-dir=.', 'create-bind-db', 'dnssec.sqlite3'])
+    # check_call(['../pdns/pdnssec', '--config-dir=.', 'create-bind-db', 'dnssec.sqlite3'])
     conffile = open('named.conf', 'w')
     genzone(BASE, '', 0, conffile)
     conffile.close()
