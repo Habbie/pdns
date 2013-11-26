@@ -201,6 +201,36 @@ dState getDenial(rrsetmap_t &validrrsets, string qname, uint16_t qtype)
   }
 }
 
+string dotEscape(string name)
+{
+  return "\"" + boost::replace_all_copy(name, "\"", "\\\"") + "\"";
+}
+
+string dotName(string type, string name, string tag)
+{
+  if(tag == "")
+    return type+" "+name;
+  else
+    return type+" "+name+"/"+tag;
+}
+void dotNode(string type, string name, string tag, string content)
+{
+  cout<<"    "
+      <<dotEscape(dotName(type, name, tag))
+      <<" [ label="<<dotEscape(dotName(type, name, tag)+"\\n"+content)<<" ];"<<endl;
+}
+
+void dotEdge(string zone, string type1, string name1, string tag1, string type2, string name2, string tag2)
+{
+  cout<<"    ";
+  if(zone != "") cout<<"subgraph "<<dotEscape("cluster "+stripDot(zone))<<" { ";
+  cout<<dotEscape(dotName(type1, name1, tag1))
+      <<" -> "
+      <<dotEscape(dotName(type2, name2, tag2))<<"; ";
+  if(zone != "") cout<<"label = "<<dotEscape("zone: "+zone)<<";"<<"}";
+  cout<<endl;
+}
+
 void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& validated, keymap_t& keys)
 {
   for(rrsetmap_t::const_iterator i=rrsets.begin(); i!=rrsets.end(); i++)
@@ -223,6 +253,11 @@ void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& vali
           if(DNSCryptoKeyEngine::makeFromPublicKeyString(l->second.d_algorithm, l->second.d_key)->verify(msg, rrc.d_signature)) {
             validated[make_pair(stripDot(j->first.first), j->first.second)] = rrs;
             cerr<<"valid"<<endl;
+            if(rrc.d_type != QType::DNSKEY) {
+              dotEdge(rrc.d_signer,
+                      "DNSKEY", stripDot(rrc.d_signer), lexical_cast<string>(rrc.d_tag),
+                      DNSRecordContent::NumberToType(rrc.d_type), j->first.first, "");
+            }
             // FIXME: break out enough levels
           }
         }
@@ -267,6 +302,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
     recs.clear();
     vector<RRSIGRecordContent> sigs;
     vector<shared_ptr<DNSRecordContent> > toSign;
+    vector<uint16_t> toSignTags;
 
     keymap_t tkeymap; // tentative keys
     keymap.clear();
@@ -292,7 +328,10 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
       {
         DNSKEYRecordContent drc=dynamic_cast<DNSKEYRecordContent&> (*(i->first.d_content));
         tkeymap.insert(make_pair(drc.getTag(), drc));
+        dotNode("DNSKEY", qname, lexical_cast<string>(drc.getTag()), (boost::format("tag=%d, algo=%d") % drc.getTag() % static_cast<int>(drc.d_algorithm)).str());
+
         toSign.push_back(i->first.d_content);
+        toSignTags.push_back(drc.getTag());
       }
     }
     cerr<<"got "<<tkeymap.size()<<" keys and "<<sigs.size()<<" sigs"<<endl;
@@ -309,7 +348,10 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         if(compareDS(dsrc, dsrc2))
         {
           cerr<<"got valid DNSKEY"<<endl;
-          cout<<"    subgraph cluster_"<<boost::replace_all_copy(qname, ".", "_")<<" { DS_"<<boost::replace_all_copy(qname, ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<" [ label = \""<<dsrc.d_tag<<"/"<<static_cast<int>(dsrc.d_digesttype)<<"\" ]; label = \"zone: "<<qname<<"\"; }"<<endl;
+          // cout<<"    subgraph "<<dotEscape("cluster "+qname)<<" { "<<dotEscape("DS "+qname)<<" -> "<<dotEscape("DNSKEY "+qname)<<" [ label = \""<<dsrc.d_tag<<"/"<<static_cast<int>(dsrc.d_digesttype)<<"\" ]; label = \"zone: "<<qname<<"\"; }"<<endl;
+          dotEdge("", "DS", qname, "" /*lexical_cast<string>(dsrc.d_tag)*/, "DNSKEY", qname, lexical_cast<string>(drc.getTag()));
+          dotNode("DS", qname, "" /*lexical_cast<string>(dsrc.d_tag)*/, (boost::format("tag=%d, digest algo=%d, algo=%d") % dsrc.d_tag % static_cast<int>(dsrc.d_digesttype) % static_cast<int>(dsrc.d_algorithm)).str());
+          // dotNode("DNSKEY", qname, (boost::format("tag=%d, algo=%d") % drc.getTag() % static_cast<int>(drc.d_algorithm)).str());
           keymap.insert(make_pair(drc.getTag(), drc));
         }
       }
@@ -335,7 +377,12 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
           if(DNSCryptoKeyEngine::makeFromPublicKeyString(j->second.d_algorithm, j->second.d_key)->verify(msg, i->d_signature))
           {
             cerr<<"validation succeeded - whole DNSKEY set is valid"<<endl;
-            cout<<"    DNSKEY_"<<boost::replace_all_copy(stripDot(i->d_signer), ".", "_")<<" -> DNSKEY_"<<boost::replace_all_copy(qname, ".", "_")<<";"<<endl;
+            // cout<<"    "<<dotEscape("DNSKEY "+stripDot(i->d_signer))<<" -> "<<dotEscape("DNSKEY "+qname)<<";"<<endl;
+            BOOST_FOREACH(uint16_t tag, toSignTags) {
+              dotEdge(qname,
+                      "DNSKEY", qname, lexical_cast<string>(i->d_tag),
+                      "DNSKEY", qname, lexical_cast<string>(tag));
+            }
             keymap=tkeymap;
             break;
           }
@@ -368,6 +415,7 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
       dsmap_t tdsmap; // tentative DSes
       dsmap.clear();
       toSign.clear();
+      toSignTags.clear();
 
       MOADNSParser mdp(tr.query(qname, QType::DS));
 
@@ -398,7 +446,10 @@ vState getKeysFor(TCPResolver& tr, string zone, keymap_t &keyset)
         {
           const DSRecordContent dsrc=dynamic_cast<const DSRecordContent&> (**j);
           dsmap.insert(make_pair(dsrc.d_tag, dsrc));
-          cout<<"    DNSKEY_"<<boost::replace_all_copy(keyqname, ".", "_")<<" -> DS_"<<boost::replace_all_copy(qname, ".", "_")<<";"<<endl;
+          // dotEdge(keyqname,
+          //         "DNSKEY", keyqname, ,
+          //         "DS", qname, lexical_cast<string>(dsrc.d_tag));
+          // cout<<"    "<<dotEscape("DNSKEY "+keyqname)<<" -> "<<dotEscape("DS "+qname)<<";"<<endl;
         }
       }
       if(!dsmap.size()) {
