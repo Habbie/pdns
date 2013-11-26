@@ -5,15 +5,17 @@ from shutil import rmtree
 
 # BASE = 'bad-dnssec.example.net'
 BASE = ''
-DEPTH = 4
-FLAVORS = [
-    'ok',
-    # 'bogussig',
-    'nods',
-    # 'sigexpired',
-    # 'signotincepted',
-    # 'unknownalgorithm'
-]
+DEPTH = 2
+FLAVORS = []
+
+for f in ['ok',
+          'bogussig',
+          'nods',
+          'sigexpired',
+          'signotincepted',
+          'unknownalgorithm']:
+    for n in ['nsec1', 'nsec3']:
+        FLAVORS.append('%s-%s' % (f,n))
 
 def genzone(name, flavor, depth, conffile):
     if depth > DEPTH:
@@ -48,7 +50,10 @@ $ORIGIN .
     chdir("zones")
     ksk = check_output(['ldns-keygen', '-a', 'RSASHA256', '-k', myname or '.']).strip()
     zsk = check_output(['ldns-keygen', '-a', 'RSASHA256', myname or '.']).strip()
-    check_call(['ldns-signzone', '-b', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
+    signflags = []
+    if 'nsec3' in flavor:
+        signflags.append('-n')
+    check_call(['ldns-signzone']+signflags+['-b', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
     chdir("..")
 
     conffile.write("""
@@ -67,7 +72,7 @@ zone "%(zone)s"{
     delegation = ["%(myname)s   86400   IN NS  %(myname)s" % dict(myname=myname or '.'),
                   "%(myname)s   86400   IN A   127.0.0.127" % dict(myname=myname or '.')]
 
-    if flavor != 'nods':
+    if 'nods' not in flavor:
         delegation.append(open('zones/%s.ds' % ksk).read().strip())
 
     return delegation
