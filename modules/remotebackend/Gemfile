@@ -1,9 +1,4 @@
 source "https://rubygems.org"
 
-group :http do
-   gem "webrick"
-end
-
-group :zeromq do
-  gem "zeromqrb"
-end
+gem "webrick"
+gem "zeromqrb"
