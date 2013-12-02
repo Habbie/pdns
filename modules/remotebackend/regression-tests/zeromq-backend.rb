@@ -1,6 +1,8 @@
 #!/usr/bin/ruby1.9.1
 
-require 'rubygems'
+#!/usr/bin/env ruby
+require "rubygems"
+require 'bundler/setup'
 require 'json'
 require 'zero_mq'
 require '../modules/remotebackend/regression-tests/backend'
