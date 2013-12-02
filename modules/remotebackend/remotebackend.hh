@@ -92,6 +92,7 @@ class ZeroMQConnector: public Connector {
     void connect();
     std::string d_endpoint;
     int d_timeout;
+    int d_timespent;
     std::map<std::string,std::string> d_options;
     zmq::context_t d_ctx;
     zmq::socket_t d_sock;

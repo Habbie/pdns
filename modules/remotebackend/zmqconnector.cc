@@ -60,8 +60,9 @@ int ZeroMQConnector::send_message(const rapidjson::Document &input) {
      zmq_pollitem_t item;
      item.socket = d_sock;
      item.events = ZMQ_POLLOUT;
-     // poll until it's sent or timeout reached
-     for(int loops = 0; loops < d_timeout; loops++) {
+     // poll until it's sent or timeout is spent. if we spend all timeout
+     // doesn't really matter if any is left for read.
+     for(d_timespent = 0; d_timespent < d_timeout; d_timespent++) {
        if (zmq::poll(&item, 1, 1000)>0) {
          if (d_sock.send(message, 0) == false) {
            // message was not sent
@@ -90,8 +91,10 @@ int ZeroMQConnector::recv_message(rapidjson::Document &output) {
    item.events = ZMQ_POLLIN;
 
    try {
-     // do zmq::poll few times
-     for(int loops = 0; loops < d_timeout; loops++) {
+     // do zmq::poll few times 
+     // d_timespent should always be initialized by send_message, recv should never
+     // be called without send first.
+     for(; d_timespent < d_timeout; d_timespent++) {
        if (zmq::poll(&item, 1, 1000)>0) {
          // we have an event
          if ((item.revents & ZMQ_POLLIN) == ZMQ_POLLIN) {
