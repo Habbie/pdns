@@ -10,6 +10,9 @@
 #include "rapidjson/writer.h"
 
 ZeroMQConnector::ZeroMQConnector(std::map<std::string,std::string> options) : d_ctx(1), d_sock(d_ctx, ZMQ_REQ)  {
+  rapidjson::Value val;
+  rapidjson::Document init,res;
+
   // lookup timeout, target and stuff
   if (options.count("endpoint") == 0) {
     L<<Logger::Error<<"Cannot find 'endpoint' option in connection string"<<endl;
@@ -24,6 +27,23 @@ ZeroMQConnector::ZeroMQConnector(std::map<std::string,std::string> options) : d_
   }
 
   d_sock.connect(d_endpoint.c_str());
+
+  init.SetObject();
+  val = "initialize";
+
+  init.AddMember("method",val, init.GetAllocator());
+  val.SetObject();
+  init.AddMember("parameters", val, init.GetAllocator());
+
+  for(std::map<std::string,std::string>::iterator i = options.begin(); i != options.end(); i++) {
+    val = i->second.c_str();
+    init["parameters"].AddMember(i->first.c_str(), val, init.GetAllocator());
+  }
+
+  this->send(init);
+  if (this->recv(res)==false) {
+    L<<Logger::Error<<"Failed to initialize zeromq"<<std::endl;
+  } 
 };
 
 ZeroMQConnector::~ZeroMQConnector() {
