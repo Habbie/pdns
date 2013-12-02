@@ -15,6 +15,8 @@ begin
   socket.setsockopt(ZMQ::HWM, 1000)
   socket.bind("ipc:///tmp/pdns.0")
  
+  print "[#{Time.now.to_s}] ZeroMQ unit test responder running\n"
+
   while(true) do
     line = ""
     rc = socket.recv_string line
@@ -44,3 +46,5 @@ begin
   end
 rescue SystemExit, Interrupt
 end
+
+print "[#{Time.now.to_s}] ZeroMQ unit test responder ended\n"
