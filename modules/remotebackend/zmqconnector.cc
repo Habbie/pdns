@@ -51,6 +51,7 @@ int ZeroMQConnector::send_message(const rapidjson::Document &input) {
          break;
        }
      }
+     return 0; // guess we couldn't send it
    } catch (std::exception &ex) {
      L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << ex.what();
      throw new PDNSException(ex.what());
