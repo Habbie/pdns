@@ -53,6 +53,8 @@ function stop_zeromq() {
      if [ $? -ne 0 ]; then break; fi
      let i=i+1
    done
+   kill -0 $zeromq_pid 2>/dev/null
+   if [ $? -eq 0 ]; then kill -9 $zeromq_pid; fi
  fi
 }
 
