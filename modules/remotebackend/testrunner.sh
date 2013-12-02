@@ -36,18 +36,20 @@ function stop_web() {
 function start_zeromq() {
   if [ x"$REMOTEBACKEND_ZEROMQ" == "xyes" ]; then
    ./unittest_zeromq.rb &
-   zreromq_pid=$!
+   zeromq_pid=$!
+   # need to wait a moment
+   sleep 5
   fi
 }
 
 function stop_zeromq() {
- if [ ! -z "$zeromqrick_pid" ]; then
-   kill -TERM $zeromqrick_pid
+ if [ ! -z "$zeromq_pid" ]; then
+   kill -TERM $zeromq_pid
    # wait a moment for it to die
    i=0
    while [ $i -lt 5 ]; do
      sleep 1
-     kill -0 $zeromqrick_pid 2>/dev/null
+     kill -0 $zeromq_pid 2>/dev/null
      if [ $? -ne 0 ]; then break; fi
      let i=i+1
    done
