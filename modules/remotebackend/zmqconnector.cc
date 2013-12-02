@@ -60,9 +60,9 @@ int ZeroMQConnector::send_message(const rapidjson::Document &input) {
      zmq_pollitem_t item;
      item.socket = d_sock;
      item.events = ZMQ_POLLOUT;
-     // poll until it's sent or timeout is spent. if we spend all timeout
-     // doesn't really matter if any is left for read.
-     for(d_timespent = 0; d_timespent < d_timeout; d_timespent++) {
+     // poll until it's sent or timeout is spent. try to leave 
+     // leave few cycles for read. just in case. 
+     for(d_timespent = 0; d_timespent < d_timeout-5; d_timespent++) {
        if (zmq::poll(&item, 1, 1000)>0) {
          if (d_sock.send(message, 0) == false) {
            // message was not sent
