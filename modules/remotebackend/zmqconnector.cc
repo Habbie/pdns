@@ -37,16 +37,20 @@ int ZeroMQConnector::send_message(const rapidjson::Document &input) {
    reinterpret_cast<char*>(message.data())[line.size()]=0;
 
    try {
-     if (d_sock.send(message, 0) == false) {
-         // message was not sent
-         L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << errno;
-         return 0;
-     }
-     // do a really fast poll here, otherwise the message is not sent
      zmq_pollitem_t item;
      item.socket = d_sock;
      item.events = ZMQ_POLLOUT;
-     zmq::poll(&item, 1, 500);
+     // poll until it's sent or timeout reached
+     for(int loops = 0; loops < d_timeout; loops++) {
+       if (zmq::poll(&item, 1, 1000)>0) {
+         if (d_sock.send(message, 0) == false) {
+           // message was not sent
+           L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << errno;
+           return 0;
+         }
+         break;
+       }
+     }
    } catch (std::exception &ex) {
      L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << ex.what();
      throw new PDNSException(ex.what());
