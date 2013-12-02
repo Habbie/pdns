@@ -68,16 +68,15 @@ int ZeroMQConnector::send_message(const rapidjson::Document &input) {
            L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << errno;
            return 0;
          }
-         break;
+         return line.size();
        }
      }
-     return 0; // guess we couldn't send it
    } catch (std::exception &ex) {
      L<<Logger::Error<<"Cannot send to " << this->d_endpoint << ": " << ex.what();
      throw new PDNSException(ex.what());
    }
 
-   return line.size();
+   return 0;
 }
 
 int ZeroMQConnector::recv_message(rapidjson::Document &output) {
