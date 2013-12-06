@@ -89,11 +89,13 @@ extern StatBag S;
 #endif
 
 vector<ComboAddress> g_localaddresses; // not static, our unit tests need to poke this
+pthread_mutex_t localaddresses_lock=PTHREAD_MUTEX_INITIALIZER;
 
 void UDPNameserver::bindIPv4()
 {
   vector<string>locals;
   stringtok(locals,::arg()["local-address"]," ,");
+  int one = 1;
 
   if(locals.empty())
     throw PDNSException("No local address specified");
@@ -116,15 +118,22 @@ void UDPNameserver::bindIPv4()
     memset(&locala,0,sizeof(locala));
     locala.sin4.sin_family=AF_INET;
 
-    if(localname=="0.0.0.0") {
-      int val=1;
-      setsockopt(s, IPPROTO_IP, GEN_IP_PKTINFO, &val, sizeof(val));
-    }
+    if(localname=="0.0.0.0")
+      setsockopt(s, IPPROTO_IP, GEN_IP_PKTINFO, &one, sizeof(one));
+
+#ifdef SO_REUSEPORT
+    if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
+      d_can_reuseport = false;
+#endif
+
     locala=ComboAddress(localname, ::arg().asNum("local-port"));
     if(locala.sin4.sin_family != AF_INET) 
       throw PDNSException("Attempting to bind IPv4 socket to IPv6 address");
 
+    pthread_mutex_lock(&localaddresses_lock);
     g_localaddresses.push_back(locala);
+    pthread_mutex_unlock(&localaddresses_lock);
+
     if(::bind(s, (sockaddr*)&locala, locala.getSocklen()) < 0) {
       L<<Logger::Error<<"binding UDP socket to '"+locala.toStringWithPort()+": "<<strerror(errno)<<endl;
       throw PDNSException("Unable to bind to UDP socket");
@@ -188,6 +197,7 @@ void UDPNameserver::bindIPv6()
 #if HAVE_IPV6
   vector<string> locals;
   stringtok(locals,::arg()["local-ipv6"]," ,");
+  int one=1;
 
   if(locals.empty())
     return;
@@ -208,11 +218,16 @@ void UDPNameserver::bindIPv6()
     ComboAddress locala(localname, ::arg().asNum("local-port"));
     
     if(IsAnyAddress(locala)) {
-      int val=1;
-      setsockopt(s, IPPROTO_IP, GEN_IP_PKTINFO, &val, sizeof(val));     // linux supports this, so why not - might fail on other systems
-      setsockopt(s, IPPROTO_IPV6, IPV6_RECVPKTINFO, &val, sizeof(val)); 
-      setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &val, sizeof(val));      // if this fails, we report an error in tcpreceiver too
+      setsockopt(s, IPPROTO_IP, GEN_IP_PKTINFO, &one, sizeof(one));     // linux supports this, so why not - might fail on other systems
+      setsockopt(s, IPPROTO_IPV6, IPV6_RECVPKTINFO, &one, sizeof(one)); 
+      setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, &one, sizeof(one));      // if this fails, we report an error in tcpreceiver too
     }
+
+#ifdef SO_REUSEPORT
+    if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
+      d_can_reuseport = false;
+#endif
+
     g_localaddresses.push_back(locala);
     if(::bind(s, (sockaddr*)&locala, sizeof(locala))<0) {
       L<<Logger::Error<<"binding to UDP ipv6 socket: "<<strerror(errno)<<endl;
@@ -232,6 +247,10 @@ void UDPNameserver::bindIPv6()
 
 UDPNameserver::UDPNameserver()
 {
+#ifdef SO_REUSEPORT
+  d_can_reuseport = true;
+#endif
+
   if(!::arg()["local-address"].empty())
     bindIPv4();
   if(!::arg()["local-ipv6"].empty())
