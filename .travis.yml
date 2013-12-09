@@ -15,7 +15,7 @@ script:
  - ./configure --with-modules='remote' --enable-unit-tests --enable-remotebackend-zeromq
  - make dist
  - make -j 4
- - #make -j 4 check
+ - make -j 4 check
  - cd modules/remotebackend
  - make test_remotebackend_zeromq
  - env REMOTEBACKEND_ZEROMQ=yes ./testrunner.sh test_remotebackend_zeromq
