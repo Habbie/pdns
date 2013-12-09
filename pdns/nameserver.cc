@@ -107,8 +107,10 @@ void UDPNameserver::bindIPv4()
 
     s=socket(AF_INET,SOCK_DGRAM,0);
 
-    if(s<0)
+    if(s<0) {
+      L<<Logger::Error<<"Unable to acquire a UDP socket: "+string(strerror(errno)) << endl;
       throw PDNSException("Unable to acquire a UDP socket: "+string(strerror(errno)));
+    }
   
     Utility::setCloseOnExec(s);
   
@@ -122,17 +124,17 @@ void UDPNameserver::bindIPv4()
       setsockopt(s, IPPROTO_IP, GEN_IP_PKTINFO, &one, sizeof(one));
 
 #ifdef SO_REUSEPORT
-    if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
-      d_can_reuseport = false;
+    if( d_can_reuseport )
+        if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
+          d_can_reuseport = false;
 #endif
 
     locala=ComboAddress(localname, ::arg().asNum("local-port"));
     if(locala.sin4.sin_family != AF_INET) 
       throw PDNSException("Attempting to bind IPv4 socket to IPv6 address");
 
-    pthread_mutex_lock(&localaddresses_lock);
-    g_localaddresses.push_back(locala);
-    pthread_mutex_unlock(&localaddresses_lock);
+    if( !d_additional_socket )
+        g_localaddresses.push_back(locala);
 
     if(::bind(s, (sockaddr*)&locala, locala.getSocklen()) < 0) {
       L<<Logger::Error<<"binding UDP socket to '"+locala.toStringWithPort()+": "<<strerror(errno)<<endl;
@@ -207,8 +209,10 @@ void UDPNameserver::bindIPv6()
     string localname(*i);
 
     s=socket(AF_INET6,SOCK_DGRAM,0);
-    if(s<0)
+    if(s<0) {
+      L<<Logger::Error<<"Unable to acquire a UDPv6 socket: "+string(strerror(errno)) << endl;
       throw PDNSException("Unable to acquire a UDPv6 socket: "+string(strerror(errno)));
+    }
 
     Utility::setCloseOnExec(s);
     if(!Utility::setNonBlocking(s))
@@ -224,11 +228,13 @@ void UDPNameserver::bindIPv6()
     }
 
 #ifdef SO_REUSEPORT
-    if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
-      d_can_reuseport = false;
+    if( d_can_reuseport )
+        if( setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) )
+          d_can_reuseport = false;
 #endif
 
-    g_localaddresses.push_back(locala);
+    if( !d_additional_socket )
+        g_localaddresses.push_back(locala);
     if(::bind(s, (sockaddr*)&locala, sizeof(locala))<0) {
       L<<Logger::Error<<"binding to UDP ipv6 socket: "<<strerror(errno)<<endl;
       throw PDNSException("Unable to bind to UDP ipv6 socket");
@@ -245,11 +251,13 @@ void UDPNameserver::bindIPv6()
 #endif
 }
 
-UDPNameserver::UDPNameserver()
+UDPNameserver::UDPNameserver( bool additional_socket )
 {
 #ifdef SO_REUSEPORT
-  d_can_reuseport = true;
+  d_can_reuseport = ::arg().mustDo("reuseport");
 #endif
+  // Are we the main socket (false) or a rebinding using SO_REUSEPORT ?
+  d_additional_socket = additional_socket;
 
   if(!::arg()["local-address"].empty())
     bindIPv4();
