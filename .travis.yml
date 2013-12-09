@@ -16,7 +16,7 @@ before_script:
  - cd ../..
 script:
  - ./bootstrap
- - ./configure --with-modules='remote' --enable-unit-tests --enable-tools --enable-remotebackend-zeromq
+ - ./configure --with-modules='remote' --enable-unit-tests --enable-remotebackend-zeromq
  - make dist
  - make -j 4
  - make -j 4 check
