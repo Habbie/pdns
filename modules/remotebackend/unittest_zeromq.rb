@@ -16,6 +16,7 @@ begin
   socket.bind("tcp://127.0.0.1:43622")
  
   print "[#{Time.now.to_s}] ZeroMQ unit test responder running\n"
+  exit 1
 
   while(true) do
     line = ""
