@@ -1,7 +1,6 @@
 language: cpp
 compiler:
   - gcc
-  - clang
 before_script:
  - sudo rm /etc/apt/sources.list.d/travis_ci_zeromq3-source.list
  - sudo apt-get update
@@ -17,47 +16,14 @@ before_script:
  - cd ../..
 script:
  - ./bootstrap
- - ./configure --with-modules='bind gmysql gpgsql gsqlite3 mydns tinydns remote random' --enable-unit-tests --enable-remotebackend-http --enable-tools --enable-remotebackend-zeromq
+ - ./configure --with-modules='remote' --enable-unit-tests --enable-tools --enable-remotebackend-zeromq
  - make dist
  - make -j 4
  - make -j 4 check
- - cd pdns
- - make -j 4 pdns_recursor
- - ./dist-recursor
- - cd docs
- - make
  - cd ../../regression-tests
  - touch verify-dnssec-zone/allow-missing
- - ./start-test-stop 5300 bind-both
- - ./start-test-stop 5300 bind-dnssec-both
- - ./start-test-stop 5300 bind-dnssec-nsec3-both
- - ./start-test-stop 5300 bind-dnssec-nsec3-optout-both
- - ./start-test-stop 5300 bind-dnssec-nsec3-narrow
- - ./start-test-stop 5300 gmysql-nodnssec-both
- - ./start-test-stop 5300 gmysql-both
- - ./start-test-stop 5300 gmysql-nsec3-both
- - ./start-test-stop 5300 gmysql-nsec3-optout-both
- - ./start-test-stop 5300 gmysql-nsec3-narrow
- - ./start-test-stop 5300 gpgsql-nodnssec
- - ./start-test-stop 5300 gpgsql
- - ./start-test-stop 5300 gpgsql-nsec3
- - ./start-test-stop 5300 gsqlite3-nodnssec
- - ./start-test-stop 5300 gsqlite3
- - ./start-test-stop 5300 gsqlite3-nsec3
- - ./start-test-stop 5300 mydns
- - ./start-test-stop 5300 tinydns
- - ./start-test-stop 5300 remotebackend-pipe
- - ./start-test-stop 5300 remotebackend-pipe-dnssec
- - ./start-test-stop 5300 remotebackend-unix
- - ./start-test-stop 5300 remotebackend-unix-dnssec
- - ./start-test-stop 5300 remotebackend-http
- - ./start-test-stop 5300 remotebackend-http-dnssec
  - ./start-test-stop 5300 remotebackend-zeromq
- - ./start-test-stop 5300 remotebackend-zeromq-dnssec
- - THRESHOLD=90 TRACE=no ./recursor-test 5300
- - cd ../regression-tests.nobackend/
- - ./runtests
- - test ! -s ./failed_tests
+ - #./start-test-stop 5300 remotebackend-zeromq-dnssec
 notifications:
   irc:
     channels:
