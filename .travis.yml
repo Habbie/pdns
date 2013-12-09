@@ -17,6 +17,7 @@ script:
  - make -j 4
  - #make -j 4 check
  - cd modules/remotebackend
+ - make test_remotebackend_zeromq
  - env REMOTEBACKEND_ZEROMQ=yes ./testrunner.sh test_remotebackend_zeromq
  - cd ../../regression-tests
  - touch verify-dnssec-zone/allow-missing
