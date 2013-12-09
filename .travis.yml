@@ -11,13 +11,12 @@ before_script:
  - ruby -S bundle install
  - cd ../..
 script:
- - #./bootstrap
- - #./configure --with-modules='remote' --enable-unit-tests --enable-remotebackend-zeromq
- - #make dist
- - #make -j 4
+ - ./bootstrap
+ - ./configure --with-modules='remote' --enable-unit-tests --enable-remotebackend-zeromq
+ - make dist
+ - make -j 4
  - #make -j 4 check
  - cd modules/remotebackend
- - ./unittest_zeromq.rb
  - make test_remotebackend_zeromq
  - env REMOTEBACKEND_ZEROMQ=yes ./testrunner.sh test_remotebackend_zeromq
  - cd ../../regression-tests
