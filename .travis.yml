@@ -31,6 +31,7 @@ script:
  - make -C pdns $(grep '(EXEEXT):' pdns/Makefile | cut -f1 -d\$)
  - cd pdns
  - make -j 4 pdns_recursor
+ - make -j 4 oneshot
  - ./dist-recursor
  - make -C docs html/index.html manpages
  - cd ../regression-tests.recursor
