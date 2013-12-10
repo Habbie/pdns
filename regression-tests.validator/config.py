@@ -14,7 +14,7 @@ for f in ['ok',
           'sigexpired',
           'signotincepted',
           'unknownalgorithm']:
-    for n in ['nsec1', 'nsec3']:
+    for n in ['nsec1', 'nsec3', 'unsigned']: # NOTE! ldns-sign-special is only special for nsec1
         FLAVORS.append('%s-%s' % (f,n))
 
 def genzone(name, flavor, depth, conffile):
@@ -47,25 +47,27 @@ $ORIGIN .
 
     f.close()
 
-    chdir("zones")
-    ksk = check_output(['ldns-keygen', '-a', 'RSASHA256', '-k', myname or '.']).strip()
-    zsk = check_output(['ldns-keygen', '-a', 'RSASHA256', myname or '.']).strip()
-    signflags = []
-    if 'nsec3' in flavor:
-        signflags.append('-n')
-    check_call(['ldns-signzone']+signflags+['-b', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
-    chdir("..")
+    issigned = 'unsigned' not in flavor
+    if issigned:
+        chdir("zones")
+        ksk = check_output(['ldns-keygen', '-a', 'RSASHA256', '-k', myname or '.']).strip()
+        zsk = check_output(['ldns-keygen', '-a', 'RSASHA256', myname or '.']).strip()
+        signflags = []
+        if 'nsec3' in flavor:
+            signflags.append('-n')
+        check_call(['ldns-sign-special']+signflags+['-b', '%s.zone' % (myname or 'ROOT'), ksk, zsk])
+        chdir("..")
 
     conffile.write("""
 zone "%(zone)s"{
     type master;
-    file "./zones/%(fbase)s.zone.signed";
+    file "./zones/%(fbase)s.zone%(ext)s";
 };
-""" % dict(zone = myname or '.', fbase = myname or 'ROOT'))
+""" % dict(zone = myname or '.', fbase = myname or 'ROOT', ext=['', '.signed'][issigned]))
 
     # check_call(['../pdns/pdnssec', '--config-dir=.', 'set-presigned', myname])
 
-    if myname == '':
+    if myname == '' and issigned:
         with open('rootDS', 'w') as f:
             f.write(open('zones/%s.ds' % ksk).read().strip().split('\t')[3])
 
@@ -73,7 +75,10 @@ zone "%(zone)s"{
                   "%(myname)s   86400   IN A   127.0.0.127" % dict(myname=myname or '.')]
 
     if 'nods' not in flavor:
-        delegation.append(open('zones/%s.ds' % ksk).read().strip())
+        if issigned:
+            delegation.append(open('zones/%s.ds' % ksk).read().strip())
+        else:
+            delegation.append('%s. 86400 IN DS  47718 8 2 f5087548631be05ed8f75bb96f60f77435db56a003a9de0b2a880533ecbcbfee' % myname)
 
     return delegation
 
