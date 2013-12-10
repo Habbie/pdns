@@ -98,6 +98,9 @@ bind-config=./named.conf
 """)
     # check_call(['../pdns/pdnssec', '--config-dir=.', 'create-bind-db', 'dnssec.sqlite3'])
     conffile = open('named.conf', 'w')
+    conffile.write("""options {
+    pid-file "./named.pid";
+};""")
     genzone(BASE, '', 0, conffile)
     conffile.close()
 

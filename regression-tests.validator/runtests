@@ -1,0 +1,19 @@
+#!/bin/bash -ex
+PORT=${PORT:-5501}
+export PORT
+
+./config.py > /dev/null
+named -c named.conf -p ${PORT}
+export testsdir=$(pwd)
+../regression-tests/runtests
+../regression-tests/toxml
+
+kill -9 $(cat named.pid)
+
+failed_tests=`wc -l failed_tests | cut -f 1 -d ' '`
+if [ $failed_tests = 0 ];
+then
+        exit 0;
+else
+        exit 1;
+fi

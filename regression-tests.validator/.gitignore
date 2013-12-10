@@ -3,3 +3,13 @@
 /dnssec.sqlite3
 /rootDS
 /zones
+/test-results
+/skipped_tests
+/passed_tests
+/failed_tests*
+/*.xml
+diff
+dot
+out
+real_result
+/named.pid

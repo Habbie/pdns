@@ -1,0 +1,2 @@
+#!/bin/sh
+run-oneshot ok-nsec1 SOA

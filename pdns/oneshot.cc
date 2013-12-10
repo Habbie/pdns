@@ -257,6 +257,7 @@ void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& vali
               dotEdge(rrc.d_signer,
                       "DNSKEY", stripDot(rrc.d_signer), lexical_cast<string>(rrc.d_tag),
                       DNSRecordContent::NumberToType(rrc.d_type), j->first.first, "");
+              cerr<<"! validated "<<j->first.first<<"/"<<DNSRecordContent::NumberToType(rrc.d_type)<<endl;
             }
             // FIXME: break out enough levels
           }
@@ -523,7 +524,7 @@ try
         const RRSIGRecordContent rrc=dynamic_cast<const RRSIGRecordContent&> (*(*j));
         cerr<<"got rrsig "<<rrc.d_signer<<"/"<<rrc.d_tag<<endl;
         vState state = getKeysFor(tr, rrc.d_signer, keys);
-        cerr<<"state = "<<vStates[state]<<", now have "<<keys.size()<<" keys"<<endl;
+        cerr<<"! state = "<<vStates[state]<<", now have "<<keys.size()<<" keys at "<<qname<<endl;
         // dsmap.insert(make_pair(dsrc.d_tag, dsrc));
       }
     }
@@ -532,9 +533,9 @@ try
   else {
     cerr<<"no sigs, hoping for Insecure"<<endl;
     vState state = getKeysFor(tr, qname, keys);
-    cerr<<"state = "<<vStates[state]<<", now have "<<keys.size()<<" keys"<<endl;
+    cerr<<"! state = "<<vStates[state]<<", now have "<<keys.size()<<" keys at "<<qname<<endl;
   }
-  cerr<<"now have "<<validrrsets.size()<<" out of "<<rrsets.size()<<endl;
+  cerr<<"! validated "<<validrrsets.size()<<" RRsets out of "<<rrsets.size()<<endl;
   cout<<"}"<<endl;
   exit(0);
 
