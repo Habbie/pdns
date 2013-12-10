@@ -84,6 +84,8 @@ script:
  - travis_retry ./start-test-stop 5300 remotebackend-zeromq-dnssec
  - ./start-test-stop 5300 tinydns
  - THRESHOLD=90 TRACE=no ./recursor-test 5300
+ - cd ../regression-tests.validator/
+ - ./runtests
  - cd ../regression-tests.nobackend/
  - ./runtests
  - test ! -s ./failed_tests
