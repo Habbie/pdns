@@ -2,7 +2,7 @@
 PORT=${PORT:-5501}
 export PORT
 
-./config.py > /dev/null
+[ "$1" == "noconfig" ] || ./config.py > /dev/null
 named -c named.conf -p ${PORT}
 export testsdir=$(pwd)
 ../regression-tests/runtests

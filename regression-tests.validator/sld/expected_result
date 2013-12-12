@@ -1,0 +1,7 @@
+! validated ok-nsec1/DS
+! validated ok-nsec1.ok-nsec1/DS
+! state = Secure, now have 2 keys at ok-nsec1.ok-nsec1
+! validated ok-nsec1.ok-nsec1/A
+! validated ok-nsec1.ok-nsec1/NS
+! validated ok-nsec1.ok-nsec1/SOA
+! validated 3 RRsets out of 3
