@@ -88,7 +88,7 @@ script:
  - sudo mkdir -p /usr/local/lib
  - sudo cp ext/libldns* /usr/local/lib
  - sudo ldconfig
- - PATH=ext:$PATH ./runtests
+ - PATH=$(pwd)/ext:$PATH ./runtests
  - cd ../regression-tests.nobackend/
  - ./runtests
  - test ! -s ./failed_tests
