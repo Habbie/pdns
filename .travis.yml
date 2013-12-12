@@ -85,7 +85,10 @@ script:
  - ./start-test-stop 5300 tinydns
  - THRESHOLD=90 TRACE=no ./recursor-test 5300
  - cd ../regression-tests.validator/
- - ./runtests
+ - sudo mkdir -p /usr/local/lib
+ - sudo cp ext/libldns* /usr/local/lib
+ - sudo ldconfig
+ - PATH=ext:$PATH ./runtests
  - cd ../regression-tests.nobackend/
  - ./runtests
  - test ! -s ./failed_tests
