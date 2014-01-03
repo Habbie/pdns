@@ -286,8 +286,10 @@ bool UeberBackend::getAuth(DNSPacket *p, SOAData *sd, const string &target, int 
 
   check_op_requests();
 
-  // If not special case, first find the best match from the cache
-  if( sd->db != (DNSBackend *)-1 && d_cache_ttl ) {
+  // If not special case of caching explicitly disabled (sd->db = -1), first
+  // find the best match from the cache. If DS then we need to find parent so
+  // dont bother with caching as it confuses matters.
+  if( sd->db != (DNSBackend *)-1 && d_cache_ttl && p->qtype != QType::DS ) {
       string subdomain(target);
       int cstat, loops = 0;
       do {
@@ -334,8 +336,8 @@ bool UeberBackend::getAuth(DNSPacket *p, SOAData *sd, const string &target, int 
       return false;
 
 auth_found:
-    // Insert into cache
-    if( d_cache_ttl && ! from_cache ) {
+    // Insert into cache. Don't cache if the query was a DS
+    if( d_cache_ttl && ! from_cache && p->qtype != QType::DS ) {
         //L<<Logger::Error<<"Saving auth cache for " << sd->qname <<endl;
         d_question.qtype = QType::SOA;
         d_question.qname = sd->qname;
