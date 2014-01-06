@@ -297,7 +297,7 @@ public:
   void setArgPrefix(const string &prefix);
 
   //! determine if ip is a supermaster or a domain
-  virtual bool superMasterBackend(const string &ip, const string &domain, const vector<DNSResourceRecord>&nsset, string *account, DNSBackend **db)
+  virtual bool superMasterBackend(const string &ip, const string &domain, const vector<DNSResourceRecord>&nsset, string *nameserver, string *account, DNSBackend **db)
   {
     return false;
   }
@@ -309,7 +309,7 @@ public:
   }
 
   //! called by PowerDNS to create a slave record for a superMaster
-  virtual bool createSlaveDomain(const string &ip, const string &domain, const string &account)
+  virtual bool createSlaveDomain(const string &ip, const string &domain, const string &nameserver, const string &account)
   {
     return false;
   }
