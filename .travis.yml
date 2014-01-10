@@ -12,9 +12,9 @@ before_script:
 script:
  - ./bootstrap
  - ./configure --with-modules='bind' --enable-unit-tests --enable-tools
- - make -j 4
- - make -j 4 check
- - make -j 4 oneshot
+ - make 
+ - make check
+ - make -C pdns oneshot
  - sudo mkdir -p /usr/local/lib
  - sudo cp ext/libldns* /usr/local/lib
  - sudo ldconfig
