@@ -15,12 +15,11 @@ script:
  - make 
  - make check
  - make -C pdns oneshot
+ - cd regression-tests.validator
  - sudo mkdir -p /usr/local/lib
  - sudo cp ext/libldns* /usr/local/lib
  - sudo ldconfig
  - PATH=$(pwd)/ext:$PATH ./runtests
- - cd ../regression-tests.nobackend/
- - ./runtests
  - test ! -s ./failed_tests
 notifications:
   irc:
