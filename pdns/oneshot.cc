@@ -191,7 +191,7 @@ dState getDenial(rrsetmap_t &validrrsets, string qname, uint16_t qtype)
         // positive name proof, need to check type
         cerr<<"positive name proof, checking type bitmap"<<endl;
         cerr<<"d_set.count("<<qtype<<"): "<<i->second.d_set.count(qtype)<<endl;
-        if(qtype == QType::DS && i->second.d_set.count(qtype) == 0) return INSECURE;
+        if(qtype == QType::DS && i->second.d_set.count(qtype) == 0) return INSECURE; // FIXME need to require 'NS in bitmap' || 'optout' here, see nic.red misconfig 20140120
       } else if ((hashed > base && hashed < next) ||
                 (next < base && (hashed < next || hashed > base))) {
         bool optout=(1 & i->second.d_flags);
