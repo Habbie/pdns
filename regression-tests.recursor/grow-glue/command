@@ -2,6 +2,7 @@
 . vars
 cleandig 1.sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
 cleandig ns-sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+rm -f ccachedump1 cachedump2 cachedump3 cachedump4
 $RECCONTROL dump-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service $(pwd)/cachedump1
 cleandig 2.sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
 cleandig ns-sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
