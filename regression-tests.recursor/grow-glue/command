@@ -1,0 +1,13 @@
+#!/bin/sh
+. vars
+cleandig 1.sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+cleandig ns-sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+$RECCONTROL dump-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service $(pwd)/cachedump1
+cleandig 2.sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+cleandig ns-sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+$RECCONTROL dump-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service $(pwd)/cachedump2
+$RECCONTROL wipe-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service sub.growglue.example.net
+$RECCONTROL dump-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service $(pwd)/cachedump3
+cleandig 3.sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+cleandig ns-sub.growglue.example.net a | sed 's/\(.*\tIN\t[A-Z0-9]\+\t\)\([0-9]\+\)/\13600/'
+$RECCONTROL dump-cache --config-dir=configs/recursor-service --socket-dir=$(pwd)/configs/recursor-service $(pwd)/cachedump4

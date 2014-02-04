@@ -77,6 +77,8 @@ ghost.example.net.       3600 IN NS  ns.ghost.example.net.
 ns.ghost.example.net.    3600 IN A   $PREFIX.17
 ford.example.net.        3600 IN NS  ns.ford.example.net.
 ns.ford.example.net.     3600 IN A   $PREFIX.12
+growglue.example.net.    3600 IN NS  ns.growglue.example.net.
+ns.growglue.example.net. 3600 IN A   $PREFIX.20
 EOF
 
 mkdir $PREFIX.11
@@ -296,6 +298,48 @@ function prequery ( dnspacket )
     end
     return false
 end
+EOF
+
+### parent domain for domain with varying glue records that causes recursor to grow the glue set instead of replacing it
+### FIXME: Lua script does not drop aa bit (same bug might exist in the ghost tests)
+mkdir $PREFIX.20
+cat > $PREFIX.20/growglue.example.net.zone <<EOF
+growglue.example.net.        3600 IN SOA $SOA
+growglue.example.net.        3600 IN NS  ns.growglue.example.net.
+ns.growglue.example.net.     3600 IN A   $PREFIX.20
+sub.growglue.example.net.    3600 IN NS  ns-sub.growglue.example.net.
+ns-sub.growglue.example.net. 3600 IN A   $PREFIX.21
+EOF
+cat > $PREFIX.20/prequery.lua <<EOF
+octet=20
+function prequery ( dnspacket )
+    octet = octet == 21 and 22 or 21  -- alternates between 21 and 22
+    qname, qtype = dnspacket:getQuestion()
+    if qtype == pdns.A and string.sub(qname, -25) == ".sub.growglue.example.net"
+    then
+        dnspacket:setRcode(pdns.NOERROR)
+        ret = {}
+        ret[1] = {qname="sub.growglue.example.net.", qtype=pdns.NS, content="ns-sub.growglue.example.net.", ttl=3600, place=2}
+        ret[2] = {qname="ns-sub.growglue.example.net.", qtype=pdns.A, content="10.0.3."..octet, ttl=3600, place=3}
+        dnspacket:addRecords(ret)
+        return true
+    end
+    return false
+end
+EOF
+
+### useless delegation receiver for growglue
+mkdir $PREFIX.21
+cat > $PREFIX.21/sub.growglue.example.net.zone <<EOF
+sub.growglue.example.net.    3600 IN SOA $SOA
+sub.growglue.example.net.    3600 IN NS  ns-sub.growglue.example.net.
+EOF
+
+### another useless delegation receiver for growglue
+mkdir $PREFIX.22
+cat > $PREFIX.22/sub.growglue.example.net.zone <<EOF
+sub.growglue.example.net.    3600 IN SOA $SOA
+sub.growglue.example.net.    3600 IN NS  ns-sub.growglue.example.net.
 EOF
 
 for dir in $PREFIX.*
