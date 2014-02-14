@@ -1,0 +1,30 @@
+policy_module(pdns,0.9.5)
+
+require{
+        type named_t;
+        type named_conf_t;
+        type named_var_run_t;
+        type ndc_t;
+        type tmp_t;
+        type var_run_t;
+        class file { getattr unlink append read setattr write lock create rename link open };
+        class sock_file { create read write unlink setattr getattr };
+        class dir { add_name write read remove_name };
+	class unix_dgram_socket sendto;
+}
+
+# other stuff
+allow named_t named_var_run_t:sock_file { create read write unlink setattr getattr };
+allow ndc_t tmp_t:sock_file { create read write unlink setattr getattr };
+allow ndc_t tmp_t:file {getattr unlink append read setattr write lock create rename link open };
+allow ndc_t tmp_t:dir { add_name write read remove_name };
+allow ndc_t named_conf_t:file { read open };
+
+allow ndc_t var_run_t:dir { write add_name remove_name };
+allow ndc_t var_run_t:file { create read write open unlink };
+allow ndc_t var_run_t:sock_file { create setattr unlink };
+allow ndc_t named_t:unix_dgram_socket sendto;
+
+allow named_t var_run_t:sock_file write;
+
+allow named_t ndc_t:unix_dgram_socket sendto;

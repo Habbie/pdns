@@ -1,0 +1,6 @@
+/usr/sbin/pdns_recursor                 --      gen_context(system_u:object_r:named_exec_t,s0)
+/etc/powerdns(/.*)?                     --      gen_context(system_u:object_r:named_conf_t,s0)
+/var/run/pdns_recursor\.controlsocket   -s      gen_context(system_u:object_r:named_var_run_t,s0)
+/var/run/lsock......			-s      gen_context(system_u:object_r:named_var_run_t,s0)
+/var/run/pdns_recursor\.pid             --      gen_context(system_u:object_r:named_var_run_t,s0)
+/usr/bin/rec_control                    --      gen_context(system_u:object_r:ndc_exec_t,s0)
