@@ -540,6 +540,15 @@ try
     cerr<<"! state = "<<vStates[state]<<", now have "<<keys.size()<<" keys at "<<qname<<endl;
   }
   cerr<<"! validated "<<validrrsets.size()<<" RRsets out of "<<rrsets.size()<<endl;
+
+  cerr<<"% validated RRs:"<<endl;
+  for(rrsetmap_t::const_iterator i=validrrsets.begin(); i!=validrrsets.end(); i++) {
+    cerr<<"% "<<i->first.first<<"/"<<i->first.second.getName()<<endl;
+    for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); j++) {
+      cerr<<"% > "<<(*j)->getZoneRepresentation()<<endl;
+    }
+  }
+
   cout<<"}"<<endl;
   exit(0);
 
