@@ -515,8 +515,8 @@ try
   keymap_t keys;
   rrsetmap_t validrrsets;
 
-  if(rrsigs.count(make_pair(qname, qtype))) {
-    for(rrsetmap_t::const_iterator i=r.first; i!=r.second; i++) {
+  if(rrsigs.size()) {
+    for(rrsetmap_t::const_iterator i=rrsigs.begin(); i!=rrsigs.end(); i++) {
       cerr<<"A"<<endl;
       for(set<shared_ptr<DNSRecordContent> >::const_iterator j=i->second.begin(); j!=i->second.end(); j++)
       {
