@@ -227,7 +227,7 @@ void dotEdge(string zone, string type1, string name1, string tag1, string type2,
   cout<<dotEscape(dotName(type1, name1, tag1))
       <<" -> "
       <<dotEscape(dotName(type2, name2, tag2));
-  if(color != "") cout<<" [ color=\""<<color<<"\" ];";
+  if(color != "") cout<<" [ color=\""<<color<<"\" ]; ";
   else cout<<"; ";
   if(zone != "") cout<<"label = "<<dotEscape("zone: "+zone)<<";"<<"}";
   cout<<endl;
