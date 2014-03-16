@@ -250,7 +250,7 @@ void validateWithKeySet(rrsetmap_t& rrsets, rrsetmap_t& rrsigs, rrsetmap_t& vali
         if(!keys.count(rrc.d_tag)) continue;
 
         string msg=getMessageForRRSET(j->first.first, rrc, toSign);
-        pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keys.equal_range(rrc.d_tag);
+        pair<keymap_t::const_iterator, keymap_t::const_iterator> r = keys.equal_range(rrc.d_tag); // FIXME: also take algorithm into account? right now we wrongly validate unknownalgorithm.bad-dnssec.wb.sidnlabs.nl
         for(keymap_t::const_iterator l=r.first; l!=r.second; l++) {
           bool isValid = DNSCryptoKeyEngine::makeFromPublicKeyString(l->second.d_algorithm, l->second.d_key)->verify(msg, rrc.d_signature);
           if(isValid) {
