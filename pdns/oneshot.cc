@@ -69,7 +69,7 @@ class TCPResolver : public boost::noncopyable
 public:
   TCPResolver(ComboAddress addr)
   {
-    d_rsock=new Socket(InterNetwork, Stream);
+    d_rsock=new Socket(AF_INET, SOCK_STREAM);
     d_rsock->connect(addr);
   }
 
