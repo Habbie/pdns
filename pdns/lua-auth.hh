@@ -4,6 +4,7 @@
 #include "iputils.hh"
 #include "dnspacket.hh"
 #include "lua-pdns.hh"
+#include "lock.hh"
 
 class AuthLua : public PowerDNSLua
 {
@@ -16,6 +17,8 @@ public:
 
 private:
   void registerLuaDNSPacket(void);
+
+  pthread_mutex_t d_lock;
 };
 
 // FIXME: lua expects these to be in sync with RecursorBehaviour, perhaps just combine them?
