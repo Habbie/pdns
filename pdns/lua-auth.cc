@@ -160,16 +160,23 @@ static int ldp_getRemote(lua_State *L) {
   return 1;
 }
 
+static int ldp_getSize(lua_State *L) {
+  DNSPacket *p=ldp_checkDNSPacket(L);
+  lua_pushnumber(L, p->getString().size());
+  return 1;
+}
+
 // these functions are used for PowerDNS recursor regresseion testing against auth. The Lua 5.2 implementation is most likely broken.
-#if LUA_VERSION_NUM < 502
-static const struct luaL_reg ldp_methods [] = {
+static const struct luaL_Reg ldp_methods [] = {
       {"setRcode", ldp_setRcode},
       {"getQuestion", ldp_getQuestion},
       {"addRecords", ldp_addRecords},
       {"getRemote", ldp_getRemote},
+      {"getSize", ldp_getSize},
       {NULL, NULL}
     };
 
+#if LUA_VERSION_NUM < 502
 void AuthLua::registerLuaDNSPacket(void) {
 
   luaL_newmetatable(d_lua, "LuaDNSPacket");
@@ -183,13 +190,6 @@ void AuthLua::registerLuaDNSPacket(void) {
   lua_pop(d_lua, 1);
 }
 #else
-static const struct luaL_Reg ldp_methods [] = {
-      {"setRcode", ldp_setRcode},
-      {"getQuestion", ldp_getQuestion},
-      {"addRecords", ldp_addRecords},
-      {"getRemote", ldp_getRemote},
-      {NULL, NULL}
-    };
 
 void AuthLua::registerLuaDNSPacket(void) {
 
@@ -248,5 +248,39 @@ DNSPacket* AuthLua::prequery(DNSPacket *p)
   }
 }
 
+int AuthLua::police(DNSPacket *req, DNSPacket *resp)
+{
+  lua_getglobal(d_lua,  "police");
+  if(!lua_isfunction(d_lua, -1)) {
+    // cerr<<"No such function 'axfrfilter'\n"; FIXME: raise Exception? check this beforehand so we can log it once?
+    lua_pop(d_lua, 1);
+    return PolicyDecision::PASS;
+  }
 
+  /* wrap request */
+  LuaDNSPacket* lreq = (LuaDNSPacket *)lua_newuserdata(d_lua, sizeof(LuaDNSPacket));
+  lreq->d_p=req;
+  luaL_getmetatable(d_lua, "LuaDNSPacket");
+  lua_setmetatable(d_lua, -2);
+
+  /* wrap response */
+  if(resp) {
+    LuaDNSPacket* lresp = (LuaDNSPacket *)lua_newuserdata(d_lua, sizeof(LuaDNSPacket));
+    lresp->d_p=resp;
+    luaL_getmetatable(d_lua, "LuaDNSPacket");
+    lua_setmetatable(d_lua, -2);
+  }
+  else
+  {
+    lua_pushnil(d_lua);
+  }
+
+  if(lua_pcall(d_lua, 2, 0, 0)) {
+    string error=string("lua error in police: ")+lua_tostring(d_lua, -1);
+    lua_pop(d_lua, 1);
+    theL()<<Logger::Error<<"police error: "<<error<<endl;
+
+    throw runtime_error(error);
+  }
+}
 #endif

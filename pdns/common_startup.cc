@@ -35,6 +35,7 @@ CommunicatorClass Communicator;
 UDPNameserver *N;
 int avg_latency;
 TCPNameserver *TN;
+AuthLua *LPE;
 
 ArgvMap &arg()
 {
@@ -153,7 +154,8 @@ void declareArguments()
   ::arg().set("max-ent-entries", "Maximum number of empty non-terminals in a zone")="100000";
   ::arg().set("entropy-source", "If set, read entropy from this file")="/dev/urandom";
 
-  ::arg().set("lua-prequery-script", "Lua script with prequery handler")="";
+  ::arg().set("lua-prequery-script", "Lua script with prequery handler (DO NOT USE)")="";
+  ::arg().set("lua-policy-script", "Lua script for the policy engine")="";
 
   ::arg().setSwitch("traceback-handler","Enable the traceback handler (Linux only)")="yes";
   ::arg().setSwitch("direct-dnskey","Fetch DNSKEY RRs from backend during DNSKEY synthesis")="no";
@@ -400,6 +402,10 @@ void mainthread()
 
   if(::arg().mustDo("slave") || ::arg().mustDo("master"))
     Communicator.go(); 
+
+  if(::arg().mustDo("lua-policy-script")){
+    LPE=new AuthLua(::arg()["lua-policy-script"]);
+  }
 
   if(TN)
     TN->go(); // tcp nameserver launch

@@ -12,9 +12,12 @@ public:
   // ~AuthLua();
   bool axfrfilter(const ComboAddress& remote, const string& zone, const DNSResourceRecord& in, vector<DNSResourceRecord>& out);
   DNSPacket* prequery(DNSPacket *p);
+  int police(DNSPacket *req, DNSPacket *resp);
 
 private:
   void registerLuaDNSPacket(void);
 };
+
+namespace PolicyDecision { enum returnTypes { PASS=-1, DROP=-2, TRUNCATE=-3 }; };
 
 #endif

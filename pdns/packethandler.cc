@@ -872,11 +872,17 @@ DNSPacket *PacketHandler::question(DNSPacket *p)
       return ret;
   }
 
+  if(LPE)
+  {
+    LPE->police(p, NULL);
+  }
+
   bool shouldRecurse=false;
   ret=questionOrRecurse(p, &shouldRecurse);
   if(shouldRecurse) {
     DP->sendPacket(p);
   }
+  LPE->police(p, ret);
   return ret;
 }
 
