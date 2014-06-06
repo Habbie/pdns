@@ -144,6 +144,18 @@ static int ldp_getQuestion(lua_State *L) {
   return 2;
 }
 
+static int ldp_getWild(lua_State *L) {
+  DNSPacket *p=ldp_checkDNSPacket(L);
+  lua_pushstring(L, p->qdomainwild.c_str());
+  return 1;
+}
+
+static int ldp_getZone(lua_State *L) {
+  DNSPacket *p=ldp_checkDNSPacket(L);
+  lua_pushstring(L, p->qdomainzone.c_str());
+  return 1;
+}
+
 static int ldp_addRecords(lua_State *L) {
   DNSPacket *p=ldp_checkDNSPacket(L);
   vector<DNSResourceRecord> rrs;
@@ -160,19 +172,38 @@ static int ldp_getRemote(lua_State *L) {
   return 1;
 }
 
+static int ldp_getRcode(lua_State *L) {
+  DNSPacket *p=ldp_checkDNSPacket(L);
+  lua_pushnumber(L, p->d.rcode);
+  return 1;
+}
+
 static int ldp_getSize(lua_State *L) {
   DNSPacket *p=ldp_checkDNSPacket(L);
   lua_pushnumber(L, p->getString().size());
   return 1;
 }
 
-// these functions are used for PowerDNS recursor regresseion testing against auth. The Lua 5.2 implementation is most likely broken.
+static int ldp_getRRCounts(lua_State *L) {
+  DNSPacket *p=ldp_checkDNSPacket(L);
+  lua_pushnumber(L, ntohs(p->d.ancount));
+  lua_pushnumber(L, ntohs(p->d.nscount));
+  lua_pushnumber(L, ntohs(p->d.arcount));
+  return 3;
+}
+
+// these functions are used for PowerDNS recursor regression testing against auth,
+// and for the Lua Policy Engine. The Lua 5.2 implementation is untested.
 static const struct luaL_Reg ldp_methods [] = {
       {"setRcode", ldp_setRcode},
       {"getQuestion", ldp_getQuestion},
+      {"getWild", ldp_getWild},
+      {"getZone", ldp_getZone},
       {"addRecords", ldp_addRecords},
       {"getRemote", ldp_getRemote},
       {"getSize", ldp_getSize},
+      {"getRRCounts", ldp_getRRCounts},
+      {"getRcode", ldp_getRcode},
       {NULL, NULL}
     };
 
@@ -250,6 +281,7 @@ DNSPacket* AuthLua::prequery(DNSPacket *p)
 
 int AuthLua::police(DNSPacket *req, DNSPacket *resp)
 {
+  // FIXME: mutex here!
   lua_getglobal(d_lua,  "police");
   if(!lua_isfunction(d_lua, -1)) {
     // cerr<<"No such function 'axfrfilter'\n"; FIXME: raise Exception? check this beforehand so we can log it once?

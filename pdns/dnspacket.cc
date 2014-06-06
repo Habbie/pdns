@@ -356,6 +356,12 @@ void DNSPacket::wrapup()
     addTSIG(pw, &d_trc, d_tsigkeyname, d_tsigsecret, d_tsigprevious, d_tsigtimersonly);
   
   d_rawpacket.assign((char*)&packet[0], packet.size());
+
+  // copy RR counts so LPE can read them
+  d.qdcount = pw.getHeader()->qdcount;
+  d.ancount = pw.getHeader()->ancount;
+  d.nscount = pw.getHeader()->nscount;
+  d.arcount = pw.getHeader()->arcount;
 }
 
 void DNSPacket::setQuestion(int op, const string &qd, int newqtype)

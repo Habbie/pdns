@@ -1186,6 +1186,9 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
     DLOG(L<<Logger::Error<<"We have authority, zone='"<<sd.qname<<"', id="<<sd.domain_id<<endl);
     authSet.insert(sd.qname); 
 
+    if(!retargetcount) r->qdomainzone=sd.qname;
+
+
     if(pdns_iequals(sd.qname, p->qdomain)) {
       if(p->qtype.getCode() == QType::DNSKEY)
       {
@@ -1297,6 +1300,7 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
       string wildcard;
       if(tryWildcard(p, r, sd, target, wildcard, wereRetargeted, nodata)) {
         if(wereRetargeted) {
+          if(!retargetcount) r->qdomainwild=wildcard;
           retargetcount++;
           goto retargeted;
         }
