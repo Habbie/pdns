@@ -97,7 +97,13 @@ function police (req, resp)
 		end
 		token = mask(remote).."/"..imputedname.."/"..tostring(errorstatus)
 		submit(mywindow[1], token)
-		print("qps for token "..token.." is "..count(mywindow, token))
+		qps = count(mywindow, token)
+		print("qps for token "..token.." is "..qps)
+		if qps > conf.rps
+		then
+			print( "dropping")
+			return pdns.DROP
+		end
 		-- token = { mask(resp:getRemote()), }
 	end
 	if timechanged
@@ -113,4 +119,5 @@ function police (req, resp)
 	-- end
 		
 	-- print("--")
+	return pdns.PASS
 end

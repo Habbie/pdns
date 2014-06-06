@@ -882,7 +882,13 @@ DNSPacket *PacketHandler::question(DNSPacket *p)
   if(shouldRecurse) {
     DP->sendPacket(p);
   }
-  LPE->police(p, ret);
+  int policyres=LPE->police(p, ret);
+  cerr<<"policyres="<<policyres<<endl;
+  cerr<<"DROP="<<PolicyDecision::DROP<<endl;
+  if(policyres == PolicyDecision::DROP) {
+    delete ret;
+    return NULL;
+  }
   return ret;
 }
 

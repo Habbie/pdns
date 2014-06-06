@@ -307,12 +307,17 @@ int AuthLua::police(DNSPacket *req, DNSPacket *resp)
     lua_pushnil(d_lua);
   }
 
-  if(lua_pcall(d_lua, 2, 0, 0)) {
+  if(lua_pcall(d_lua, 2, 1, 0)) {
     string error=string("lua error in police: ")+lua_tostring(d_lua, -1);
     lua_pop(d_lua, 1);
     theL()<<Logger::Error<<"police error: "<<error<<endl;
 
     throw runtime_error(error);
   }
+
+  int res = (int) lua_tonumber(d_lua, 1);
+  lua_pop(d_lua, 1);
+
+  return res;
 }
 #endif

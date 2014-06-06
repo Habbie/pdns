@@ -18,6 +18,7 @@ private:
   void registerLuaDNSPacket(void);
 };
 
+// FIXME: lua expects these to be in sync with RecursorBehaviour, perhaps just combine them?
 namespace PolicyDecision { enum returnTypes { PASS=-1, DROP=-2, TRUNCATE=-3 }; };
 
 #endif
