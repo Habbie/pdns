@@ -255,7 +255,12 @@
 # loglevel=4
 
 #################################
-# lua-prequery-script	Lua script with prequery handler
+# lua-policy-script	Lua script for the policy engine
+#
+# lua-policy-script=
+
+#################################
+# lua-prequery-script	Lua script with prequery handler (DO NOT USE)
 #
 # lua-prequery-script=
 
