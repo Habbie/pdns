@@ -44,11 +44,32 @@ function mask (host)
 	return f().."."..f().."."..f()
 end
 
+function submit (slot, token)
+	if slot[token]
+	then
+		slot[token] = slot[token] + 1
+	else
+		slot[token] = 1
+	end
+	print("submit: count for "..token.." now "..slot[token])
+end
+
+function count (window, token)
+	total = 0
+	for i,v in ipairs(window)
+	do
+		if v[token]
+		then
+			total = total + v[token]
+		end
+	end
+
+	return total / conf.window
+end
+
 function police (req, resp)
 	timechanged = false
 	mywindow = getwindow()
-	now = os.time()
-	print ("= ", os.time())
 
 	if resp
 	then
@@ -59,7 +80,7 @@ function police (req, resp)
 		reqsize = req:getSize()
 		respsize = resp:getSize()
 		rcode = resp:getRcode()
-		print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode )
+		-- print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode )
 		-- mywindow[1][1] = mywindow[1][1]+1
 		-- mywindow[1][2] = mywindow[1][2]+req:getSize()
 		-- mywindow[1][3] = mywindow[1][3]+resp:getSize()
@@ -75,10 +96,14 @@ function police (req, resp)
 			imputedname = zone
 		end
 		token = mask(remote).."/"..imputedname.."/"..tostring(errorstatus)
-		print ("token: "..token)
+		submit(mywindow[1], token)
+		print("qps for token "..token.." is "..count(mywindow, token))
 		-- token = { mask(resp:getRemote()), }
 	end
-	-- if timechanged
+	if timechanged
+	then
+		print("lua memory usage is "..collectgarbage("count"))
+	end
 	-- then
 	-- 	print("qps stats last", conf.window, "seconds: ")
 	-- 	for i = 1, conf.window
