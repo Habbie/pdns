@@ -403,7 +403,7 @@ void mainthread()
   if(::arg().mustDo("slave") || ::arg().mustDo("master"))
     Communicator.go(); 
 
-  if(::arg().mustDo("lua-policy-script")){
+  if(!::arg()["lua-policy-script"].empty()){
     LPE=new AuthLua(::arg()["lua-policy-script"]);
   }
 
