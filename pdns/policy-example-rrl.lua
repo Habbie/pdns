@@ -99,7 +99,7 @@ function police (req, resp)
 		submit(mywindow[1], token) -- FIXME: only submit when doing PASS/TRUNCATE?
 		qps = count(mywindow, token)
 		print("qps for token "..token.." is "..qps)
-		if qps > conf.rps
+		if qps > conf.rps -- FIXME: compare against eps if errorstatus
 		then
 			print( "dropping")
 			return pdns.DROP
