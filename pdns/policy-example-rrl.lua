@@ -80,7 +80,7 @@ function police (req, resp)
 		reqsize = req:getSize()
 		respsize = resp:getSize()
 		rcode = resp:getRcode()
-		-- print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode )
+		print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode )
 		-- mywindow[1][1] = mywindow[1][1]+1
 		-- mywindow[1][2] = mywindow[1][2]+req:getSize()
 		-- mywindow[1][3] = mywindow[1][3]+resp:getSize()
@@ -105,6 +105,10 @@ function police (req, resp)
 			return pdns.DROP
 		end
 		-- token = { mask(resp:getRemote()), }
+	else
+		qname, qtype = req:getQuestion()
+		remote = req:getRemote()
+		print ("> ", qname, qtype, remote)
 	end
 	if timechanged
 	then

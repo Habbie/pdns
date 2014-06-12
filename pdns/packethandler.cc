@@ -864,6 +864,7 @@ bool validDNSName(const string &name)
 DNSPacket *PacketHandler::question(DNSPacket *p)
 {
   DNSPacket *ret;
+  int policyres = PolicyDecision::PASS;
 
   if(d_pdl)
   {
@@ -874,8 +875,13 @@ DNSPacket *PacketHandler::question(DNSPacket *p)
 
   if(LPE)
   {
-    LPE->police(p, NULL);
+    policyres = LPE->police(p, NULL);
   }
+
+  if (policyres == PolicyDecision::DROP)
+    return NULL;
+
+  // FIXME implement truncate
 
   bool shouldRecurse=false;
   ret=questionOrRecurse(p, &shouldRecurse);

@@ -325,9 +325,18 @@ void *qthread(void *number)
         cached.d.id=P->d.id;
         cached.commitD(); // commit d to the packet                        inlined
 
-        NS->send(&cached);   // answer it then                              inlined
-        diff=P->d_dt.udiff();
-        avg_latency=(int)(0.999*avg_latency+0.001*diff); // 'EWMA'
+        int policyres = PolicyDecision::PASS;
+        if(LPE)
+        {
+          policyres = LPE->police(&question, &cached);
+        }
+
+        if (policyres == PolicyDecision::PASS) {
+          NS->send(&cached);   // answer it then                              inlined
+          diff=P->d_dt.udiff();
+          avg_latency=(int)(0.999*avg_latency+0.001*diff); // 'EWMA'
+        }
+        // FIXME implement truncate
 
         continue;
       }
