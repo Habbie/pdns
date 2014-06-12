@@ -1,3 +1,7 @@
+-- Lua policy engine example
+--
+-- intended to be a faithful implementation of http://ss.vix.su/~vixie/isc-tn-2012-1.txt
+
 conf = {}
 conf.rps = 5
 conf.eps = 5
