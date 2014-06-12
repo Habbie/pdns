@@ -175,6 +175,11 @@
 # experimental-logfile=/var/log/pdns.log
 
 #################################
+# experimental-lua-policy-script	Lua script for the policy engine
+#
+# experimental-lua-policy-script=
+
+#################################
 # experimental-rfc2136	Enable/Disable RFC2136 (Dynamic DNS) support. Default is no.
 #
 # experimental-rfc2136=no
@@ -253,11 +258,6 @@
 # loglevel	Amount of logging. Higher is more. Do not set below 3
 #
 # loglevel=4
-
-#################################
-# lua-policy-script	Lua script for the policy engine
-#
-# lua-policy-script=
 
 #################################
 # lua-prequery-script	Lua script with prequery handler (DO NOT USE)
