@@ -96,7 +96,7 @@ function police (req, resp)
 			imputedname = zone
 		end
 		token = mask(remote).."/"..imputedname.."/"..tostring(errorstatus)
-		submit(mywindow[1], token)
+		submit(mywindow[1], token) -- FIXME: only submit when doing PASS/TRUNCATE?
 		qps = count(mywindow, token)
 		print("qps for token "..token.." is "..qps)
 		if qps > conf.rps
