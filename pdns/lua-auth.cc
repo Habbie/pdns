@@ -286,7 +286,7 @@ int AuthLua::police(DNSPacket *req, DNSPacket *resp)
 
   lua_getglobal(d_lua,  "police");
   if(!lua_isfunction(d_lua, -1)) {
-    // cerr<<"No such function 'axfrfilter'\n"; FIXME: raise Exception? check this beforehand so we can log it once?
+    // cerr<<"No such function 'police'\n"; FIXME: raise Exception? check this beforehand so we can log it once?
     lua_pop(d_lua, 1);
     return PolicyDecision::PASS;
   }
