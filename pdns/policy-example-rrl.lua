@@ -113,6 +113,12 @@ function police (req, resp, isTcp)
 		if qps > limit
 		then
 			print( "considering a drop")
+
+			-- LEAK-RATE's intention is to give the victim (real owner of spoofed IP)
+			-- some kind of chance to receive a reply. When the leakrate is set to
+			-- 5, effectively 1 out of 5 queries probably get an answer. The lucky
+			-- query has to draw a 1 from our pseudo-random uniformly distributed lottery.
+			-- Note: the higher leakrate is set, the more queries will be dropped to the floor!
 			if conf.leakrate > 0 and math.random(conf.leakrate) == 1
 			then
 			    print ("leaking instead")
