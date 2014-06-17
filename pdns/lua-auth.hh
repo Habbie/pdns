@@ -14,6 +14,7 @@ public:
   bool axfrfilter(const ComboAddress& remote, const string& zone, const DNSResourceRecord& in, vector<DNSResourceRecord>& out);
   DNSPacket* prequery(DNSPacket *p);
   int police(DNSPacket *req, DNSPacket *resp, bool isTcp=false);
+  string policycmd(const vector<string>&parts);
 
 private:
   void registerLuaDNSPacket(void);

@@ -324,4 +324,34 @@ int AuthLua::police(DNSPacket *req, DNSPacket *resp, bool isTcp)
 
   return res;
 }
+
+string AuthLua::policycmd(const vector<string>&parts) {
+  Lock l(&d_lock);
+
+  lua_getglobal(d_lua, "policycmd");
+  if(!lua_isfunction(d_lua, -1)) {
+    // cerr<<"No such function 'police'\n"; FIXME: raise Exception? check this beforehand so we can log it once?
+    lua_pop(d_lua, 1);
+    return "no policycmd function in policy script";
+  }
+
+  for(int i=1; i<parts.size(); i++)
+    lua_pushstring(d_lua, parts[i].c_str());
+
+  if(lua_pcall(d_lua, parts.size()-1, 1, 0)) {
+    string error = string("lua error in policycmd: ")+lua_tostring(d_lua, -1);
+    lua_pop(d_lua, 1);
+    return error;
+  }
+
+  const char *ret = lua_tostring(d_lua, 1);
+  string rets;
+  if(ret)
+    rets = ret;
+
+  lua_pop(d_lua, 1);
+
+  return rets;
+}
+
 #endif

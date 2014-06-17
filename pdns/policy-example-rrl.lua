@@ -147,3 +147,13 @@ function police (req, resp, isTcp)
 	-- print("--")
 	return pdns.PASS
 end
+
+function policycmd(cmd, arg)
+	if cmd ~= "get" then return "unknown command "..cmd end
+
+	mywindow = getwindow()
+	qps = count(mywindow, arg)
+
+	-- return "qps for token "..arg.." is "..qps
+	return qps
+end
