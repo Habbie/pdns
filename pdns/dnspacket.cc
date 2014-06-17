@@ -89,6 +89,8 @@ DNSPacket::DNSPacket(const DNSPacket &orig)
   qtype=orig.qtype;
   qclass=orig.qclass;
   qdomain=orig.qdomain;
+  qdomainwild=orig.qdomainwild;
+  qdomainzone=orig.qdomainzone;
   d_maxreplylen = orig.d_maxreplylen;
   d_ednsping = orig.d_ednsping;
   d_wantsnsid = orig.d_wantsnsid;

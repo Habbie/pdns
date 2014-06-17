@@ -280,7 +280,7 @@ DNSPacket* AuthLua::prequery(DNSPacket *p)
   }
 }
 
-int AuthLua::police(DNSPacket *req, DNSPacket *resp)
+int AuthLua::police(DNSPacket *req, DNSPacket *resp, bool isTcp)
 {
   Lock l(&d_lock);
 
@@ -309,7 +309,9 @@ int AuthLua::police(DNSPacket *req, DNSPacket *resp)
     lua_pushnil(d_lua);
   }
 
-  if(lua_pcall(d_lua, 2, 1, 0)) {
+  lua_pushboolean(d_lua, isTcp);
+
+  if(lua_pcall(d_lua, 3, 1, 0)) {
     string error=string("lua error in police: ")+lua_tostring(d_lua, -1);
     lua_pop(d_lua, 1);
     theL()<<Logger::Error<<"police error: "<<error<<endl;

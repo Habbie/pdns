@@ -13,7 +13,7 @@ public:
   // ~AuthLua();
   bool axfrfilter(const ComboAddress& remote, const string& zone, const DNSResourceRecord& in, vector<DNSResourceRecord>& out);
   DNSPacket* prequery(DNSPacket *p);
-  int police(DNSPacket *req, DNSPacket *resp);
+  int police(DNSPacket *req, DNSPacket *resp, bool isTcp=false);
 
 private:
   void registerLuaDNSPacket(void);

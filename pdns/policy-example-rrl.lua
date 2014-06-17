@@ -71,7 +71,8 @@ function count (window, token)
 	return total / conf.window
 end
 
-function police (req, resp)
+function police (req, resp, isTcp)
+
 	timechanged = false
 	mywindow = getwindow()
 
@@ -84,7 +85,9 @@ function police (req, resp)
 		reqsize = req:getSize()
 		respsize = resp:getSize()
 		rcode = resp:getRcode()
-		print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode )
+		print ("< ", qname, qtype, remote, "wild: "..wild, "zone: "..zone, reqsize.."/"..respsize, rcode, isTcp )
+		if isTcp then return pdns.PASS end
+
 		-- mywindow[1][1] = mywindow[1][1]+1
 		-- mywindow[1][2] = mywindow[1][2]+req:getSize()
 		-- mywindow[1][3] = mywindow[1][3]+resp:getSize()
@@ -103,9 +106,23 @@ function police (req, resp)
 		submit(mywindow[1], token) -- FIXME: only submit when doing PASS/TRUNCATE?
 		qps = count(mywindow, token)
 		print("qps for token "..token.." is "..qps)
-		if qps > conf.rps -- FIXME: compare against eps if errorstatus
+
+		limit = conf.rps
+		if errorstatus then limit = conf.eps end
+
+		if qps > limit
 		then
-			print( "dropping")
+			print( "considering a drop")
+			if conf.leakrate > 0 and math.random(conf.leakrate) == 1
+			then
+			    print ("leaking instead")
+			    return pdns.PASS
+			end
+			if conf.tcrate > 0 and math.random(conf.tcrate) == 1
+			then
+				print ("truncating instead")
+				return pdns.TRUNCATE
+			end
 			return pdns.DROP
 		end
 		-- token = { mask(resp:getRemote()), }
@@ -113,6 +130,7 @@ function police (req, resp)
 		qname, qtype = req:getQuestion()
 		remote = req:getRemote()
 		print ("> ", qname, qtype, remote)
+		if isTcp then return pdns.PASS end
 	end
 	if timechanged
 	then

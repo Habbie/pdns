@@ -328,6 +328,8 @@ void *qthread(void *number)
         int policyres = PolicyDecision::PASS;
         if(LPE)
         {
+          // FIXME: cached does not have qdomainwild/qdomainzone because packetcache entries
+          // go through tostring/noparse
           policyres = LPE->police(&question, &cached);
         }
 
