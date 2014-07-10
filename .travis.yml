@@ -12,10 +12,11 @@ install:
  - brew install docbook-xsl
  - brew install w3m
 script:
+ - cpp -v
  - ./bootstrap
  - ./configure --with-modules='bind' --without-lua --enable-unit-tests
  - XML_CATALOG_FILES="/usr/local/etc/xml/catalog" make dist
- - make -j 4
+ - make -j 4 V=1
  - make check
  - XML_CATALOG_FILES="/usr/local/etc/xml/catalog" make -C pdns/docs
  - cd regression-tests
