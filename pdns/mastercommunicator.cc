@@ -35,26 +35,33 @@
 
 #include "namespaces.hh"
 
-
 void CommunicatorClass::queueNotifyDomain(const string &domain, DNSBackend *B)
 {
   set<string> ips;
   FindNS fns;
-  
+
   DNSResourceRecord rr;
   set<string> nsset;
-  B->lookup(QType(QType::NS),domain);
-  while(B->get(rr)) 
-    nsset.insert(rr.content);
-  
-  for(set<string>::const_iterator j=nsset.begin();j!=nsset.end();++j) {
-    vector<string> nsips=fns.lookup(*j, B);
-    if(nsips.empty())
-      L<<Logger::Warning<<"Unable to queue notification of domain '"<<domain<<"': nameservers do not resolve!"<<endl;
-    for(vector<string>::const_iterator k=nsips.begin();k!=nsips.end();++k)
-      ips.insert(*k);
+
+  if(!::arg()["passthru-notify"].empty()) {
+    vector<string>passthrus;
+    stringtok(passthrus,::arg()["passthru-notify"]," ,");
+    for(vector<string>::const_iterator k=passthrus.begin();k!=passthrus.end();++k)
+      if (!testIPv4addr(*k) || !testIPv6addr(*k))
+        ips.insert(*k);
+  } else {
+    B->lookup(QType(QType::NS),domain);
+    while(B->get(rr)) 
+      nsset.insert(rr.content);
+    for(set<string>::const_iterator j=nsset.begin();j!=nsset.end();++j) {
+      vector<string> nsips=fns.lookup(*j, B);
+      if(nsips.empty())
+        L<<Logger::Warning<<"Unable to queue notification of domain '"<<domain<<"': nameservers do not resolve!"<<endl;
+      for(vector<string>::const_iterator k=nsips.begin();k!=nsips.end();++k)
+        ips.insert(*k);
+    }
   }
-  
+
   // make calls to d_nq.add(domain, ip);
   for(set<string>::const_iterator j=ips.begin();j!=ips.end();++j) {
     L<<Logger::Warning<<"Queued notification of domain '"<<domain<<"' to "<<*j<<endl;

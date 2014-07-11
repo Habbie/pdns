@@ -155,6 +155,7 @@ public:
   void go();
   
   
+
   void drillHole(const string &domain, const string &ip);
   bool justNotified(const string &domain, const string &ip);
   void addSuckRequest(const string &domain, const string &master);

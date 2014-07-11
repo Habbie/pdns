@@ -305,6 +305,11 @@
 # slave-renotify=no
 
 #################################
+# passthru-notify       IP address we send notifications to
+#
+# passthru-notify=127.0.0.1, ::1
+
+#################################
 # smtpredirector	Our smtpredir MX host
 #
 # smtpredirector=a.misconfigured.powerdns.smtp.server

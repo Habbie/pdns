@@ -439,6 +439,8 @@ string labelReverse(const std::string& qname);
 std::string dotConcat(const std::string& a, const std::string &b);
 int makeIPv6sockaddr(const std::string& addr, struct sockaddr_in6* ret);
 int makeIPv4sockaddr(const string &str, struct sockaddr_in* ret);
+int testIPv6addr(const std::string& addr);
+int testIPv4addr(const string &str);
 bool stringfgets(FILE* fp, std::string& line);
 
 template<typename Index>
