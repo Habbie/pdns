@@ -101,6 +101,7 @@ script:
  - cat /tmp/remotebackend.txt.* | sort
  - git status || true
  - git status 2> /dev/null | tail -n1 | grep "nothing to commit (working directory clean)"
+ - test -z "$(git status --porcelain)" && echo "working directory clean" || echo "working directory dirty"
 notifications:
   irc:
     channels:
