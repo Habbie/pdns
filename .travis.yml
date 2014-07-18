@@ -99,6 +99,8 @@ script:
  - ./runtests
  - test ! -s ./failed_tests
  - cat /tmp/remotebackend.txt.* | sort
+ - git status || true
+ - git status 2> /dev/null | tail -n1 | grep "nothing to commit (working directory clean)"
 notifications:
   irc:
     channels:
