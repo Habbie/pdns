@@ -29,6 +29,7 @@ g33966bf: avoid address truncation in doNotifications
 geac85b1: prevent duplicate slave notications caused by different ipv6 address formatting
 g3c8a711: make notification queue ipv6 compatible
 g0c13e45: make isMaster ip check more tolerant for different ipv6 notations
+Various fixes for possible issues reported by Coverity Scan (gf17c93b, )
 
 API changes:
 The REST API was much improved and is nearing stability, thanks to Christian Hofstaedtler and others.
@@ -55,48 +56,30 @@ Mark Zealey contributed an experimental LMDB backend. Kees Monshouwer added expe
 g81859ba: No longer attempt to answer questions coming in from port 0, reply would not reach them anyhow. Thanks to Niels Bakker and sid3windr for insight & debugging. Closes #844.
 RCodes are now reported in text in various places, thanks Aki.
 Kees Monshouwer set up automatic testing for the oracle and goracle backends, and fixed various issues in them.
+Leftovers of previous support for Windows have been removed, thanks to Kees Monshouwer, Aki Tuomi.
+Bundled PolarSSL has been upgraded to 1.3.2
+PolarSSL replaced previously bundled implementations of AES (ge22d9b4) and SHA (g9101035)
 
-
-
-
-g2eded6f: reorder remote backend test environment setup
 g0478c54: Updated global PDNS log table with DROP and PASS values to return on the stack for passthrough. This allows for users issue a dontanswer type to drop and not process any unwanted queries. Updated the example script to reflect changes. Updated the pdns.xml to reflect changes
 gae7e77a: test to allow all lua steps to instruct powerdns not to answer a question
 g49e8d5d: remove 'anonymous' mode from server.id and 'disabled' mode from version.bind
 g8ca1a43: Add support for id.server requests following RFC 4892
 gc76a16b: don't send TC=1 for ANY and SERVFAIL for direct fancy records queries if qclass is not IN
-g990ad9a: use polarssl aes in recursor
-ge22d9b4: switch to polarssl aes
-g6f99678: 3.3.1 upgrade notes
-g554c4c2: stamp 3.3.1, add links
 ga38712f: Merge pull request #1172 from mind04/direct-dnskey
-gf7ee3ff: make 3.3.1 changelog somewhat readable
-g3ffac36: update debian pdns.conf
 gcc8df07: remove experimental status from direct-dnskey
-g34a445a: add rest of 3.3.1 commits to draft changelog
 gee79512: ok, so it turns out that poll, select and a few other system calls can return EINTR when we receive and interrupt, and we need to manually restart. man 7 signal makes for good reading on this case, as does http://blog.reverberate.org/2011/04/eintr-and-pc-loser-ing-is-better-case.html
 gaf7be19: don't skip remotebackend unix tests
 g5683052: Remove AnswerData.created time field as it doesn't seem to be referenced anywhere and the time() call seems to take about 1-2% of process time under high load.
 g66cea63: Merge branch 'master' into split-distributor
 g268447b: Remove AnswerData.created time field as it doesn't seem to be referenced anywhere and the time() call seems to take about 1-2% of process time under high load.
 g3194f0d: On testing with large numbers of unknown domains the send-root-referral argument query amounted to quite a high proportion of CPU time. This will cache it to reduce this overhead as is already done with a number of variables.
-g54b57c9: use PATH for socat
 gcf4d037: make our bash invocations more portable
-gdc40bb3: nit
-g094942e: Merge pull request #1167 from Habbie/polarssl-update
-g49f3a1c: nit
-g91db5e3: again add -fPIC so we can build PIE executables, for better security
-g54a80d7: upgrade polarssl to 1.3.2; drop testsdir; add distdir target; make sure make check does not abort
 ga5c790c: don't bomb out for unused modules during remotebackend make check, thanks @cmouse
-g2875e80: from orbit. just to be sure.
 gcb4b08d: Merge pull request #1164 from cmouse/goracle-docs-update
 g606f788: Use sql file instead for goracle schema
-gc9510b3: nit
 g1641855: Merge pull request #1124 from cmouse/remotebackend-0mq-connector
 g287f32d: Merge pull request #1163 from cmouse/gsql-add-primary-key
-g12612c1: Update documention
 ga8aaaae: libzmq3 compability fixes
-gf4be430: Wait until processes die before exiting
 g9b7ee58: Fixed goracle schema white space
 ga92edd1: Add primary key to schemas
 g1021a51: Merge pull request #1162 from cmouse/nullify-webserver-d_server
@@ -130,14 +113,11 @@ gc1df887: auth 3.3.1 changelog draft
 g1d586b3: mutex lock the g_localaddresses as under very rare conditions it can segfault at startup when initializing many receive threads with many addresses
 g66f5d6d: add DS at both sides of zone-cut test
 gdc289a3: we dont't generate useless NSECs in delegations
-ge6577ae: rebase to HEAD
-g2ab7e9a: rebase to HEAD
 gb0b1fa1: Merge pull request #1150 from mind04/tsig2
 g9a459f1: fix hmac-md5 TSIG key lookup
 g36c7f15: add test spec to recursor tarball
 ga6d3f3a: add test spec to auth tarball
 g3de0d33: Merge pull request #1142 from mind04/buildscripts
-g1851ef2: move spec files to redhat directory
 gc5414c1: testbuild spec files for rawhide
 g46fb371: use sed in buildscripts
 gc148258: drop unused vars, thanks Morten Stevens
@@ -153,17 +133,12 @@ g5ecb288: This patch allows user to specify that socket binding can fail. On IPv
 g7874ab0: Merge pull request #1126 from mind04/libcurl
 g1c9a9ff: remotebackend libcurl linking
 geb65fd5: make luabackend respect LUA_LIBS instead of forcing -llua5.1
-g16807c5: re-fix compilation for new polarssl
 ge3f9941: fix lua 5.2 version check in luabackend
 g7103fdd: send +CD in recursive nsec3dig, requested by Marco Davids
 ge120ebc: Merge pull request #1123 from mind04/coverity
 g6a54db9: cleanup hmac calculation functions
 g770e6a9: remove some unused variables from gsqlbackend
-g5d73654: Merge pull request #1121 from mind04/windows
-g2a6f49d: drop another windows chapter
-g0eaa13d: to avoid broken refs, reinstate windows chapter
 g0704de8: Merge commit '2f6e0c95cdcda9124151712aca3a369f3abee237' (merge 3/4rds of mind04/tests, closing #1118)
-gbe455f1: drop windows chapter
 gb120580: Merge pull request #1116 from mind04/mysql-character-set
 g2f6e0c9: update .gitignore
 ga81210f: fix 1dyndns-update-add-invalid-record test for recent perl-Net-DNS
@@ -175,16 +150,12 @@ gbb82746: Merge pull request #1113 from mind04/yahttp
 gfc38431: also add bindparser.h to bindbackend BUILT_SOURCES
 gef1439f: validate webserver parameters
 gcc586d6: fix parameter parsing in yahttp
-gf50955f: docs are read only
 gdcdd4fb: fix RETVAL for 'both' tests don't overwrite first RETVAL in second run
 gdf58857: fix bindparser reduce conflicts
 g04b88f5: fix bindbackend build with new automake versions
-g7eb7ac3: whitespace fixes
 gc56ef50: Merge pull request #1086 from cmouse/use-axfr-source-freshness
 g9dd4876: fix bindparser h/hh hack, thanks @stbuehler
-g4a1ab5e: Whitespace fix
 g91c1376: Remove +e/-e
-g895da50: Fixed indentation
 g6b3e8f9: Enclosed lua check with set +e
 g677aa52: Fixed few nits
 g9530220: Load AXFR-SOURCE when provided for domains
@@ -218,10 +189,6 @@ g56b4d21: avoid uninitialised res variable; don't cache any-to-tcp TC responses;
 ga09a8ce: adapt udp-truncation-threshold flag to the recursor and document it
 g904d321: move variable definitions up to allow goto
 ge661a20: adopt any-to-tcp feature to the recursor. Based on a patch by Winfried Angele. Closes #836
-g88ba171: Merge pull request #1096 from zeha/new-urls-auth
-g80d59cd: switch to yahttp in auth
-gbed1972: link in yahttp
-gd87f6e2: Import Aki Tuomi's yahttp
 gd64c5b4: Merge pull request #1094 from zeha/correct-overloading
 g3958990: Merge pull request #1095 from zeha/lang-nits
 ga67dd0c: Language nits
@@ -251,7 +218,6 @@ g3f8c58b: Merge pull request #1088 from mind04/dyndns
 geb44514: reduce the use of cleandig in dyndns tests
 g9862435: drop cryptopp from static build as libcryptopp.a is broken on Debian 7, which is what we build on
 gc0f9930: update .gitignore in bindbackend directory
-gbd6c633: nit
 gfd9f80d: move bind-dnssec.schema.sqlite3.sql.h to /pdns
 g948d955: update buildscripts
 ga2b0e9b: move create dnssec db from backend to pdnssec
@@ -274,14 +240,9 @@ ga16fad0: Fix handling of empty lookup/list result
 g5c9df68: Cleaned up commits as seen by Habbie's comment. Updated scripting xml file with a table of new entries. Added some new pdnslog functions within the powerdns-example-script.lua to show new functionality.
 g674a305: Enhancement for Issue #1074. Added operator overload for pdnslog() to accept a log level when writing out to syslog. Added syslog levels to global lua table which correspond to the second argument in pdnslog. Example: pdnslog(INFO, pdnslog.Info), pdnslog(DEBUG, pdnslog.Debug) , these all correspond to their name in the Urgency enum
 g244ad69: return 0 from serveConnection even after exceptions
-g0882970: add NOTICE to recursor dist, thanks @mind04
-gc09b584: limit accidental scope expansion, thanks @zeha
-gf4b976b: add openssl linking exception to manual
 gb5871f6: make OpenSSL linking exception more prominent - note that this has always applied! Fixes #1078, thanks @Zugschlus
-g80d09fd: remove outdated LICENSE file as we also have a more recent COPYING
 g6531fcd: Merge pull request #1079 from Zugschlus/master
 ge9a8603: Merge pull request #1081 from mind04/windows
-g421fe96: remove windows code from parser
 g916a0fd: force ragel alphtype to unsigned char, fixing non-ASCII TXT parsing on signed char platforms like s390x
 gf782fe3: add OpenSSL exception to PowerDNS, Netherlabs, van Dijk and Hubert copyrights
 gc62d41b: Merge pull request #1077 from rubenk/hardcoded-make
@@ -310,8 +271,6 @@ g7aa66b1: drop rest of windows files from dist-recursor
 g6f7bbe7: drop windows files from dist-recursor
 gdb4a099: Merge pull request #1043 from mind04/windows
 g6490458: Merge pull request #1063 from rubenk/autoconf
-ga067d33: also support polarssl 1.2.9+
-gf5352b1: support polarssl 1.3
 g14a2e52: Use the inet data type for supermasters.ip on postgrsql.
 gda430af: The boost macro's require a newer autoconf
 g67e8df4: Replace another obsolete macro
@@ -350,19 +309,9 @@ g4bab11e: Remove 11yrs old, unused showvar.in
 gfd24787: Merge pull request #1050 from rubenk/nit
 gf168a97: Merge pull request #1052 from rubenk/typo_in_comment
 ga4db309: Merge pull request #1046 from zeha/f/update-domain
-g3319694: ws: rework exception/error handling
-gb653a73: move #include ws.hh to .cc file
 gebdc28f: bind2: rename createDomain to createDomainEntry
 g4d73ea8: remove **db param from UeberBackend::createDomain
-g73301d7: ws: clean up how we return errors as JSON
-g3d89fc2: ws: cleanup how we look up domains
-g838f3b9: ws: implement PUT for zones (update or create)
-g543843b: ws: move create domain into it's own function
-g6ed9291: ws: style cleanup
-g4dfd864: Fix typo in comment
 g979ff96: Merge pull request #1051 from rubenk/indent
-gc28bf19: Fix tabs vs spaces
-gd430271: Fix typo
 gba49b88: drop xdb from control file for good measure
 g75ef9e5: Merge pull request #1049 from mind04/xdb
 gd523322: remove xdb backend
@@ -375,14 +324,11 @@ gee443da: pdns: Kill all spawned processes
 g82b6267: update dns-to-query section
 gc1c0213: Remove traces of mysqlbackend
 gbd1ef94: Merge pull request #1042 from mind04/mysql
-g9e1c1ea: nit
 g0f1076d: Merge branch 'pdnssec' of github.com:mind04/pdns into mind04-pdnssec
 gd2d5da0: fix for "missing" libmysqlclient on RHEL/CentOS based systems
 g9082b9d: point to 3.3 upgrade notes
 g0f47036: pdnssec check-zone, more tolerant IPv6 format check
 gc86a96f: add semicolon, thanks @pavel-odintsov
-gca02632: Merge pull request #1039 from zeha/issue/1038
-g195545a: Merge pull request #1036 from zeha/create-domain
 g96d1886: Merge pull request #1032 from brimston3/rm_mysql_autodep
 gdb92118: Merge pull request #1037 from mind04/pdnssec
 ga623086: pdnssec check-zone, fix record counting and improve out of zone check
@@ -390,15 +336,6 @@ g77da04f: pdnssec check-zone, improve duplicate checks
 g84a0d08: pdnssec check-zone, improve SOA content check
 g1e2e956: pdnssec check-zone, check for missing NS at apex and records in unlikely places
 gd6d1051: pdnssec check-zone, warn if parsed and original content are not equal
-g9a889c5: expose zone DELETE in JSON webserver
-g09d6667: implement deleteDomain in GSQLBackend
-g44e6298: introduce DNSBackend::deleteDomain
-ga8f1654: expose create zone in JSON webserver
-gc02f13e: implement setMaster/setKind in GSQLBackend
-g6d58359: introduce new setMaster/setKind functions
-g76979e7: allow reuse of DomainInfo::kind enum
-g487cf03: introduce DNSBackend::createDomain
-g1abb81f: ws: split zone get/list into it's own function
 ga3055b1: Merge pull request #1034 from mind04/logging
 g0769015: Merge pull request #1033 from mind04/oops
 g4fdee25: oops, 1bad4190cb removed one toLower() too many
@@ -480,16 +417,13 @@ gef5f856: add gsqlite tests to travis and remove cache tests to save some time
 ge820c30: Changed forced MD5 into proper selection for TSIG
 gbb03946: Merge pull request #997 from cmouse/coverity-1082470-1082475
 gaab4ee6: Merge pull request #998 from paboldin/fix-bind-nonzone
-g32449be: fix tests
 gfb48426: remove toLower, fix default option
 g637a1fd: Fixed coverity issues 1082470 thru 1082475
 gbd6ab91: Merge pull request #829 from paboldin/bind-nonzone
 gb2e52bc: reindent declarations, fix typo
-gf1441af: tests update
 g0eeca6c: Fix for max() args and variable name
 g259b9ce: using endsOn
 ga2a3420: *Actually* ignoring non-zone. Skip test on tinydns.
-g007d5ed: regression tests update
 g00b9f06: Fix for startup
 g17c2b1a: merging with cyclops1982, fixing #719
 gcbf73c9: Bind non-zone: more carefull check + tests.
@@ -497,9 +431,7 @@ gfad6e8d: Bind: More careful check for non-zone data.
 gc3b8563: Bind: Added 'ignore' option for non-zone domains.
 g7c84126: Merge pull request #988 from mind04/test-nsd
 g3639dcc: Merge pull request #989 from MikeAT/master
-g9371825: Merge pull request #990 from zeha/pdns-rename
 g6844e69: Merge pull request #977 from cmouse/cmouse-20130828
-ge34f346: Merge pull request #992 from zeha/ws
 g1a0c9ee: Merge pull request #995 from cmouse/include-dir-recursor
 ge216d1a: Merge pull request #991 from zeha/automake-1.14
 gca62eba: Merge pull request #993 from davidstrauss/master
@@ -519,19 +451,9 @@ g4ee4e4f: add tsig.com to verify-dnssec-zone
 g9a605b6: Merge pull request #994 from cmouse/fix-tsig-changeset
 g789db13: Change config-name to gpgsql in gpgsql setup
 gdd8b17b: Merge pull request #868 from cmouse/tsig-pdnssec-and-test
-g304a8b7: Revert rest of changes
-g7cbb7b8: Revert accidental change
 g92be6d9: Specify how to use pipe abi-versions 1, 2, and 3 with DNSSEC.
-g2be1beb: json: Remove old get-zone implementations
-ge72500b: recursor json: reimplement domains list using rapidjson
-gfb4b38f: recursor json: implement zone command
 g544eba1: Enable subdir-objects for automake-1.14
-gdd59d9a: json get-zone: properly return error if zone doesn't exist
-ge2897a7: recursor json: put command into command var
-g12a82d6: jsonstat: accept ints as strings or ints
 ga83c36d: s/AhuException/PDNSException/ in docs
-gfd885fb: pDNS -> PowerDNS in debian packages and pdns_control.8
-g9101035: Changed to use polarssl HMAC for SHA
 ga56bc64: Support for SHA algorithms for TSIG Added entropy-source paramater and seedRandom helper
 gb7c90bb: Added tsig.com
 g405160b: Added sha and it's test suite
@@ -552,11 +474,9 @@ g99b6368: Goracle backend implementation
 g09ecdb2: GMySQL support for TSIG key management
 g9a72349: GSQL backend support for TSIG key management
 g6f872b7: Basic TSIG key management infrastructure
-ge871e96: gitignore
 gbb027ac: fix table layout
 g5db42f3: fixed debian control dependencies
 g30b1542: Merge pull request #849 from zeha/f/issue-676
-g22a1c69: Merge pull request #785 from zeha/f/init.d-fixup
 g3dfe041: Merge pull request #976 from zeha/sockaddr_un
 g2c5d2b7: Merge pull request #987 from mind04/endless
 g76cb459: Introduce makeUNsockaddr and have everybody use it
@@ -585,19 +505,15 @@ ge3a209e: Remove unnecessary pipebackend include.
 gecf7844: drop non-working measurements
 g5e94ec9: add a bunch of measurements to recursor bulktest
 g49e41bc: non static debian build fixes, thanks Michael Braunoeder
-g31920ae: nit
-g26c0c59: log recursor version + runtime
 g4108e18: make bulktest threshold configurable
 gdbe48e9: allow context override for bulktest xml
 g923c8ad: add some runtime configurability to the recursor bulktest
 ge1620b5: Merge pull request #981 from cyclops1982/935plus
 g19e570d: Also controlsocket file with pdns_ prefix.
 g02e7bde: pid file with pdns_ prefix.
-ga35c342: drop visual studio dsp files, thanks @cmouse
 g73634c7: Merge pull request #970 from zeha/nproxy-chroot-chdir
 gbc6480d: Merge pull request #968 from zeha/docs-typo
 g40bb5b8: Merge pull request #952 from mind04/doc
-gae17f45: update pidfile name after b842fd64c37181881a74959add76c5538fd687ea
 gb842fd6: Merge pull request #951 from cyclops1982/935
 gcb0feb7: Merge pull request #971 from cmouse/include-dir-doc
 g4c2c279: Fix coverity CID 1066169
@@ -634,16 +550,13 @@ g8de9594: Merge pull request #959 from zeha/ignore
 g6989af0: Merge pull request #961 from zeha/valgrind-supp
 g0a31fb2: drop do-regress
 gd94d85f: Add suppression file for valgrind, and turn it on
-g691a581: Update gitignore files
 gfc06e2c: Merge pull request #957 from cmouse/docs-remotebackend-connectors
 gac96458: Changed backend to connector for remotebackend docs
 g8654ad5: update sample pipebackend script in docs, now a full include, thanks @davidstrauss
 g5c6158c: filling 'ordename' and 'auth'
 g8944540: Improved error message for socketfile not found
-g5124de2: Add --config-name to recursor
 g97dd9e6: Remove unused parent pointer (coverity fix)
 g4855a55: Remove possible devision by zero (coverity fix)
-gf17c93b: Coverity fixes
 g973efd3: Revert "refuse control characters in TXT, except for \n and \t"
 g92e1022: explain why we have gmtime_r
 gfb37aec: Merge pull request #947 from mind04/right
@@ -710,7 +623,6 @@ g589563c: Correctl changedRec for deleting RRs
 g7317464: Correct changed record numbers for add/update
 gf5059bd: NIt
 gdce6b81: Only commit & purge cache when we have changed
-gcc8915f: Replace PolarSSL-conditionals in Makefile.am and trust the include dirs
 g8f87234: enable v6 in recursor bulktest
 g90b03a3: -x
 g12d1714: Merge branch '429' of github.com:cyclops1982/pdns into cyclops1982-429
@@ -718,7 +630,6 @@ gf484f40: Merge pull request #919 from mind04/tsig-name
 g8ffbd59: Merge pull request #918 from cyclops1982/rfc2136
 ga782741: clarify
 g3095789: Merge pull request #920 from mind04/locking2
-g077b1ae: Restructure system PolarSSL detection
 g90fbfde: Use LUA_CFLAGS and LUA_LIBS instead of hardcoded paths.
 g0dbf1c5: Fix false libtool variable: _LIBS -> _LIBADD
 g26ac88b: Revert "add transaction-isolation=READ-COMMITTED to my.cnf in travis.yml"
@@ -906,11 +817,8 @@ g4b64c6d: Now uses send/recv wrapper to handle exceptions and connector rebuild
 gf032a91: Add clang compiler
 gcefd890: unbreak auth osx compilation, closes #902
 gd3c0bc1: Merge branch 'rel/auth-3.3'
-gf561404: 3.3 final docs
-g6788b58: ultimate 3.3 changelog update
 gef6170b: Merge pull request #898 from mind04/nsd-interop
 g9bd211e: no rectify for presigned zones
-g15d5a49: penultimate 3.3 changelog update plus correct another oversight
 g276727f: Merge pull request #897 from mind04/nsd-interop
 g942f9f8: drop useless index
 ga58a2be: minor doc updates
@@ -931,7 +839,6 @@ ge3827a6: build-recursor: set a maintainer name for resulting debs
 gc47d994: build-recursor: force a sane version for resulting debs
 g028a41c: build-recursor: stop using CDBS (-b), switch to 'single'
 ge1408ba: make man1 dir
-g41ef0ed: add get-zone to pdns-recursor. Untested. ch2500, go! ;-)
 g2bbbe64: actually ship .1 manpages too
 g74f463a: implement reading queries from a file
 g8ae9811: Merge pull request #892 from mind04/ds-at-apex
@@ -956,8 +863,6 @@ g695a5e7: Merge pull request #884 from cmouse/remotebackend-regression-http-test
 g7b0d5e5: Make sure webrick startup won't kill script
 g03f228b: Merge branch 'master' of github.com:PowerDNS/pdns
 g3ae8651: actually make our TCP support scale to multiple simultaneous clients, reuse threads & downstream connections
-gd7892d8: rc2 links
-gaa048df: 3.3-rc2 docs
 g208cde7: Merge pull request #882 from cmouse/better-wait-for-remotebackend-test
 gc5b5b96: Make sure webrick is running before testing
 gb166b64: Support for /ping
@@ -1063,7 +968,6 @@ g34b4dcc: Merge pull request #858 from cmouse/ensure-pdns-before-test
 gb16c944: Merge pull request #859 from cyclops1982/coverity
 gea9f4ee: Add delay to make sure pidfile gets created
 g7e8f95a: Another stab at covercity fix for tinydnsbackend
-ga10e2d0: Coverity fixes for mydns
 ga3a4cb1: Make sure pdns can be started and that it did indeed start
 g8fb03db: First stab at resolving coverity warnings
 g77346bd: Merge pull request #857 from cmouse/remotebackend-initialize-d_result
@@ -1086,18 +990,12 @@ g38860c8: Merge pull request #853 from RvdE/patch-1
 gae03af2: Merge pull request #837 from cmouse/remobackend-improvements
 g985d283: Update reczones.cc
 ge09ff8b: fix ghost domain link
-g8426a8a: rec 3.5.2 docs
 g6e5dcaf: fix ticket links
-g1d0fd79: Merge branch 'remobackend-improvements' of github.com:cmouse/pdns into remobackend-improvements
-g0412fc3: Fixed to use ruby 1.9.1
-g4d6e18d: Small final formatting fix
-g814bf5f: Fixed some typos
 gfee3400: Merge branch 'remobackend-improvements' of github.com:cmouse/pdns into remobackend-improvements
 gab7a0b3: Added missing sect2 close tag
 g7245466: Added HTTP support for testing remotebackend
 g008174b: Documentation for new features
 g83d0fb6: Added the new test binaries to ignore
-gaea95b0: Removed binary blobs
 gab487be: SSL support and few small fixes
 g5ec8c40: Support for POST and POST JSON modes
 gb26e91b: Test suite for POST and POST JSON modes
@@ -1111,8 +1009,6 @@ g0fb3842: Add exit codes to pdns-recursor init script
 gbbe4233: Allow overriding of SYSCONFDIR, LOCALSTATEDIR from recursor Makefile
 g6988913: Update pdns auth init script so it works on wheezy
 g183ec44: this commit will force potential undefined behaviour into a crash. Not observed in real life.
-g813b1d9: silence array warning
-g166d92f: silence bunch of debugging output in our secret undocumented recursor webserver
 g3462407: Added rubygems as it's needed by test suite
 g1db3e61: Fixes and spanking new test suite for remotebackend
 g428ed43: Added transaction ID for start/abort/commiTransaction
