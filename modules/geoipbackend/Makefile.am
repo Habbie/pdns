@@ -3,3 +3,4 @@ EXTRA_DIST=OBJECTFILES OBJECTLIBS
 pkglib_LTLIBRARIES = libgeoipbackend.la
 libgeoipbackend_la_SOURCES=geoipbackend.cc geoipbackend.hh
 libgeoipbackend_la_LDFLAGS=-module -avoid-version
+libgeoipbackend_la_LIBADD=$(YAML_LIBS) $(GEOIP_LIBS)
