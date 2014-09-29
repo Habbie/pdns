@@ -39,6 +39,7 @@ script:
  - make -k -j 4
  - make -k install DESTDIR=/tmp/pdns-install-dir
  - sudo make -k install
+ - for f in /usr/local/lib/pdns/*.so ; do echo ldd for $f ; ldd $f ; done
  - find /tmp/pdns-install-dir -ls
  - travis_retry timeout 240s make -j 4 check # Workaround for remotebackend failures on travis-ci
  - make -k -C pdns $(grep '(EXEEXT):' pdns/Makefile | cut -f1 -d\$)
