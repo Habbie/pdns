@@ -30,6 +30,8 @@ before_script:
  - sudo chmod 0644 /etc/softhsm/softhsm.conf
  - sudo chmod 0777 /var/lib/softhsm
  - p11-kit -l # ensure it's ok
+ - CC=$(which $CC)
+ - CXX=$(which $CXX)
 script:
  - ./bootstrap
  - ./configure --with-modules='bind geoip gmysql gpgsql gsqlite3 mydns tinydns remote random opendbx ldap lmdb' --enable-unit-tests --enable-tools --enable-remotebackend-zeromq --enable-experimental-pkcs11
