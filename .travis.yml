@@ -55,6 +55,7 @@ script:
  - ./start.sh
  - sleep 3
  - svstat configs/*
+ - grep . configs/*/logfile
  - ./runtests
  - test ! -s ./failed_tests
  - ./stop.sh
