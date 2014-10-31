@@ -182,7 +182,7 @@
 #################################
 # forward-notify	IP address we send notifications to
 #
-# forward-notify=127.0.0.1,::1
+# forward-notify=
 
 #################################
 # guardian	Run within a guardian process
