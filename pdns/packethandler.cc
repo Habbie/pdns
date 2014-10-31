@@ -759,7 +759,7 @@ int PacketHandler::processNotify(DNSPacket *p)
      if master is higher -> do stuff
   */
   if(!::arg().mustDo("slave")) {
-    if(::arg()["passthru-notify"].empty()) {
+    if(::arg()["forward-notify"].empty()) {
       L<<Logger::Error<<"Received NOTIFY for "<<p->qdomain<<" from "<<p->getRemote()<<" but slave support is disabled in the configuration"<<endl;
       return RCode::NotImp;
     }
@@ -787,16 +787,16 @@ int PacketHandler::processNotify(DNSPacket *p)
   // ok, we've done our checks
   di.backend = 0;
 
-  if(!::arg()["passthru-notify"].empty()) {
-    vector<string>passthrus;
-    stringtok(passthrus,::arg()["passthru-notify"]," ,");
-    for(vector<string>::const_iterator k=passthrus.begin();k!=passthrus.end();++k) {
+  if(!::arg()["forward-notify"].empty()) {
+    vector<string>targets;
+    stringtok(targets,::arg()["forward-notify"]," ,");
+    for(vector<string>::const_iterator k=targets.begin();k!=targets.end();++k) {
       if (!testIPv4addr(*k) || !testIPv6addr(*k)) {
         L<<Logger::Warning<<"Relaying notification of domain '"<<p->qdomain<<"' from "<<p->getRemote()<<" to "<<*k<<endl;
         try {
-          static Resolver passthruResolver;
+          static Resolver forwardResolver;
           ComboAddress remote(*k, 53);
-          passthruResolver.relayNotification(p->qdomain, remote, p->d.id);
+          forwardResolver.relayNotification(p->qdomain, remote, p->d.id);
         }
         catch(ResolverException &re) {
           L<<Logger::Error<<"Error trying to renotify '"+p->qdomain+"' to '"+*k+"' reason: "+re.reason<<endl;

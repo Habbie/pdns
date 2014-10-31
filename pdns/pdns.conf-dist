@@ -180,6 +180,11 @@
 # forward-dnsupdate=yes
 
 #################################
+# forward-notify	IP address we send notifications to
+#
+# forward-notify=127.0.0.1,::1
+
+#################################
 # guardian	Run within a guardian process
 #
 # guardian=no
@@ -313,11 +318,6 @@
 # overload-queue-length	Maximum queuelength moving to packetcache only
 #
 # overload-queue-length=0
-
-#################################
-# passthru-notify	IP address we send notifications to
-#
-# passthru-notify=127.0.0.1,::1
 
 #################################
 # pipebackend-abi-version	Version of the pipe backend ABI
