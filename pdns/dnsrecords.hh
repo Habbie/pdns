@@ -611,6 +611,5 @@ bool getEDNSOpts(const MOADNSParser& mdp, EDNSOpts* eo);
 void reportBasicTypes();
 void reportOtherTypes();
 void reportAllTypes();
-void reportFancyTypes();
 
 #endif 
