@@ -505,23 +505,6 @@ public:
 private:
 };
 
-
-class URLRecordContent : public DNSRecordContent // Fake, 'fancy record' with type 256
-{
-public:
-  includeboilerplate(URL)
-private:
-  string d_url;
-};
-
-class MBOXFWRecordContent : public DNSRecordContent // Fake, 'fancy record' with type 256
-{
-public:
-  includeboilerplate(MBOXFW)
-private:
-  string d_mboxfw;
-};
-
 class EUI48RecordContent : public DNSRecordContent 
 {
 public:
