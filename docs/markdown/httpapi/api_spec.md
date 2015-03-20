@@ -518,6 +518,8 @@ Retrieves the zone from the master.
 Fails when zone kind is not `Slave`, or `slave` is disabled in pdns
 configuration.
 
+Not supported for recursors.
+
 **Note**: Added in 3.4.2
 
 
