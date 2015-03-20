@@ -513,12 +513,10 @@ URL: /servers/:server\_id/zones/:zone\_id/axfr-retrieve
 
 Allowed methods: `PUT`
 
-Import zone into the powerdns backend.
+Retrieves the zone from the master.
 
-Fails when domain is not a `Slave` domain, has no `Master` defined
-or `slave` is disabled in pdns configuration.
-
-Clients must send body containing an AXFR.
+Fails if zone `Master` is empty or not defined or `slave` is disabled 
+in pdns configuration.
 
 **Note**: Added in 3.4.2
 
