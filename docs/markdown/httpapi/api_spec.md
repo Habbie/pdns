@@ -516,7 +516,7 @@ Allowed methods: `PUT`
 Retrieves the zone from the master.
 
 Fails when zone kind is not `Slave`, or `slave` is disabled in pdns
--configuration.
+configuration.
 
 **Note**: Added in 3.4.2
 
