@@ -49,6 +49,7 @@ private:
   {
     mutable uint32_t d_ttd;
 
+    QType d_qtype;
     string d_string;
 
     bool operator<(const StoredRecord& rhs) const

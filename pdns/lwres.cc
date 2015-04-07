@@ -75,7 +75,8 @@ int asyncresolve(const ComboAddress& ip, const string& domain, int type, bool do
       opts.push_back(make_pair(5, ping));
     }
 
-    pw.addOpt(1200, 0, 0, opts); // 1200 bytes answer size
+    pw.addOpt(1200, 0, EDNSOpts::DNSSECOK, opts); // 1200 bytes answer size
+
     pw.commit();
   }
   lwr->d_rcode = 0;
