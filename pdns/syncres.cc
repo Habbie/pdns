@@ -1124,7 +1124,7 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
               RRSIGRecordContent rrc = *dynamic_cast<RRSIGRecordContent*>(DNSRecordContent::mastermake(QType::RRSIG, 1, i->content));
               qtkey = rrc.d_type;
             }
-            tcache[make_pair(i->qname,qtkey)].insert(rr);            
+            tcache[make_pair(i->qname,qtkey)].insert(rr);
           }
         }          
         else
