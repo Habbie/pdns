@@ -115,6 +115,7 @@ EXTRA_PROGRAMS = \
 	testrunner \
 	toysdig \
 	tsig-tests \
+	validator \
 	zone2ldap \
 	zone2lmdb
 
@@ -388,6 +389,14 @@ zone2json_LDADD = $(POLARSSL_LIBS)
 # pkglib_LTLIBRARIES = iputils.la
 # iputils_la_SOURCES = lua-iputils.cc
 # iputils_la_LDFLAGS= -module -avoid-version
+
+validator_SOURCES = \
+	iputils.cc iputils.hh \
+	misc.cc \
+	qtype.cc \
+	validator.cc
+
+validator_LDADD = $(POLARSSL_LIBS)
 
 if LDAP
 bin_PROGRAMS += zone2ldap
