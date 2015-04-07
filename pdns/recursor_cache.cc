@@ -132,7 +132,7 @@ int MemRecursorCache::get(time_t now, const string &qname, const QType& qt, set<
           if(k->d_ttd < 1000000000 || k->d_ttd > (uint32_t) now) {  // FIXME what does the 100000000 number mean?
             ttd=k->d_ttd;
             if(res) {
-              DNSResourceRecord rr=String2DNSRR(qname, QType(i->d_qtype),  k->d_string, ttd); 
+              DNSResourceRecord rr=String2DNSRR(qname, QType(k->d_qtype),  k->d_string, ttd);
               res->insert(rr);
             }
           }
