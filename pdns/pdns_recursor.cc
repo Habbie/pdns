@@ -549,9 +549,6 @@ void startDoResolve(void *p)
 
     DNSPacketWriter pw(packet, dc->d_mdp.d_qname, dc->d_mdp.d_qtype, dc->d_mdp.d_qclass); 
 
-    pw.addOpt(1200, 0, EDNSOpts::DNSSECOK);
-    pw.commit();
-
     pw.getHeader()->aa=0;
     pw.getHeader()->ra=1;
     pw.getHeader()->qr=1;
@@ -685,6 +682,9 @@ void startDoResolve(void *p)
       }
     }
   sendit:;
+    pw.addOpt(1200, 0, EDNSOpts::DNSSECOK);
+    pw.commit();
+
     g_rs.submitResponse(dc->d_mdp.d_qtype, packet.size(), !dc->d_tcp);
     updateResponseStats(res, dc->d_remote, packet.size(), &dc->d_mdp.d_qname, dc->d_mdp.d_qtype);
     if(!dc->d_tcp) {
