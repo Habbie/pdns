@@ -392,7 +392,7 @@ uint64_t MemRecursorCache::doDump(int fd)
       count++;
       try {
         DNSResourceRecord rr=String2DNSRR(i->d_qname, QType(j->d_qtype), j->d_string, j->d_ttd - now);
-        fprintf(fp, "%s/%d %s %d IN %s %s\n", i->d_qname.c_str(), i->d_qtype, rr.qname.c_str(), rr.ttl, rr.qtype.getName().c_str(), rr.content.c_str());      }
+        fprintf(fp, "%s/%s %s %d IN %s %s\n", i->d_qname.c_str(), QType(i->d_qtype).getName().c_str(), rr.qname.c_str(), rr.ttl, rr.qtype.getName().c_str(), rr.content.c_str());      }
       catch(...) {
         fprintf(fp, "; error printing '%s'\n", i->d_qname.c_str());
       }
