@@ -1117,14 +1117,31 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
             if(rr.qtype.getCode() == QType::NS) // people fiddle with the case
               rr.content=toLower(rr.content); // this must stay! (the cache can't be case-insensitive on the RHS of records)
             
+            string qnkey;
+            qnkey=i->qname;
             QType qtkey;
             qtkey=i->qtype;
-            if(qtkey.getCode() == QType::RRSIG)
+            if(i->qtype.getCode() == QType::RRSIG)
             {
               RRSIGRecordContent rrc = *dynamic_cast<RRSIGRecordContent*>(DNSRecordContent::mastermake(QType::RRSIG, 1, i->content));
               qtkey = rrc.d_type;
             }
-            tcache[make_pair(i->qname,qtkey)].insert(rr);
+            if(i->qtype.getCode() == QType::NSEC)
+            {
+              NSECRecordContent rrc = *dynamic_cast<NSECRecordContent*>(DNSRecordContent::mastermake(QType::NSEC, 1, i->content));
+              qnkey = qname;
+              qtkey = qtype;
+            }
+
+            if(i->qtype.getCode() == QType::NSEC3)
+            {
+              cerr<<"got nsec3 with qname "<<i->qname<<endl;
+              NSEC3RecordContent rrc = *dynamic_cast<NSEC3RecordContent*>(DNSRecordContent::mastermake(QType::NSEC3, 1, i->content));
+              qnkey = qname;
+              qtkey = qtype;
+            }
+
+            tcache[make_pair(qnkey,qtkey)].insert(rr);
           }
         }          
         else
@@ -1149,6 +1166,10 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
 
       bool done=false, realreferral=false, negindic=false;
       string newauth, soaname, newtarget;
+
+     for(LWResult::res_t::iterator i=lwr.d_result.begin();i!=lwr.d_result.end();++i)
+       if((i->qtype==QType::RRSIG || i->qtype==QType::NSEC || i->qtype==QType::NSEC3) && i->d_place==DNSResourceRecord::ANSWER)
+         ret.push_back(*i);
 
       for(LWResult::res_t::iterator i=lwr.d_result.begin();i!=lwr.d_result.end();++i) {
         if(i->d_place==DNSResourceRecord::AUTHORITY && i->qtype.getCode()==QType::SOA && 
@@ -1191,10 +1212,6 @@ int SyncRes::doResolveAt(set<string, CIStringCompare> nameservers, string auth, 
           LOG(prefix<<qname<<": answer is in: resolved to '"<< i->content<<"|"<<i->qtype.getName()<<"'"<<endl);
 
           done=true;
-          ret.push_back(*i);
-        }
-        else if(i->qtype==QType::RRSIG && i->d_place==DNSResourceRecord::ANSWER)
-        {
           ret.push_back(*i);
         }
         else if(i->d_place==DNSResourceRecord::AUTHORITY && dottedEndsOn(qname,i->qname) && i->qtype.getCode()==QType::NS) { 
