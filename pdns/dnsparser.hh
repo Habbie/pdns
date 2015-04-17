@@ -37,6 +37,8 @@
 #include <boost/tuple/tuple_comparison.hpp>
 #include "dns.hh"
 #include "dnswriter.hh"
+#include "dnsname.hh"
+#include "pdnsexception.hh"
 
 /** DNS records have three representations:
     1) in the packet

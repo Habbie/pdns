@@ -455,44 +455,28 @@ string PacketReader::getText(bool multi)
 
 void PacketReader::getLabelFromContent(const vector<uint8_t>& content, uint16_t& frompos, string& ret, int recurs) 
 {
-  if(recurs > 1000) // the forward reference-check below should make this test 100% obsolete
-    throw MOADNSException("Loop");
-  // it is tempting to call reserve on ret, but it turns out it creates a malloc/free storm in the loop
-  for(;;) {
-    unsigned char labellen=content.at(frompos++);
+  unsigned int consumed;
 
-    if(!labellen) {
-      if(ret.empty())
-              ret.append(1,'.');
-      break;
-    }
-    else if((labellen & 0xc0) == 0xc0) {
-      uint16_t offset=256*(labellen & ~0xc0) + (unsigned int)content.at(frompos++) - sizeof(dnsheader);
-      //        cout<<"This is an offset, need to go to: "<<offset<<endl;
+  const unsigned char *data = content.data();
+  int size = content.size();
+  int offset = frompos;
 
-      if(offset >= frompos-2)
-        throw MOADNSException("forward reference during label decompression");
-      return getLabelFromContent(content, offset, ret, ++recurs);
-    }
-    else if(labellen > 63) 
-      throw MOADNSException("Overly long label during label decompression ("+lexical_cast<string>((unsigned int)labellen)+")");
-    else {
-      // XXX FIXME THIS MIGHT BE VERY SLOW!
+  data += sizeof(dnsheader);
 
-      for(string::size_type n = 0 ; n < labellen; ++n, frompos++) {
-        if(content.at(frompos)=='.' || content.at(frompos)=='\\') {
-          ret.append(1, '\\');
-          ret.append(1, content[frompos]);
-        }
-        else if(content.at(frompos)==' ') {
-          ret+="\\032";
-        }
-        else 
-          ret.append(1, content[frompos]);
-      }
-      ret.append(1,'.');
-    }
-  }
+  size -= sizeof(dnsheader);
+
+  offset -= sizeof(dnsheader);
+  
+  // if(size<=0) throw PDNSException("huh");
+
+  // int offset = frompos-sizeof(dnsheader);
+  // if(offset<=0) throw PDNSException("huh2");
+
+  DNSName retd(reinterpret_cast<const char*>(data), size, offset, true /* uncompress */, 0 /* qtype */, 0 /* qclass */, &consumed);
+
+  frompos+=consumed;
+
+  ret = retd.toString();
 }
 
 void PacketReader::xfrBlob(string& blob)

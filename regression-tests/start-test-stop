@@ -94,7 +94,7 @@ check_process ()
 {
 	set +e
 	loopcount=0
-	while [ $loopcount -lt 5 ]; do
+	while [ $loopcount -lt 50 ]; do
 		sleep 1
 		pids=$(cat pdns*.pid 2>/dev/null)
 		if [ ! -z "$pids" ]

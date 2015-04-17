@@ -160,7 +160,7 @@ void declareArguments()
   ::arg().set("lua-prequery-script", "Lua script with prequery handler (DO NOT USE)")="";
   ::arg().set("experimental-lua-policy-script", "Lua script for the policy engine")="";
 
-  ::arg().setSwitch("traceback-handler","Enable the traceback handler (Linux only)")="yes";
+  ::arg().setSwitch("traceback-handler","Enable the traceback handler (Linux only)")="no";
   ::arg().setSwitch("direct-dnskey","Fetch DNSKEY RRs from backend during DNSKEY synthesis")="no";
   ::arg().set("default-ksk-algorithms","Default KSK algorithms")="rsasha256";
   ::arg().set("default-ksk-size","Default KSK size (0 means default)")="0";
