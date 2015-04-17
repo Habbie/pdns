@@ -8,121 +8,22 @@
 #include "dnsrecords.hh"
 #include "statbag.hh"
 #include <boost/array.hpp>
+#include <sstream>
+#include <istream>
 StatBag S;
 
 int main(int argc, char** argv)
 try
 {
-  bool dnssec=false;
-  bool recurse=false;
-  bool tcp=false;
-  bool showflags=false;
   bool hidesoadetails=false;
+  bool showflags=false;
 
   reportAllTypes();
 
-  if(argc < 5) {
-    cerr<<"Syntax: sdig IP-address port question question-type [dnssec] [recurse] [showflags] [hidesoadetails] [tcp]\n";
-    exit(EXIT_FAILURE);
-  }
+  std::stringstream replystr;
+  replystr << std::cin.rdbuf();
 
-  if (argc > 5) {
-    for(int i=5; i<argc; i++) {
-      if (strcmp(argv[i], "dnssec") == 0)
-        dnssec=true;
-      if (strcmp(argv[i], "recurse") == 0)
-        recurse=true;
-      if (strcmp(argv[i], "showflags") == 0)
-        showflags=true;
-      if (strcmp(argv[i], "hidesoadetails") == 0)
-        hidesoadetails=true;
-      if (strcmp(argv[i], "tcp") == 0) {
-        tcp=true;
-      }
-    }
-  }
-
-  vector<uint8_t> packet;
-  
-  DNSPacketWriter pw(packet, argv[3], DNSRecordContent::TypeToNumber(argv[4]));
-
-  if(dnssec || getenv("SDIGBUFSIZE"))
-  {
-    char *sbuf=getenv("SDIGBUFSIZE");
-    int bufsize;
-    if(sbuf)
-      bufsize=atoi(sbuf);
-    else
-      bufsize=2800;
-
-    pw.addOpt(bufsize, 0, dnssec ? EDNSOpts::DNSSECOK : 0);
-    pw.commit();
-  }
-
-  if(recurse)
-  {
-    pw.getHeader()->rd=true;
-  }
-  //  pw.setRD(true);
- 
- /*
-  pw.startRecord("powerdns.com", DNSRecordContent::TypeToNumber("NS"));
-  NSRecordContent nrc("ns1.powerdns.com");
-  nrc.toPacket(pw);
-
-  pw.startRecord("powerdns.com", DNSRecordContent::TypeToNumber("NS"));
-  NSRecordContent nrc2("ns2.powerdns.com");
-  nrc2.toPacket(pw);
-  */
-
-/*  DNSPacketWriter::optvect_t opts;
-
-  opts.push_back(make_pair(5, ping));
-  
-  pw.commit();
-*/
-  // pw.addOpt(5200, 0, 0);
-  // pw.commit();
-  
-  string reply;
-
-  if(tcp) {
-    Socket sock(AF_INET, SOCK_STREAM);
-    ComboAddress dest(argv[1] + (*argv[1]=='@'), atoi(argv[2]));
-    sock.connect(dest);
-    uint16_t len;
-    len = htons(packet.size());
-    if(sock.write((char *) &len, 2) != 2)
-      throw PDNSException("tcp write failed");
-
-    sock.writen(string((char*)&*packet.begin(), (char*)&*packet.end()));
-    
-    if(sock.read((char *) &len, 2) != 2)
-      throw PDNSException("tcp read failed");
-
-    len=ntohs(len);
-    char *creply = new char[len];
-    int n=0;
-    int numread;
-    while(n<len) {
-      numread=sock.read(creply+n, len-n);
-      if(numread<0)
-        throw PDNSException("tcp read failed");
-      n+=numread;
-    }
-
-    reply=string(creply, len);
-    delete[] creply;
-  }
-  else //udp
-  {
-    Socket sock(AF_INET, SOCK_DGRAM);
-    ComboAddress dest(argv[1] + (*argv[1]=='@'), atoi(argv[2]));
-    sock.sendTo(string((char*)&*packet.begin(), (char*)&*packet.end()), dest);
-    
-    sock.recvFrom(reply, dest);
-  }
-  MOADNSParser mdp(reply);
+  MOADNSParser mdp(replystr.str());
   cout<<"Reply to question for qname='"<<mdp.d_qname<<"', qtype="<<DNSRecordContent::NumberToType(mdp.d_qtype)<<endl;
   cout<<"Rcode: "<<mdp.d_header.rcode<<", RD: "<<mdp.d_header.rd<<", QR: "<<mdp.d_header.qr;
   cout<<", TC: "<<mdp.d_header.tc<<", AA: "<<mdp.d_header.aa<<", opcode: "<<mdp.d_header.opcode<<endl;
