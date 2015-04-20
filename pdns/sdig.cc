@@ -42,8 +42,8 @@ try
       string zoneRep = i->first.d_content->getZoneRepresentation();
       vector<string> parts;
       stringtok(parts, zoneRep);
-      cout<<"\t"<<i->first.d_ttl<<"\t"<< parts[0]<<" [flags] "<<parts[2]<<" "<<parts[3]<<" "<<parts[4];
-      for(vector<string>::iterator iter = parts.begin()+5; iter != parts.end(); ++iter)
+      cout<<"\t"<<i->first.d_ttl<<"\t"<< parts[0]<<" [flags] "<<parts[2]<<" "<<parts[3]<<" "<<(parts.size() < 4) ? "<empty>" : parts[4];
+      for(vector<string>::iterator iter = parts.begin()+5; iter < parts.end(); ++iter)
         cout<<" "<<*iter;
       cout<<"\n";
     }
