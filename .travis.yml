@@ -42,7 +42,6 @@ before_script:
      ruby1.9.1
      rubygems
      socat
-     softhsm
      time
      unbound-host
      xmlto
