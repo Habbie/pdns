@@ -88,7 +88,7 @@ script:
      --disable-silent-rules
      --disable-dependency-tracking
  - make -k -j 4
- - cd ../regression-tests
+ - cd regression-tests
  - touch tests/verify-dnssec-zone/allow-missing
  - touch tests/verify-dnssec-zone/skip.nsec3 # some (travis) tools in this test are unable to handle nsec3 zones
  - touch tests/verify-dnssec-zone/skip.optout
