@@ -82,7 +82,6 @@ script:
      --enable-botan1.10
      --enable-unit-tests
      --enable-tools
-     --enable-remotebackend-zeromq
      --enable-experimental-ed25519
      --enable-experimental-pkcs11
      --disable-silent-rules
