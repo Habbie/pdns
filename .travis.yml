@@ -1,7 +1,6 @@
 language: cpp
 compiler:
   - gcc
-  - clang
 before_script:
  - git describe --always --dirty=+
  - sudo /sbin/ip addr add 10.0.3.0/24 dev lo
