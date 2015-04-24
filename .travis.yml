@@ -58,13 +58,6 @@ before_script:
  - fakeroot alien --to-deb dnsperf-2.0.0.0-1/dnsperf-2.0.0.0-1.el6.x86_64.rpm
  - sudo dpkg -i dnsperf_2.0.0.0-2_amd64.deb
  - travis_retry gem install bundler --no-rdoc --no-ri
- - sudo mkdir -p /etc/pkcs11/modules/
- - sudo cp -f regression-tests/softhsm.mod /etc/pkcs11/modules/softhsm
- - sudo cp -f regression-tests/softhsm.conf /etc/softhsm/softhsm.conf
- - sudo chmod 0755 /etc/softhsm/
- - sudo chmod 0644 /etc/softhsm/softhsm.conf
- - sudo chmod 0777 /var/lib/softhsm
- - p11-kit -l # ensure it's ok
 script:
  - ./bootstrap
  - ./configure
