@@ -82,7 +82,6 @@ script:
      --enable-unit-tests
      --enable-tools
      --enable-experimental-ed25519
-     --enable-experimental-pkcs11
      --disable-silent-rules
      --disable-dependency-tracking
  - make -k -j 4
