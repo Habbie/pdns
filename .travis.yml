@@ -46,6 +46,9 @@ before_script:
      time
      unbound-host
      xmlto
+ - sudo sh -c 'sed s/precise/trusty/g /etc/apt/sources.list > /etc/apt/sources.list.d/trusty.list'
+ - sudo apt-get update --quiet --quiet
+ - sudo apt-get install --quiet --quiet liblmdb0 liblmdb-dev lmdb-utils libyaml-cpp-dev libzmq3-dev pandoc
 script:
  - ./bootstrap
  - ./configure
