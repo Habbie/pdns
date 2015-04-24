@@ -47,8 +47,6 @@ before_script:
      unbound-host
      xmlto
  - sudo update-alternatives --set ruby /usr/bin/ruby1.9.1
- - sudo touch /etc/authbind/byport/53
- - sudo chmod 755 /etc/authbind/byport/53
  - sudo mkdir -p /etc/pkcs11/modules/
  - sudo cp -f regression-tests/softhsm.mod /etc/pkcs11/modules/softhsm
  - sudo cp -f regression-tests/softhsm.conf /etc/softhsm/softhsm.conf
