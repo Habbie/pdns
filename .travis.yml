@@ -53,10 +53,6 @@ before_script:
  - sudo update-alternatives --set ruby /usr/bin/ruby1.9.1
  - sudo touch /etc/authbind/byport/53
  - sudo chmod 755 /etc/authbind/byport/53
- - wget ftp://ftp.nominum.com/pub/nominum/dnsperf/2.0.0.0/dnsperf-2.0.0.0-1-rhel-6-x86_64.tar.gz
- - tar xzvf dnsperf-2.0.0.0-1-rhel-6-x86_64.tar.gz
- - fakeroot alien --to-deb dnsperf-2.0.0.0-1/dnsperf-2.0.0.0-1.el6.x86_64.rpm
- - sudo dpkg -i dnsperf_2.0.0.0-2_amd64.deb
  - travis_retry gem install bundler --no-rdoc --no-ri
 script:
  - ./bootstrap
