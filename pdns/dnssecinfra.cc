@@ -581,9 +581,9 @@ string makeTSIGMessageFromTSIGPacket(const string& opacket, unsigned int tsigOff
 }
 
 
-bool getTSIGHashEnum(const string &algoName, TSIGHashEnum& algoEnum)
+bool getTSIGHashEnum(const DNSName &algoName, TSIGHashEnum& algoEnum)
 {
-  string normalizedName = toLowerCanonic(algoName);
+  string normalizedName = algoName.toString(); // FIXME: check
 
   if (normalizedName == "hmac-md5.sig-alg.reg.int")
     algoEnum = TSIG_MD5;
