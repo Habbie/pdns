@@ -534,7 +534,7 @@ string calculateHMAC(const std::string& key, const std::string& text, TSIGHashEn
   return calculateSHAHMAC(key, text, hash);
 }
 
-string makeTSIGMessageFromTSIGPacket(const string& opacket, unsigned int tsigOffset, const string& keyname, const TSIGRecordContent& trc, const string& previous, bool timersonly, unsigned int dnsHeaderOffset)
+string makeTSIGMessageFromTSIGPacket(const string& opacket, unsigned int tsigOffset, const DNSName& keyname, const TSIGRecordContent& trc, const string& previous, bool timersonly, unsigned int dnsHeaderOffset)
 {
   string message;
   string packet(opacket);
@@ -564,7 +564,8 @@ string makeTSIGMessageFromTSIGPacket(const string& opacket, unsigned int tsigOff
     dw.xfrName(keyname, false);
     dw.xfr16BitInt(QClass::ANY); // class
     dw.xfr32BitInt(0);    // TTL
-    dw.xfrName(toLower(trc.d_algoName), false);
+    // dw.xfrName(toLower(trc.d_algoName), false); //FIXME 
+    dw.xfrName(trc.d_algoName, false);
   }
   
   uint32_t now = trc.d_time; 
@@ -604,11 +605,11 @@ bool getTSIGHashEnum(const DNSName &algoName, TSIGHashEnum& algoEnum)
 }
 
 
-void addTSIG(DNSPacketWriter& pw, TSIGRecordContent* trc, const string& tsigkeyname, const string& tsigsecret, const string& tsigprevious, bool timersonly)
+void addTSIG(DNSPacketWriter& pw, TSIGRecordContent* trc, const DNSName& tsigkeyname, const string& tsigsecret, const string& tsigprevious, bool timersonly)
 {
   TSIGHashEnum algo;
   if (!getTSIGHashEnum(trc->d_algoName, algo)) {
-     L<<Logger::Error<<"Unsupported TSIG HMAC algorithm " << trc->d_algoName << endl;
+     L<<Logger::Error<<"Unsupported TSIG HMAC algorithm " << trc->d_algoName.toString() << endl;
      return;
   }
 
