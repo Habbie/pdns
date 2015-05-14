@@ -240,14 +240,14 @@ template<class Answer, class Question, class Backend>void *MultiThreadDistributo
         a=q->replyPacket();
         a->setRcode(RCode::ServFail);
         S.inc("servfail-packets");
-        S.ringAccount("servfail-queries",q->qdomain);
+        S.ringAccount("servfail-queries",q->qdomain.toString());
       }
       catch(...) {
         L<<Logger::Error<<Logger::NTLog<<"Caught unknown exception in Distributor thread "<<(unsigned long)pthread_self()<<endl;
         a=q->replyPacket();
         a->setRcode(RCode::ServFail);
         S.inc("servfail-packets");
-        S.ringAccount("servfail-queries",q->qdomain);
+        S.ringAccount("servfail-queries",q->qdomain.toString());
       }
 
       AnswerData<Answer> AD;
@@ -280,7 +280,7 @@ template<class Answer, class Question, class Backend>int SingleThreadDistributor
     a=q->replyPacket();
     a->setRcode(RCode::ServFail);
     S.inc("servfail-packets");
-    S.ringAccount("servfail-queries",q->qdomain);
+    S.ringAccount("servfail-queries",q->qdomain.toString());
   }
   catch(...) {
     L<<Logger::Error<<Logger::NTLog<<"Caught unknown exception in Distributor thread "<<(unsigned long)pthread_self()<<endl;
@@ -289,7 +289,7 @@ template<class Answer, class Question, class Backend>int SingleThreadDistributor
     a=q->replyPacket();
     a->setRcode(RCode::ServFail);
     S.inc("servfail-packets");
-    S.ringAccount("servfail-queries",q->qdomain);
+    S.ringAccount("servfail-queries",q->qdomain.toString());
   }
   AnswerData<Answer> AD;
   AD.A=a;
