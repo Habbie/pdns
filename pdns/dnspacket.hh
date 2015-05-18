@@ -146,9 +146,9 @@ public:
   bool d_dnssecOk;
   bool d_havetsig;
 
-  bool getTSIGDetails(TSIGRecordContent* tr, string* keyname, string* message) const;
-  void setTSIGDetails(const TSIGRecordContent& tr, const string& keyname, const string& secret, const string& previous, bool timersonly=false);
-  bool getTKEYRecord(TKEYRecordContent* tr, string* keyname) const;
+  bool getTSIGDetails(TSIGRecordContent* tr, DNSName* keyname, string* message) const;
+  void setTSIGDetails(const TSIGRecordContent& tr, const DNSName& keyname, const string& secret, const string& previous, bool timersonly=false);
+  bool getTKEYRecord(TKEYRecordContent* tr, DNSName* keyname) const;
 
   vector<DNSResourceRecord>& getRRS() { return d_rrs; }
   TSIGRecordContent d_trc;
@@ -171,7 +171,7 @@ private:
   bool d_haveednssection;
   EDNSSubnetOpts d_eso;
   string d_tsigsecret;
-  string d_tsigkeyname;
+  DNSName d_tsigkeyname;
   string d_tsigprevious;
   bool d_tsigtimersonly;
 

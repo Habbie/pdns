@@ -342,6 +342,13 @@ inline bool pdns_iequals(const std::string& a, const std::string& b)
   return true;
 }
 
+// FIXME remove this
+inline bool pdns_iequals(const DNSName& a, const DNSName& b) __attribute__((pure));
+inline bool pdns_iequals(const DNSName& a, const DNSName& b)
+{
+  return a==b;
+}
+
 inline bool pdns_iequals_ch(const char a, const char b) __attribute__((pure));
 inline bool pdns_iequals_ch(const char a, const char b)
 {
@@ -480,6 +487,11 @@ inline bool isCanonical(const string& dom)
   if(dom.empty())
     return false;
   return dom[dom.size()-1]=='.';
+}
+
+inline string toCanonic(const DNSName& zone, const string& domain)
+{
+  return toCanonic(zone.toString(), domain);
 }
 
 inline string toCanonic(const string& zone, const string& domain)
