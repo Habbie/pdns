@@ -58,6 +58,11 @@ public:
 				 });
   }
 
+  template<class Archive>
+  void serialize(Archive &ar, const unsigned int version)
+  {
+    ar & d_storage;
+  }
 private:
   //  typedef __gnu_cxx::__sso_string string_t;
   typedef std::string string_t;
