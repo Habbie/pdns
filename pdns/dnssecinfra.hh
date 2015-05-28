@@ -126,7 +126,7 @@ int getRRSIGsForRRSET(DNSSECKeeper& dk, const DNSName& signer, const DNSName sig
 std::string hashQNameWithSalt(unsigned int times, const std::string& salt, const DNSName& qname);
 void decodeDERIntegerSequence(const std::string& input, vector<string>& output);
 class DNSPacket;
-void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const std::set<string, CIStringCompare>& authMap, vector<DNSResourceRecord>& rrs);
+void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const std::set<DNSName>& authMap, vector<DNSResourceRecord>& rrs);
 
 typedef enum { TSIG_MD5, TSIG_SHA1, TSIG_SHA224, TSIG_SHA256, TSIG_SHA384, TSIG_SHA512 } TSIGHashEnum;
 
