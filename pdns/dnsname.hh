@@ -78,6 +78,8 @@ private:
   static std::string unescapeLabel(const std::string& orig);
 };
 
+size_t hash_value(DNSName const& d);
+
 inline DNSName operator+(const DNSName& lhs, const DNSName& rhs)
 {
   DNSName ret=lhs;
