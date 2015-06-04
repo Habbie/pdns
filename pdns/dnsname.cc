@@ -88,6 +88,10 @@ std::string DNSName::toDNSString() const
   return ret;
 }
 
+const char* DNSName::toCString() const {
+  return this->toString().c_str();
+}
+
 // are WE part of parent
 bool DNSName::isPartOf(const DNSName& parent) const
 {
