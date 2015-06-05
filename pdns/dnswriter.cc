@@ -285,7 +285,7 @@ void DNSPacketWriter::xfrName(const DNSName& name, bool compress)
   if (d_record.size() - startRecordSize > 255)
     throw MOADNSException("DNSPacketWriter::xfrName() found overly large name");
 
-  out:;
+ // out:;
 }
 
 void DNSPacketWriter::xfrBlob(const string& blob, int  )
