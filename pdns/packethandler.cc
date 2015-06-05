@@ -1237,7 +1237,7 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
     weDone = weRedirected = weHaveUnauth =  false;
     
     while(B.get(rr)) {
-      cerr<<"got content: ["<<rr.content<<"]"<<endl;
+      //cerr<<"got content: ["<<rr.content<<"]"<<endl;
       if (p->qtype.getCode() == QType::ANY && !p->d_dnssecOk && (rr.qtype.getCode() == QType:: DNSKEY || rr.qtype.getCode() == QType::NSEC3PARAM))
         continue; // Don't send dnssec info to non validating resolvers.
       if (rr.qtype.getCode() == QType::RRSIG) // RRSIGS are added later any way.
@@ -1254,7 +1254,7 @@ DNSPacket *PacketHandler::questionOrRecurse(DNSPacket *p, bool *shouldRecurse)
         weRedirected=1;
 
       if(DP && rr.qtype.getCode() == QType::ALIAS) {
-	haveAlias=DNSName(rr.content);
+        haveAlias=DNSName(rr.content);
       }
 
       // Filter out all SOA's and add them in later
