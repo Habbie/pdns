@@ -633,16 +633,16 @@ bool checkForCorrectTSIG(const DNSPacket* q, UeberBackend* B, DNSName* keyname, 
   }
 
   DNSName algoName = trc->d_algoName; // FIXME
-  if (algoName == DNSName("hmac-md5.sig-alg.reg.int"))
-    algoName = DNSName("hmac-md5");
+  if (algoName == "hmac-md5.sig-alg.reg.int")
+    algoName = "hmac-md5";
 
   string secret64;
   if(!B->getTSIGKey(*keyname, &algoName, &secret64)) {
     L<<Logger::Error<<"Packet for domain '"<<q->qdomain.toString()<<"' denied: can't find TSIG key with name '"<<keyname->toString()<<"' and algorithm '"<<algoName.toString()<<"'"<<endl;
     return false;
   }
-  if (trc->d_algoName == DNSName("hmac-md5"))
-    trc->d_algoName += DNSName("sig-alg.reg.int.");
+  if (trc->d_algoName == "hmac-md5")
+    trc->d_algoName += "sig-alg.reg.int";
 
   TSIGHashEnum algo;
   if(!getTSIGHashEnum(trc->d_algoName, algo)) {
