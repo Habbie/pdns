@@ -85,23 +85,23 @@ stringtok (Container &container, string const &in,
 {
   const string::size_type len = in.length();
   string::size_type i = 0;
-  
+
   while (i<len) {
     // eat leading whitespace
     i = in.find_first_not_of (delimiters, i);
     if (i == string::npos)
       return;   // nothing left but white space
-    
+
     // find the end of the token
     string::size_type j = in.find_first_of (delimiters, i);
-    
+
     // push token
     if (j == string::npos) {
       container.push_back (in.substr(i));
       return;
     } else
       container.push_back (in.substr(i, j-i));
-    
+
     // set up for next loop
     i = j + 1;
   }
@@ -120,23 +120,23 @@ vstringtok (Container &container, string const &in,
 {
   const string::size_type len = in.length();
   string::size_type i = 0;
-  
+
   while (i<len) {
     // eat leading whitespace
     i = in.find_first_not_of (delimiters, i);
     if (i == string::npos)
       return;   // nothing left but white space
-    
+
     // find the end of the token
     string::size_type j = in.find_first_of (delimiters, i);
-    
+
     // push token
     if (j == string::npos) {
       container.push_back (make_pair(i, len));
       return;
     } else
       container.push_back (make_pair(i, j));
-    
+
     // set up for next loop
     i = j + 1;
   }
@@ -179,11 +179,11 @@ public:
 private:
   struct timespec d_start;
 };
-#endif 
+#endif
 
-/** The DTime class can be used for timing statistics with microsecond resolution. 
+/** The DTime class can be used for timing statistics with microsecond resolution.
 On 32 bits systems this means that 2147 seconds is the longest time that can be measured. */
-class DTime 
+class DTime
 {
 public:
   DTime(); //!< Does not set the timer for you! Saves lots of gettimeofday() calls
@@ -260,11 +260,11 @@ inline const string toLowerCanonic(const string &upper)
       c = dns_tolower(upper[i]);
       if(c != upper[i])
         reply[i] = c;
-    }   
+    }
     if(upper[i-1]=='.')
       reply.resize(i-1);
   }
-      
+
   return reply;
 }
 
@@ -284,7 +284,7 @@ inline double getTime()
 {
   struct timeval now;
   gettimeofday(&now,0);
-  
+
   return now.tv_sec+now.tv_usec/1000000.0;
 }
 
@@ -305,7 +305,7 @@ inline float makeFloat(const struct timeval& tv)
   return tv.tv_sec + tv.tv_usec/1000000.0f;
 }
 
-inline bool operator<(const struct timeval& lhs, const struct timeval& rhs) 
+inline bool operator<(const struct timeval& lhs, const struct timeval& rhs)
 {
   return make_pair(lhs.tv_sec, lhs.tv_usec) < make_pair(rhs.tv_sec, rhs.tv_usec);
 }
@@ -402,8 +402,8 @@ public:
 
 private:
     mutable native_t value_;
-    
-    // the below is necessary because __sync_fetch_and_add is not universally available on i386.. I 3> RHEL5. 
+
+    // the below is necessary because __sync_fetch_and_add is not universally available on i386.. I 3> RHEL5.
 #if defined( __GNUC__ ) && ( defined( __i386__ ) || defined( __x86_64__ ) )
     static native_t atomic_exchange_and_add( native_t * pw, native_t dv )
     {
@@ -424,7 +424,7 @@ private:
 
         return r;
     }
-    #else 
+    #else
     static native_t atomic_exchange_and_add( native_t * pw, native_t dv )
     {
       return __sync_fetch_and_add(pw, dv);
@@ -433,7 +433,7 @@ private:
 };
 
 // FIXME this should probably go?
-struct CIStringCompare: public std::binary_function<string, string, bool>  
+struct CIStringCompare: public std::binary_function<string, string, bool>
 {
   bool operator()(const string& a, const string& b) const
   {
@@ -457,7 +457,7 @@ struct CIStringComparePOSIX
    }
 };
 
-struct CIStringPairCompare: public std::binary_function<pair<string, uint16_t>, pair<string,uint16_t>, bool>  
+struct CIStringPairCompare: public std::binary_function<pair<string, uint16_t>, pair<string,uint16_t>, bool>
 {
   bool operator()(const pair<string, uint16_t>& a, const pair<string, uint16_t>& b) const
   {
@@ -489,6 +489,14 @@ inline bool isCanonical(const string& qname)
     return false;
   return qname[qname.size()-1]=='.';
 }
+
+inline bool isCanonical(const DNSName& qname)
+{
+  if(qname.empty())
+    return false;
+  return true;
+}
+
 
 inline DNSName toCanonic(const DNSName& zone, const string& qname)
 {
@@ -525,7 +533,7 @@ class Regex
 public:
   /** constructor that accepts the expression to regex */
   Regex(const string &expr);
-  
+
   ~Regex()
   {
     regfree(&d_preg);
