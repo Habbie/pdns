@@ -359,6 +359,7 @@ AC_CONFIG_FILES([
   ext/polarssl/Makefile
   ext/polarssl/library/Makefile
   ext/rapidjson/Makefile
+  ext/json11/Makefile
   modules/bindbackend/Makefile
   modules/geobackend/Makefile
   modules/geoipbackend/Makefile
