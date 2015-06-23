@@ -10,11 +10,13 @@
 /* raw storage
    in DNS label format, without trailing 0. So the root is of length 0.
 
-   www.powerdns.com = 3www8powerdns3com 
-   
+   www.powerdns.com = 3www8powerdns3com
+
    a primitive is nextLabel()
 */
 
+/* FIXME400: @nlyan suggests that we should only have a string constructor, and make sure
+ * char* does not implicitly map to it, to avoid issues with embedded NULLs */
 DNSName::DNSName(const char* p)
 {
   d_empty=false;
@@ -63,11 +65,11 @@ void DNSName::packetParser(const char* pos, int len, int offset, bool uncompress
   }
   if(consumed)
     *consumed = pos - opos - offset;
-  if(qtype && pos + labellen + 2 <= end)  
+  if(qtype && pos + labellen + 2 <= end)
     *qtype=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
 
   pos+=2;
-  if(qclass && pos + labellen + 2 <= end)  
+  if(qclass && pos + labellen + 2 <= end)
     *qclass=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
 
 }
@@ -184,7 +186,7 @@ vector<string> DNSName::getRawLabels() const
   return ret;
 }
 
-bool DNSName::chopOff() 
+bool DNSName::chopOff()
 {
   if(d_storage.empty())
     return false;
@@ -238,7 +240,7 @@ string DNSName::escapeLabel(const std::string& label)
 {
   string ret;
   for(uint8_t p : label) {
-    if(p=='.') 
+    if(p=='.')
       ret+="\\.";
     else if(p=='\\')
       ret+="\\\\";
