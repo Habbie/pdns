@@ -47,6 +47,7 @@ using namespace ::boost::multi_index;
 #include <vector>
 
 #include "namespaces.hh"
+#include "dnsname.hh"
 bool chopOff(string &domain);
 bool chopOffDotted(string &domain);
 
