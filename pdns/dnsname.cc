@@ -1,6 +1,7 @@
 #include "dnsname.hh"
 #include <boost/format.hpp>
 #include <string>
+
 #include "dnswriter.hh"
 #include "logger.hh"
 #include "misc.hh"
@@ -93,8 +94,8 @@ std::string DNSName::toDNSString() const
     return "";
   string ret(d_storage.c_str(), d_storage.length());
   ret.append(1,(char)0);
-  // return toLower(ret);
-  return ret;
+  return toLower(ret); // toLower or not toLower, that is the question
+  // return ret;
 }
 
 size_t DNSName::length() const {
@@ -185,6 +186,12 @@ vector<string> DNSName::getRawLabels() const
   for(const char* p = d_storage.c_str(); p < d_storage.c_str() + d_storage.size(); p+=*p+1)
     ret.push_back({p+1, (unsigned int)*p}); // XXX FIXME
   return ret;
+}
+
+bool DNSName::canonCompare(const DNSName& rhs) const
+{
+  auto ours=getRawLabels(), rhsLabels = rhs.getRawLabels();
+  return std::lexicographical_compare(ours.rbegin(), ours.rend(), rhsLabels.rbegin(), rhsLabels.rend(), CIStringCompare());
 }
 
 bool DNSName::chopOff()
