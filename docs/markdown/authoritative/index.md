@@ -21,6 +21,7 @@ The following table describes the capabilities of the backends.
 | [LMDB](backend-lmdb.md) | Supported | Yes | No | No | No | No | No | Unknown (No) | Unknown (No) | `lmdb`|
 | [MySQL](backend-generic-mypgsql.md) | Supported | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | `gmysql` |
 | [MyDNS](backend-mydns.md) | Supported | Yes | No | No | No | No | No | No | No | `mydns` |
+| [ODBC](backend-godbc.md) | Supported | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes| `godbc` |
 | [OpenDBX](backend-opendbx.md) | Supported | Yes | Yes | Yes | Yes | Unknown (No) | No | Unknown (No) | Unknown (No) | `opendbx` |
 | [Oracle](backend-oracle.md) | Supported | Yes | Yes | Yes | Yes | Yes | Yes | Unknown (No) | No | `oracle` |
 | [Pipe](backend-pipe.md) | Supported | Yes | No | No | No | No | Partial (no delegation, no key storage) | No | No | `pipe` |
