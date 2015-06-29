@@ -246,6 +246,9 @@ for a in $modules $dynmodules; do
       PDNS_WITH_LMDB
       needlmdb=yes
       ;;
+    godbc)
+      PDNS_WITH_UNIXODBC
+      ;;
     mydns|gmysql|pdns)
       PDNS_WITH_MYSQL
       ;;
@@ -357,6 +360,7 @@ AC_CONFIG_FILES([
   modules/bindbackend/Makefile
   modules/geoipbackend/Makefile
   modules/gmysqlbackend/Makefile
+  modules/godbcbackend/Makefile
   modules/goraclebackend/Makefile
   modules/gpgsqlbackend/Makefile
   modules/gsqlite3backend/Makefile
