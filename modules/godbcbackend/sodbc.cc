@@ -48,6 +48,8 @@ public:
     // d_nparams = nparams;
     d_conn = connection;
     d_dolog = dolog;
+    d_residx = 0;
+    d_paridx = 0;
 
     // Allocate statement handle.
     result = SQLAllocHandle( SQL_HANDLE_STMT, d_conn, &d_statement );
@@ -55,12 +57,59 @@ public:
 
     result = SQLPrepare(d_statement, (SQLCHAR *) query.c_str(), SQL_NTS);
     testResult( result, SQL_HANDLE_STMT, d_statement, "Could not prepare query." );
-  } 
+
+    SQLSMALLINT paramcount;
+    result = SQLNumParams(d_statement, &paramcount);
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not get parameter count." );
+
+    if (paramcount != nparams)
+      throw SSqlException("Provided parameter count does not match statement: " + d_query);
+
+    d_parnum = nparams;
+    cerr<<"prepared"<<endl;
+  }
+
+  typedef struct {
+    SQLSMALLINT     ValueType;
+    SQLULEN         ColumnSize;
+    SQLPOINTER      ParameterValuePtr;
+    SQLLEN          BufferLength;
+    SQLLEN *        StrLen_or_IndPtr;
+  } ODBCParam;
+
+  vector<ODBCParam> d_req_bind;
 
   SSqlStatement* bind(const string& name, bool value) { return this; }
-  SSqlStatement* bind(const string& name, int value) { return this; }
+  SSqlStatement* bind(const string& name, long value) { 
+    if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
+
+    ODBCParam p;
+
+    p.ParameterValuePtr = new long[1];
+    *((long*)p.ParameterValuePtr) = value;
+    p.StrLen_or_IndPtr=0;
+
+    d_req_bind.push_back(p);
+
+    SQLRETURN result = SQLBindParameter(
+      d_statement,           // StatementHandle,
+      d_paridx+1,            // ParameterNumber,
+      SQL_PARAM_INPUT,       // InputOutputType,
+      SQL_C_SLONG,           // ValueType,
+      SQL_BIGINT,            // ParameterType,
+      0,                     // ColumnSize,
+      0,                     // DecimalDigits,
+      p.ParameterValuePtr,  // ParameterValuePtr,
+      0,                     // BufferLength,
+      NULL                      // StrLen_or_IndPtr
+    );
+
+    d_paridx++;
+
+    return this;
+  }
   SSqlStatement* bind(const string& name, uint32_t value) { return this; }
-  SSqlStatement* bind(const string& name, long value) { return this; }
+  SSqlStatement* bind(const string& name, int value) { return this; }
   SSqlStatement* bind(const string& name, unsigned long value) { return this; }
   SSqlStatement* bind(const string& name, long long value) { return this; };
   SSqlStatement* bind(const string& name, unsigned long long value) { return this; }
@@ -76,13 +125,79 @@ public:
     }
 
     result = SQLExecute(d_statement);
-    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query." );
-    d_havenextrow=true;
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query ("+d_query+")." );
 
+    // Determine the number of columns.
+    SQLSMALLINT numColumns;
+    SQLNumResultCols( d_statement, &numColumns );
+
+    if ( numColumns == 0 )
+      throw SSqlException( "Could not determine the number of columns." );
+
+    // Determine the number of columns.
+    SQLLEN numRows;
+    SQLRowCount( d_statement, &numRows );
+
+    if ( numColumns == 0 )
+      throw SSqlException( "Could not determine the number of rows." );
+
+    // Fill m_columnInfo.
+    m_columnInfo.clear();
+
+    column_t    column;
+    SQLSMALLINT nullable;
+    SQLSMALLINT type;
+    cerr<<"collecting column info"<<endl;
+    for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
+    {
+      SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
+
+      if ( nullable == SQL_NULLABLE )
+        column.m_canBeNull = true;
+      else
+        column.m_canBeNull = false;
+
+      // Allocate memory.
+      switch ( type )
+      {
+      case SQL_CHAR:
+      case SQL_VARCHAR:
+      case SQL_LONGVARCHAR:
+        column.m_type   = SQL_C_CHAR;
+        column.m_pData  = new SQLCHAR[ column.m_size ];
+        break;
+
+      case SQL_SMALLINT:
+      case SQL_INTEGER:
+        column.m_type  = SQL_C_SLONG;
+        column.m_size  = sizeof( long int );
+        column.m_pData = new long int;
+        break;
+
+      case SQL_REAL:
+      case SQL_FLOAT:
+      case SQL_DOUBLE:
+        column.m_type   = SQL_C_DOUBLE;
+        column.m_size   = sizeof( double );
+        column.m_pData  = new double;
+        break;
+
+      default:
+        column.m_pData = NULL;
+
+      }
+
+      m_columnInfo.push_back( column );
+    }
+    cerr<<"collecting column info done"<<endl;
+
+    cerr<<"first SQLFetch"<<endl;
+    d_result = SQLFetch(d_statement);
+    cerr<<"first SQLFetch done"<<endl;
     return this;
   }
 
-  bool hasNextRow() { return false; }
+  bool hasNextRow() { cerr<<"hasNextRow d_result="<<d_result<<endl;; return d_result!=SQL_NO_DATA; }
   SSqlStatement* nextRow(row_t& row);
 
   SSqlStatement* getResult(result_t& result) { return this; }
@@ -93,6 +208,8 @@ private:
   string d_query;
   bool d_dolog;
   bool d_havenextrow;
+  int d_residx, d_paridx, d_parnum;
+  SQLRETURN d_result;
 
   SQLHDBC d_conn;
   SQLHSTMT d_statement;    //!< Database statement handle.
@@ -111,82 +228,88 @@ private:
 
 };
 
-  SSqlStatement* SODBCStatement::nextRow(row_t& row)
+SSqlStatement* SODBCStatement::nextRow(row_t& row)
+{ 
+  SQLRETURN result;
 
-   { 
-    SQLRETURN result;
+  row.clear();
 
-    row.clear();
-
-    result = SQLFetch( d_statement );
-    if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
+  result = d_result;
+  // result = SQLFetch( d_statement );
+  cerr<<"SQLFetch result="<<result<<endl;
+  // FIXME handle errors (SQL_NO_DATA==100, anything other than the two SUCCESS options below is bad news)
+  if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
+  {
+    // We've got a data row, now lets get the results.
+    SQLLEN len;
+    for ( int i = 0; i < m_columnInfo.size(); i++ )
     {
-      // We've got a data row, now lets get the results.
-      SQLLEN len;
-      for ( int i = 0; i < m_columnInfo.size(); i++ )
+      if ( m_columnInfo[ i ].m_pData == NULL )
+        continue;
+
+      // Clear buffer.
+      memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
+
+      SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
+
+      if ( len == SQL_NULL_DATA )
       {
-        if ( m_columnInfo[ i ].m_pData == NULL )
-          continue;
-
-        // Clear buffer.
-        memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
-
-        SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
-
-        if ( len == SQL_NULL_DATA )
-        {
-          // Column is NULL, so we can skip the converting part.
-          row.push_back( "" );
-          continue;
-        }
-
-        // Convert the data into strings.
-        std::ostringstream str;
-
-        switch ( m_columnInfo[ i ].m_type )
-        {
-        case SQL_C_CHAR:
-          row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));
-          break;
-
-        case SQL_C_SSHORT:
-        case SQL_C_SLONG:
-          str << *( reinterpret_cast< long * >( m_columnInfo[ i ].m_pData ));
-          row.push_back( str.str());
-
-          break;
-
-        case SQL_C_DOUBLE:
-          str << *( reinterpret_cast< double * >( m_columnInfo[ i ].m_pData ));
-          row.push_back( str.str());
-
-          break;
-
-        default:
-          // Eh?
-          row.push_back( "" );
-
-        }
+        // Column is NULL, so we can skip the converting part.
+        row.push_back( "" );
+        continue;
       }
 
-      // Done!
-      return this;
+      // Convert the data into strings.
+      std::ostringstream str;
+
+      switch ( m_columnInfo[ i ].m_type )
+      {
+      case SQL_C_CHAR:
+        row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));
+        break;
+
+      case SQL_C_SSHORT:
+      case SQL_C_SLONG:
+        str << *( reinterpret_cast< long * >( m_columnInfo[ i ].m_pData ));
+        row.push_back( str.str());
+
+        break;
+
+      case SQL_C_DOUBLE:
+        str << *( reinterpret_cast< double * >( m_columnInfo[ i ].m_pData ));
+        row.push_back( str.str());
+
+        break;
+
+      default:
+        // Eh?
+        row.push_back( "" );
+
+      }
     }
 
-    // No further results, or error.
-    // m_busy = false;
-
-    // Free all allocated column memory.
-    // for ( int i = 0; i < m_columnInfo.size(); i++ )
-    // {
-    //   if ( m_columnInfo[ i ].m_pData )
-    //     delete m_columnInfo[ i ].m_pData;
-    // }
-
-    SQLFreeStmt( d_statement, SQL_CLOSE );
-
+    // Done!
+    d_residx++;
+    cerr<<"SQLFetch"<<endl;
+    d_result = SQLFetch(d_statement);
+    cerr<<"SQLFetch done"<<endl;
     return this;
   }
+
+  // No further results, or error.
+  // m_busy = false;
+
+  // Free all allocated column memory.
+  // for ( int i = 0; i < m_columnInfo.size(); i++ )
+  // {
+  //   if ( m_columnInfo[ i ].m_pData )
+  //     delete m_columnInfo[ i ].m_pData;
+  // }
+
+  SQLFreeStmt( d_statement, SQL_CLOSE );
+  throw SSqlException( "the end" );
+  return this;
+}
 
 // Constructor.
 SODBC::SODBC( 
