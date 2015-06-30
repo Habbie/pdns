@@ -77,12 +77,14 @@ public:
 
     result = SQLExecute(d_statement);
     testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query." );
+    d_havenextrow=true;
 
     return this;
   }
 
   bool hasNextRow() { return false; }
-  SSqlStatement* nextRow(row_t& row) { return this; }
+  SSqlStatement* nextRow(row_t& row);
+
   SSqlStatement* getResult(result_t& result) { return this; }
   SSqlStatement* reset() { return this; }
   const std::string& getQuery() { return d_query; }
@@ -90,10 +92,101 @@ public:
 private:
   string d_query;
   bool d_dolog;
+  bool d_havenextrow;
 
   SQLHDBC d_conn;
   SQLHSTMT d_statement;    //!< Database statement handle.
+  
+  //! Column type.
+  struct column_t
+  {
+    SQLSMALLINT m_type;       //!< Type of the column.
+    SQLULEN     m_size;       //!< Column size.
+    SQLPOINTER  m_pData;      //!< Pointer to the memory where to store the data.
+    bool        m_canBeNull;  //!< Can this column be null?
+  };
+
+  //! Column info.
+  std::vector< column_t > m_columnInfo;
+
 };
+
+  SSqlStatement* SODBCStatement::nextRow(row_t& row)
+
+   { 
+    SQLRETURN result;
+
+    row.clear();
+
+    result = SQLFetch( d_statement );
+    if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
+    {
+      // We've got a data row, now lets get the results.
+      SQLLEN len;
+      for ( int i = 0; i < m_columnInfo.size(); i++ )
+      {
+        if ( m_columnInfo[ i ].m_pData == NULL )
+          continue;
+
+        // Clear buffer.
+        memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
+
+        SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
+
+        if ( len == SQL_NULL_DATA )
+        {
+          // Column is NULL, so we can skip the converting part.
+          row.push_back( "" );
+          continue;
+        }
+
+        // Convert the data into strings.
+        std::ostringstream str;
+
+        switch ( m_columnInfo[ i ].m_type )
+        {
+        case SQL_C_CHAR:
+          row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));
+          break;
+
+        case SQL_C_SSHORT:
+        case SQL_C_SLONG:
+          str << *( reinterpret_cast< long * >( m_columnInfo[ i ].m_pData ));
+          row.push_back( str.str());
+
+          break;
+
+        case SQL_C_DOUBLE:
+          str << *( reinterpret_cast< double * >( m_columnInfo[ i ].m_pData ));
+          row.push_back( str.str());
+
+          break;
+
+        default:
+          // Eh?
+          row.push_back( "" );
+
+        }
+      }
+
+      // Done!
+      return this;
+    }
+
+    // No further results, or error.
+    // m_busy = false;
+
+    // Free all allocated column memory.
+    // for ( int i = 0; i < m_columnInfo.size(); i++ )
+    // {
+    //   if ( m_columnInfo[ i ].m_pData )
+    //     delete m_columnInfo[ i ].m_pData;
+    // }
+
+    SQLFreeStmt( d_statement, SQL_CLOSE );
+
+    return this;
+  }
 
 // Constructor.
 SODBC::SODBC( 
@@ -278,82 +371,6 @@ void SODBC::execute( const std::string & command )
 // }
 
 
-// Returns the content of a row.
-// bool SODBC::getRow( row_t & row )
-// {
-//   SQLRETURN result;
-
-//   row.clear();
-
-//   result = SQLFetch( m_statement );
-//   if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
-//   {
-//     // We've got a data row, now lets get the results.
-//     SQLLEN len;
-//     for ( int i = 0; i < m_columnInfo.size(); i++ )
-//     {
-//       if ( m_columnInfo[ i ].m_pData == NULL )
-//         continue;
-
-//       // Clear buffer.
-//       memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
-
-//       SQLGetData( m_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
-
-//       if ( len == SQL_NULL_DATA )
-//       {
-//         // Column is NULL, so we can skip the converting part.
-//         row.push_back( "" );
-//         continue;
-//       }
-
-//       // Convert the data into strings.
-//       std::ostringstream str;
-
-//       switch ( m_columnInfo[ i ].m_type )
-//       {
-//       case SQL_C_CHAR:
-//         row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));
-//         break;
-
-//       case SQL_C_SSHORT:
-//       case SQL_C_SLONG:
-//         str << *( reinterpret_cast< long * >( m_columnInfo[ i ].m_pData ));
-//         row.push_back( str.str());
-
-//         break;
-
-//       case SQL_C_DOUBLE:
-//         str << *( reinterpret_cast< double * >( m_columnInfo[ i ].m_pData ));
-//         row.push_back( str.str());
-
-//         break;
-
-//       default:
-//         // Eh?
-//         row.push_back( "" );
-
-//       }
-//     }
-
-//     // Done!
-//     return true;
-//   }
-
-//   // No further results, or error.
-//   m_busy = false;
-
-//   // Free all allocated column memory.
-//   for ( int i = 0; i < m_columnInfo.size(); i++ )
-//   {
-//     if ( m_columnInfo[ i ].m_pData )
-//       delete m_columnInfo[ i ].m_pData;
-//   }
-
-//   SQLFreeStmt( m_statement, SQL_CLOSE );
-
-//   return false;
-// }
 
 
 // Sets the log state.

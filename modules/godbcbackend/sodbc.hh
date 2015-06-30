@@ -19,14 +19,7 @@
 class SODBC : public SSql
 {
 private:  
-  //! Column type.
-  struct column_t
-  {
-    SQLSMALLINT m_type;       //!< Type of the column.
-    SQLULEN     m_size;       //!< Column size.
-    SQLPOINTER  m_pData;      //!< Pointer to the memory where to store the data.
-    bool        m_canBeNull;  //!< Can this column be null?
-  };
+
 
   bool m_log;               //!< Should we log?
   bool m_busy;              //!< Are we busy executing a query?
@@ -34,8 +27,6 @@ private:
   SQLHDBC   m_connection;   //!< Database connection handle. 
   SQLHENV   m_environment;  //!< Database environment handle  
 
-  //! Column info.
-  std::vector< column_t > m_columnInfo;
 
 
 public:
