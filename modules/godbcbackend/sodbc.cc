@@ -237,7 +237,8 @@ public:
     return this;
   }
 
-  SSqlStatement* reset() { d_req_bind.clear(); return this; }
+  SSqlStatement* reset() { d_req_bind.clear();    d_residx = 0;
+    d_paridx = 0; return this; }
   const std::string& getQuery() { return d_query; }
 
 private:
