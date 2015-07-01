@@ -57,7 +57,7 @@ public:
     declare(suffix, "any-query", "Any query", record_query+" disabled=0 and name=?");
     declare(suffix, "any-id-query", "Any with ID query", record_query+" disabled=0 and name=? and domain_id=?");
 
-    declare(suffix, "list-query", "AXFR query", record_query+" (disabled=0 OR ?) and domain_id=? order by name, type");
+    declare(suffix, "list-query", "AXFR query", record_query+" (disabled=0 OR disabled=?) and domain_id=? order by name, type");
     declare(suffix, "list-subzone-query", "Subzone listing", record_query+" disabled=0 and (name=? OR name like ?) and domain_id=?");
 
     declare(suffix, "remove-empty-non-terminals-from-zone-query", "remove all empty non-terminals from zone", "delete from records where domain_id=? and type is null");
@@ -118,7 +118,7 @@ public:
     declare(suffix,"delete-tsig-key-query","", "delete from tsigkeys where name=?");
     declare(suffix,"get-tsig-keys-query","", "select name,algorithm, secret from tsigkeys");
 
-    declare(suffix, "get-all-domains-query", "Retrieve all domains", "select domains.id, domains.name, records.content, domains.type, domains.master, domains.notified_serial, domains.last_check, domains.account from domains LEFT JOIN records ON records.domain_id=domains.id AND records.type='SOA' AND records.name=domains.name WHERE records.disabled=0 OR ?");
+    declare(suffix, "get-all-domains-query", "Retrieve all domains", "select domains.id, domains.name, records.content, domains.type, domains.master, domains.notified_serial, domains.last_check, domains.account from domains LEFT JOIN records ON records.domain_id=domains.id AND records.type='SOA' AND records.name=domains.name WHERE records.disabled=0 OR records.disabled=?");
 
     declare(suffix, "list-comments-query", "", "SELECT domain_id,name,type,modified_at,account,comment FROM comments WHERE domain_id=?");
     declare(suffix, "insert-comment-query", "", "INSERT INTO comments (domain_id, name, type, modified_at, account, comment) VALUES (?, ?, ?, ?, ?, ?)");

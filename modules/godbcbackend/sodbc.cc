@@ -66,7 +66,7 @@ public:
       throw SSqlException("Provided parameter count does not match statement: " + d_query);
 
     d_parnum = nparams;
-    cerr<<"prepared"<<endl;
+    cerr<<"prepared ("<<query<<")"<<endl;
   }
 
   typedef struct {
@@ -74,20 +74,23 @@ public:
     SQLULEN         ColumnSize;
     SQLPOINTER      ParameterValuePtr;
     SQLLEN          BufferLength;
-    SQLLEN *        StrLen_or_IndPtr;
   } ODBCParam;
 
   vector<ODBCParam> d_req_bind;
 
-  SSqlStatement* bind(const string& name, bool value) { return this; }
+  SSqlStatement* bind(const string& name, bool value) { return bind(name, (long)value); }
   SSqlStatement* bind(const string& name, long value) { 
+
+    cerr<<"asked to bind long "<<value<<endl;
+    cerr<<"d_req_bind.size()="<<d_req_bind.size()<<endl;
+    cerr<<"d_parnum="<<d_parnum<<endl;
+
     if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
 
     ODBCParam p;
 
     p.ParameterValuePtr = new long[1];
     *((long*)p.ParameterValuePtr) = value;
-    p.StrLen_or_IndPtr=0;
 
     d_req_bind.push_back(p);
 
@@ -103,23 +106,54 @@ public:
       0,                     // BufferLength,
       NULL                      // StrLen_or_IndPtr
     );
-
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
     d_paridx++;
 
     return this;
   }
-  SSqlStatement* bind(const string& name, uint32_t value) { return this; }
-  SSqlStatement* bind(const string& name, int value) { return this; }
-  SSqlStatement* bind(const string& name, unsigned long value) { return this; }
-  SSqlStatement* bind(const string& name, long long value) { return this; };
-  SSqlStatement* bind(const string& name, unsigned long long value) { return this; }
-  SSqlStatement* bind(const string& name, const std::string& value) { return this; }
+  SSqlStatement* bind(const string& name, uint32_t value) { return bind(name, (long)value); }
+  SSqlStatement* bind(const string& name, int value) { return bind(name, (long)value); }
+  SSqlStatement* bind(const string& name, unsigned long value) { return bind(name, (long)value);}
+  SSqlStatement* bind(const string& name, long long value) { return bind(name, (long)value); };
+  SSqlStatement* bind(const string& name, unsigned long long value) { return bind(name, (long)value); }
+  SSqlStatement* bind(const string& name, const std::string& value) {
+
+    cerr<<"asked to bind string "<<value<<endl;
+
+    if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
+
+    ODBCParam p;
+    string* copy=new string(value);
+
+    p.ParameterValuePtr = (SQLPOINTER) copy->c_str();
+    // *((long*)p.ParameterValuePtr) = value;
+
+    d_req_bind.push_back(p);
+
+    SQLRETURN result = SQLBindParameter(
+      d_statement,           // StatementHandle,
+      d_paridx+1,            // ParameterNumber,
+      SQL_PARAM_INPUT,       // InputOutputType,
+      SQL_C_CHAR,            // ValueType,
+      SQL_VARCHAR,       // ParameterType,
+      copy->length(),         // ColumnSize,
+      0,                     // DecimalDigits,
+      p.ParameterValuePtr,   // ParameterValuePtr,
+      copy->length(),         // BufferLength,
+      NULL                   // StrLen_or_IndPtr
+    );
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
+    d_paridx++;
+
+    return this;
+  }
   SSqlStatement* bindNull(const string& name) { return this; }
 
 
   SSqlStatement* execute()
   {
     SQLRETURN result;
+    cerr<<"execute("<<d_query<<")"<<endl;
     if (d_dolog) {
       // L<<Logger::Warning<<"Query: "<<d_query<<endl;
     }
@@ -129,17 +163,12 @@ public:
 
     // Determine the number of columns.
     SQLSMALLINT numColumns;
-    SQLNumResultCols( d_statement, &numColumns );
+    result = SQLNumResultCols( d_statement, &numColumns );
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not determine the number of columns." );
 
-    if ( numColumns == 0 )
-      throw SSqlException( "Could not determine the number of columns." );
 
-    // Determine the number of columns.
-    SQLLEN numRows;
-    SQLRowCount( d_statement, &numRows );
-
-    if ( numColumns == 0 )
-      throw SSqlException( "Could not determine the number of rows." );
+    // if ( numColumns == 0 )
+    //   throw SSqlException( "SQLNumResultCols claims 0 columns." );
 
     // Fill m_columnInfo.
     m_columnInfo.clear();
@@ -147,7 +176,7 @@ public:
     column_t    column;
     SQLSMALLINT nullable;
     SQLSMALLINT type;
-    cerr<<"collecting column info"<<endl;
+    cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
     for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
     {
       SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
@@ -193,15 +222,22 @@ public:
 
     cerr<<"first SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
-    cerr<<"first SQLFetch done"<<endl;
+    cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
     return this;
   }
 
   bool hasNextRow() { cerr<<"hasNextRow d_result="<<d_result<<endl;; return d_result!=SQL_NO_DATA; }
   SSqlStatement* nextRow(row_t& row);
 
-  SSqlStatement* getResult(result_t& result) { return this; }
-  SSqlStatement* reset() { return this; }
+  SSqlStatement* getResult(result_t& result) { 
+    result.clear();
+    // if (d_res == NULL) return this;
+    row_t row;
+    while(hasNextRow()) { nextRow(row); result.push_back(row); }
+    return this;
+  }
+
+  SSqlStatement* reset() { d_req_bind.clear(); return this; }
   const std::string& getQuery() { return d_query; }
 
 private:
@@ -250,8 +286,8 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       // Clear buffer.
       memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
 
-      SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
-
+      result = SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
+      testResult( result, SQL_HANDLE_STMT, d_statement, "Could not get data." );
       if ( len == SQL_NULL_DATA )
       {
         // Column is NULL, so we can skip the converting part.
@@ -265,7 +301,8 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       switch ( m_columnInfo[ i ].m_type )
       {
       case SQL_C_CHAR:
-        row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));
+            cerr<<"got char data "<<(reinterpret_cast< char * >( m_columnInfo[ i ].m_pData))<<endl;
+        row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));        
         break;
 
       case SQL_C_SSHORT:
@@ -283,7 +320,8 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
 
       default:
         // Eh?
-        row.push_back( "" );
+        str<<"SQL_C_?="<<m_columnInfo[ i ].m_type;
+        row.push_back( str.str() );
 
       }
     }
@@ -517,6 +555,6 @@ SSqlStatement* SODBC::prepare(const string& query, int nparams)
 
 
 
-  void SODBC::startTransaction() {}
+  void SODBC::startTransaction() {   }
   void SODBC::commit() {}
   void SODBC::rollback() {}
