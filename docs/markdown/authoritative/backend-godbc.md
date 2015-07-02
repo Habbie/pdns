@@ -58,6 +58,7 @@ compiling or getting it from our distribution's repository and configure your
 `/etc/odbcinst.ini` with the driver, e.g.:
 
 ```
+[FreeTDS]
 Description=v0.95.8 with protocol v7.1
 Driver=/usr/local/lib/libtdsodbc.so
 UsageCount=1
