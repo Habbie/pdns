@@ -88,6 +88,11 @@ For convenience, a schema for MS SQL Server has been created:
 
 Load this into the database as follows: `isql pdns1 USERNAME PASSWORD < schema.mssql.sql`.
 
+## Loading records into the database
+Loading records is the same as with any SQL backend, just add them
+using SQL-queries. Should you want to use [`zone2sql`](migration.md#zone2sql),
+use the `--sqlite` option for correctly formatted SQL.
+
 ## Configuring PowerDNS
 Add the options required to your `pdns.conf`:
 
