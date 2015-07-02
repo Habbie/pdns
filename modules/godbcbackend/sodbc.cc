@@ -198,6 +198,7 @@ public:
 
       case SQL_SMALLINT:
       case SQL_INTEGER:
+      case SQL_BIT:
         column.m_type  = SQL_C_SLONG;
         column.m_size  = sizeof( long int );
         column.m_pData = new long int;
@@ -281,8 +282,10 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     SQLLEN len;
     for ( int i = 0; i < m_columnInfo.size(); i++ )
     {
-      if ( m_columnInfo[ i ].m_pData == NULL )
+      if ( m_columnInfo[ i ].m_pData == NULL ) {
+        row.push_back("NULL");
         continue;
+      }
 
       // Clear buffer.
       memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
@@ -299,6 +302,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       // Convert the data into strings.
       std::ostringstream str;
 
+      cerr<<"column "<<i<<" has type "<< m_columnInfo[ i ].m_type<<endl;
       switch ( m_columnInfo[ i ].m_type )
       {
       case SQL_C_CHAR:
