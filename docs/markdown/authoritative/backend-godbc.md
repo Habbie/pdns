@@ -86,7 +86,8 @@ For convenience, a schema for MS SQL Server has been created:
 !!include=../modules/godbcbackend/schema.mssql.sql
 ```
 
-Load this into the database as follows: `isql pdns1 USERNAME PASSWORD < schema.mssql.sql`.
+Load this into the database as follows:
+`cat schema.mssql.sql | tr '\n' ' ' | isql pdns1 USERNAME PASSWORD -b`.
 
 ## Loading records into the database
 Loading records is the same as with any SQL backend, just add them
