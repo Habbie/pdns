@@ -104,3 +104,6 @@ records to the database.
 ## Possible issues
 It might be that you need to compile FreeTDS with the `--tds-version=7.1` to
 connect to SQL Server.
+
+When connecting to a database hosted with Microsoft Azure, FreeTDS must be
+compiled with OpenSSL, use the `--with-openssl` configure flag.
