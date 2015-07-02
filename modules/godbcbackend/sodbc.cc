@@ -186,6 +186,7 @@ public:
       else
         column.m_canBeNull = false;
 
+      if(column.m_size > 128*1024) column.m_size=128*1024; //hacky, but avoids 2GB mallocs. FIXME?
       // Allocate memory.
       switch ( type )
       {
@@ -288,8 +289,11 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       }
 
       // Clear buffer.
+      cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
       memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
 
+
+      // FIXME: because we cap m_size to 128kbyte, this can truncate silently. see Retrieving Variable-Length Data in Parts at https://msdn.microsoft.com/en-us/library/ms715441(v=vs.85).aspx
       result = SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
       testResult( result, SQL_HANDLE_STMT, d_statement, "Could not get data." );
       if ( len == SQL_NULL_DATA )
