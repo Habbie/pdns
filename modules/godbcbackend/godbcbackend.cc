@@ -77,15 +77,15 @@ public:
     declare(suffix,"insert-slave-query","", "insert into domains (type,name,master,account) values('SLAVE',?,?,?)");
 
     declare(suffix, "insert-record-query", "", "insert into records (content,ttl,prio,type,domain_id,disabled,name,auth) values (?,?,?,?,?,?,?,?)");
-    declare(suffix, "insert-record-order-query", "", "insert into records (content,ttl,prio,type,domain_id,disabled,name,ordername,auth) values (?,?,?,?,?,?,?,convert(varbinary,?),?)");
+    declare(suffix, "insert-record-order-query", "", "insert into records (content,ttl,prio,type,domain_id,disabled,name,ordername,auth) values (?,?,?,?,?,?,?,convert(varbinary(255),?),?)");
     declare(suffix, "insert-ent-query", "insert empty non-terminal in zone", "insert into records (type,domain_id,disabled,name,auth) values (null,?,0,?,?)");
-    declare(suffix, "insert-ent-order-query", "insert empty non-terminal in zone", "insert into records (type,domain_id,disabled,name,ordername,auth) values (null,?,0,?,convert(varbinary,?),?)");
+    declare(suffix, "insert-ent-order-query", "insert empty non-terminal in zone", "insert into records (type,domain_id,disabled,name,ordername,auth) values (null,?,0,?,convert(varbinary(255),?),?)");
 
-    declare(suffix, "get-order-first-query", "DNSSEC Ordering Query, first", "select top 1 convert(varchar, ordername), name from records where domain_id=? and disabled=0 and ordername is not null order by 1 asc");
-    declare(suffix, "get-order-before-query", "DNSSEC Ordering Query, before", "select top 1 convert(varchar, ordername), name from records where ordername <= convert(varbinary,?) and domain_id=? and disabled=0 and ordername is not null order by 1 desc");
-    declare(suffix, "get-order-after-query", "DNSSEC Ordering Query, after", "select convert(varchar, min(ordername)) from records where ordername > convert(varbinary,?) and domain_id=? and disabled=0 and ordername is not null");
-    declare(suffix, "get-order-last-query", "DNSSEC Ordering Query, last", "select top 1 convert(varchar, ordername), name from records where ordername != convert(varbinary,'') and domain_id=? and disabled=0 and ordername is not null order by 1 desc");
-    declare(suffix, "set-order-and-auth-query", "DNSSEC set ordering query", "update records set ordername=convert(varbinary,?),auth=? where name=? and domain_id=? and disabled=0");
+    declare(suffix, "get-order-first-query", "DNSSEC Ordering Query, first", "select top 1 convert(varchar(255), ordername), name from records where domain_id=? and disabled=0 and ordername is not null order by 1 asc");
+    declare(suffix, "get-order-before-query", "DNSSEC Ordering Query, before", "select top 1 convert(varchar(255), ordername), name from records where ordername <= convert(varbinary(255),?) and domain_id=? and disabled=0 and ordername is not null order by 1 desc");
+    declare(suffix, "get-order-after-query", "DNSSEC Ordering Query, after", "select convert(varchar(255), min(ordername)) from records where ordername > convert(varbinary(255),?) and domain_id=? and disabled=0 and ordername is not null");
+    declare(suffix, "get-order-last-query", "DNSSEC Ordering Query, last", "select top 1 convert(varchar(255), ordername), name from records where ordername != convert(varbinary(255),'') and domain_id=? and disabled=0 and ordername is not null order by 1 desc");
+    declare(suffix, "set-order-and-auth-query", "DNSSEC set ordering query", "update records set ordername=convert(varbinary(255),?),auth=? where name=? and domain_id=? and disabled=0");
     declare(suffix, "set-auth-on-ds-record-query", "DNSSEC set auth on a DS record", "update records set auth=1 where domain_id=? and name=? and type='DS' and disabled=0");
 
     declare(suffix, "nullify-ordername-and-update-auth-query", "DNSSEC nullify ordername and update auth query", "update records set ordername=NULL,auth=? where domain_id=? and name=? and disabled=0");
