@@ -529,7 +529,7 @@ SODBC::~SODBC( void )
 void SODBC::execute( const std::string & command )
 {
   SQLRETURN   result;
-  SODBCStatement stmt(command, false, 0, &m_connection);
+  SODBCStatement stmt(command, false, 0, m_connection);
 
   stmt.execute()->reset();
 }
@@ -573,6 +573,31 @@ SSqlStatement* SODBC::prepare(const string& query, int nparams)
 
 
 
-  void SODBC::startTransaction() {   }
-  void SODBC::commit() {}
-  void SODBC::rollback() {}
+  void SODBC::startTransaction() {
+    cerr<<"starting transaction"<<endl;
+    SQLRETURN result;
+    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+    testResult( result, SQL_HANDLE_DBC, m_connection, "startTransaction (enable autocommit) failed" );
+  }
+
+  void SODBC::commit() {
+    cerr<<"commit!"<<endl;
+    SQLRETURN result;
+
+    result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_COMMIT); // don't really need this, AUTOCOMMIT_OFF below will also commit
+    testResult( result, SQL_HANDLE_DBC, m_connection, "commit failed" );
+
+    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+    testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after commit failed" );
+  }
+
+  void SODBC::rollback() {
+    cerr<<"rollback!"<<endl;
+    SQLRETURN result;
+
+    result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_ROLLBACK);
+    testResult( result, SQL_HANDLE_DBC, m_connection, "rollback failed" );
+
+    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+    testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after rollback failed" );
+  }
