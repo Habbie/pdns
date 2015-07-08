@@ -16,6 +16,12 @@ static void testResult( SQLRETURN result, SQLSMALLINT type, SQLHANDLE handle, co
 
   errmsg << message << ": ";
 
+  if ( result != SQL_ERROR && result != SQL_SUCCESS_WITH_INFO ) {
+    cerr<<"handle "<<handle<<" got result "<<result<<endl;
+    errmsg << "SQL function returned "<<result<<", no additional information available"<<endl;
+    throw SSqlException( errmsg.str() );
+  }
+
   SQLINTEGER i = 0;
   SQLINTEGER native;
   SQLCHAR state[ 7 ];
