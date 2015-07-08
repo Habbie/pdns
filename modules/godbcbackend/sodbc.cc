@@ -8,7 +8,7 @@
 
 static void testResult( SQLRETURN result, SQLSMALLINT type, SQLHANDLE handle, const std::string & message )
 {
-  cerr<<"result = "<<result<<endl;
+  // cerr<<"result = "<<result<<endl;
   if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
     return;
 
@@ -25,11 +25,11 @@ static void testResult( SQLRETURN result, SQLSMALLINT type, SQLHANDLE handle, co
 
   do
   {
-    cerr<<"getting sql diag record "<<i<<endl;
+    // cerr<<"getting sql diag record "<<i<<endl;
     ret = SQLGetDiagRec(type, handle, ++i, state, &native, text,
     sizeof(text), &len );
-    cerr<<"getdiagrec said "<<ret<<endl;
-    if (SQL_SUCCEEDED(ret)) { cerr<<"got it"<<endl; 
+    // cerr<<"getdiagrec said "<<ret<<endl;
+    if (SQL_SUCCEEDED(ret)) { // cerr<<"got it"<<endl; 
       errmsg<<state<<i<<native<<text<<" "; 
     }
   }
@@ -66,7 +66,7 @@ public:
       throw SSqlException("Provided parameter count does not match statement: " + d_query);
 
     d_parnum = nparams;
-    cerr<<"prepared ("<<query<<")"<<endl;
+    // cerr<<"prepared ("<<query<<")"<<endl;
   }
 
   typedef struct {
@@ -81,9 +81,9 @@ public:
   SSqlStatement* bind(const string& name, bool value) { return bind(name, (long)value); }
   SSqlStatement* bind(const string& name, long value) { 
 
-    cerr<<"asked to bind long "<<value<<endl;
-    cerr<<"d_req_bind.size()="<<d_req_bind.size()<<endl;
-    cerr<<"d_parnum="<<d_parnum<<endl;
+    // cerr<<"asked to bind long "<<value<<endl;
+    // cerr<<"d_req_bind.size()="<<d_req_bind.size()<<endl;
+    // cerr<<"d_parnum="<<d_parnum<<endl;
 
     if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
 
@@ -118,7 +118,7 @@ public:
   SSqlStatement* bind(const string& name, unsigned long long value) { return bind(name, (long)value); }
   SSqlStatement* bind(const string& name, const std::string& value) {
 
-    cerr<<"asked to bind string "<<value<<endl;
+    // cerr<<"asked to bind string "<<value<<endl;
 
     if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
 
@@ -153,7 +153,7 @@ public:
   SSqlStatement* execute()
   {
     SQLRETURN result;
-    cerr<<"execute("<<d_query<<")"<<endl;
+    // cerr<<"execute("<<d_query<<")"<<endl;
     if (d_dolog) {
       // L<<Logger::Warning<<"Query: "<<d_query<<endl;
     }
@@ -176,7 +176,7 @@ public:
     column_t    column;
     SQLSMALLINT nullable;
     SQLSMALLINT type;
-    cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
+    // cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
     for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
     {
       SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
@@ -220,15 +220,18 @@ public:
 
       m_columnInfo.push_back( column );
     }
-    cerr<<"collecting column info done"<<endl;
+    // cerr<<"collecting column info done"<<endl;
 
-    cerr<<"first SQLFetch"<<endl;
+    // cerr<<"first SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
-    cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
+    // cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
     return this;
   }
 
-  bool hasNextRow() { cerr<<"hasNextRow d_result="<<d_result<<endl;; return d_result!=SQL_NO_DATA; }
+  bool hasNextRow() {
+    // cerr<<"hasNextRow d_result="<<d_result<<endl;
+    return d_result!=SQL_NO_DATA;
+  }
   SSqlStatement* nextRow(row_t& row);
 
   SSqlStatement* getResult(result_t& result) { 
@@ -275,7 +278,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
 
   result = d_result;
   // result = SQLFetch( d_statement );
-  cerr<<"SQLFetch result="<<result<<endl;
+  // cerr<<"SQLFetch result="<<result<<endl;
   // FIXME handle errors (SQL_NO_DATA==100, anything other than the two SUCCESS options below is bad news)
   if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
   {
@@ -289,7 +292,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       }
 
       // Clear buffer.
-      cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
+      // cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
       memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
 
 
@@ -306,11 +309,11 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       // Convert the data into strings.
       std::ostringstream str;
 
-      cerr<<"column "<<i<<" has type "<< m_columnInfo[ i ].m_type<<endl;
+      // cerr<<"column "<<i<<" has type "<< m_columnInfo[ i ].m_type<<endl;
       switch ( m_columnInfo[ i ].m_type )
       {
       case SQL_C_CHAR:
-            cerr<<"got char data "<<(reinterpret_cast< char * >( m_columnInfo[ i ].m_pData))<<endl;
+            // cerr<<"got char data "<<(reinterpret_cast< char * >( m_columnInfo[ i ].m_pData))<<endl;
         row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));        
         break;
 
@@ -337,9 +340,9 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
 
     // Done!
     d_residx++;
-    cerr<<"SQLFetch"<<endl;
+    // cerr<<"SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
-    cerr<<"SQLFetch done"<<endl;
+    // cerr<<"SQLFetch done"<<endl;
     return this;
   }
 
