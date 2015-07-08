@@ -3,6 +3,7 @@ gsql-master()
 	backend=$1
 	skipreasons=$2
 
+	real_backend=$backend
 	if `echo $backend | grep -q '_'`; then
 		real_backend=$(echo $backend | awk -F '_' '{print $1}')
 	fi
