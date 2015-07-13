@@ -53,6 +53,9 @@ The user to connect to the datasource.
 The password to connect with the datasource.
 
 # Connecting to Microsoft SQL Server
+**note**: In order to connect to Microsoft SQL Server, you will need at least
+version 3.2.0 of UnixODBC. FreeDTS has been tested with versions 0.91 and 0.95.
+
 Install the [FreeTDS](http://www.freetds.org/) driver for UnixODBC, either by
 compiling or getting it from our distribution's repository and configure your
 `/etc/odbcinst.ini` with the driver, e.g.:

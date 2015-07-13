@@ -18,6 +18,11 @@ start_master ()
 				source ./backends/godbc_mssql-master
 				;;
 
+			godbc_sqlite3*)
+				[ -z $GODBC_SQLITE3_DSN ] && echo '$GODBC_SQLITE3_DSN must be set' >&2 && exit 1
+				source ./backends/godbc_sqlite3-master
+				;;
+
 			goracle*)
 				source ./backends/goracle-master
 				;;
