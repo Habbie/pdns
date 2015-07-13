@@ -165,7 +165,8 @@ public:
     }
 
     result = SQLExecute(d_statement);
-    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query ("+d_query+")." );
+    if(result != SQL_NO_DATA)  // odbc+sqlite returns this on 'no rows updated'
+        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query ("+d_query+")." );
 
     // Determine the number of columns.
     SQLSMALLINT numColumns;
