@@ -66,7 +66,7 @@ public:
       d_setOrderAuthQuery_stmt = d_db->prepare(d_setOrderAuthQuery, 4);
       d_nullifyOrderNameAndUpdateAuthQuery_stmt = d_db->prepare(d_nullifyOrderNameAndUpdateAuthQuery, 3);
       d_nullifyOrderNameAndAuthQuery_stmt = d_db->prepare(d_nullifyOrderNameAndAuthQuery, 3);
-      d_nullifyOrderNameAndAuthENTQuery_stmt = d_db->prepare(d_nullifyOrderNameAndAuthENTQuery, 0);
+      //d_nullifyOrderNameAndAuthENTQuery_stmt = d_db->prepare(d_nullifyOrderNameAndAuthENTQuery, 0);
       d_setAuthOnDsRecordQuery_stmt = d_db->prepare(d_setAuthOnDsRecordQuery, 2);
       d_removeEmptyNonTerminalsFromZoneQuery_stmt = d_db->prepare(d_removeEmptyNonTerminalsFromZoneQuery, 1);
       d_insertEmptyNonTerminalQuery_stmt = d_db->prepare(d_insertEmptyNonTerminalQuery, 2);
