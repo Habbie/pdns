@@ -232,6 +232,8 @@ public:
     // cerr<<"first SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
     // cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
+    if(d_result != SQL_NO_DATA)
+        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not do first SQLFetch for ("+d_query+")." );
     return this;
   }
 
@@ -351,7 +353,9 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     d_residx++;
     // cerr<<"SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
-    // cerr<<"SQLFetch done"<<endl;
+    // cerr<<"subsequent SQLFetch done, d_result="<<d_result<<endl;
+    if(d_result != SQL_NO_DATA)
+        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not do subsequent SQLFetch for ("+d_query+")." );
     return this;
   }
 
