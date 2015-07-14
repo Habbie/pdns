@@ -284,11 +284,13 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
   row.clear();
 
   result = d_result;
+  // cerr<<"at start of nextRow, previous SQLFetch result is "<<result<<endl;
   // result = SQLFetch( d_statement );
   // cerr<<"SQLFetch result="<<result<<endl;
   // FIXME handle errors (SQL_NO_DATA==100, anything other than the two SUCCESS options below is bad news)
   if ( result == SQL_SUCCESS || result == SQL_SUCCESS_WITH_INFO )
   {
+    // cerr<<"got row"<<endl;
     // We've got a data row, now lets get the results.
     SQLLEN len;
     for ( int i = 0; i < m_columnInfo.size(); i++ )
@@ -575,14 +577,14 @@ SSqlStatement* SODBC::prepare(const string& query, int nparams)
 
 
   void SODBC::startTransaction() {
-    cerr<<"starting transaction"<<endl;
+    // cerr<<"starting transaction"<<endl;
     SQLRETURN result;
     result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
     testResult( result, SQL_HANDLE_DBC, m_connection, "startTransaction (enable autocommit) failed" );
   }
 
   void SODBC::commit() {
-    cerr<<"commit!"<<endl;
+    // cerr<<"commit!"<<endl;
     SQLRETURN result;
 
     result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_COMMIT); // don't really need this, AUTOCOMMIT_OFF below will also commit
@@ -593,7 +595,7 @@ SSqlStatement* SODBC::prepare(const string& query, int nparams)
   }
 
   void SODBC::rollback() {
-    cerr<<"rollback!"<<endl;
+    // cerr<<"rollback!"<<endl;
     SQLRETURN result;
 
     result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_ROLLBACK);
