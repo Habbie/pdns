@@ -251,8 +251,13 @@ public:
     return this;
   }
 
-  SSqlStatement* reset() { d_req_bind.clear();    d_residx = 0;
-    d_paridx = 0; return this; }
+  SSqlStatement* reset() {
+    SQLCloseCursor(d_statement); // hack, this probably violates some state transitions
+
+    d_req_bind.clear();
+    d_residx = 0;
+    d_paridx = 0; return this;
+  }
   const std::string& getQuery() { return d_query; }
 
 private:
