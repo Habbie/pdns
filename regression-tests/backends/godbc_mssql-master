@@ -15,7 +15,7 @@ case $context in
 		# The 'sed' then adds 'go' after every 1000th line to batch-insert
 		# Then we send that to bsqlodbc with a final 'go' and an EOF so bdsqlodbc
 		# actually terminates
-		tosql gsqlite | grep -v -E '(COMMIT|TRANSACTION)' | sed '0~1000 s/$/\ngo/g' | cat - <(echo go) /dev/null | $BSQLODBC
+		tosql gsqlite | grep -v -E '(COMMIT|TRANSACTION)' | awk '1;!(NR%98){print "go"}' | cat - <(echo go) /dev/null | $BSQLODBC
 		cat > pdns-godbc_mssql.conf << __EOF__
 module-dir=./modules
 launch=godbc
