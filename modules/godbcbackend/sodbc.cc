@@ -271,8 +271,18 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     // cerr<<"SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
     // cerr<<"subsequent SQLFetch done, d_result="<<d_result<<endl;
-    if(d_result != SQL_NO_DATA)
-        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not do subsequent SQLFetch for ("+d_query+")." );
+    if(d_result == SQL_NO_DATA) {
+      SQLRETURN result = SQLMoreResults(d_statement);
+      if (result == SQL_NO_DATA) {
+        d_result = result;
+      }
+      else {
+        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not fetch next result set for ("+d_query+").");
+      d_result = SQLFetch(d_statement);
+      }
+    }
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Could not do subsequent SQLFetch for ("+d_query+")." );
+
     return this;
   }
 
