@@ -173,61 +173,6 @@ public:
     testResult( result, SQL_HANDLE_STMT, d_statement, "Could not determine the number of columns." );
 
 
-    // if ( numColumns == 0 )
-    //   throw SSqlException( "SQLNumResultCols claims 0 columns." );
-
-    // // Fill m_columnInfo.
-    // m_columnInfo.clear();
-
-    // column_t    column;
-    // SQLSMALLINT nullable;
-    // SQLSMALLINT type;
-    // // cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
-    // for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
-    // {
-    //   SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
-
-    //   if ( nullable == SQL_NULLABLE )
-    //     column.m_canBeNull = true;
-    //   else
-    //     column.m_canBeNull = false;
-
-    //   if(column.m_size > 128*1024) column.m_size=128*1024; //hacky, but avoids 2GB mallocs. FIXME?
-    //   // // Allocate memory.
-    //   // switch ( type )
-    //   // {
-    //   // case SQL_CHAR:
-    //   // case SQL_VARCHAR:
-    //   // case SQL_LONGVARCHAR:
-    //     column.m_type   = SQL_C_CHAR;
-    //     column.m_pData  = new SQLCHAR[ 128*1024 ];
-    //   //   break;
-
-    //   // case SQL_SMALLINT:
-    //   // case SQL_INTEGER:
-    //   // case SQL_BIT:
-    //   //   column.m_type  = SQL_C_SLONG;
-    //   //   column.m_size  = sizeof( long int );
-    //   //   column.m_pData = new long int;
-    //   //   break;
-
-    //   // case SQL_REAL:
-    //   // case SQL_FLOAT:
-    //   // case SQL_DOUBLE:
-    //   //   column.m_type   = SQL_C_DOUBLE;
-    //   //   column.m_size   = sizeof( double );
-    //   //   column.m_pData  = new double;
-    //   //   break;
-
-    //   // default:
-    //   //   column.m_pData = NULL;
-
-    //   // }
-
-    //   m_columnInfo.push_back( column );
-    // }
-    // // cerr<<"collecting column info done"<<endl;
-
     // cerr<<"first SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
     // cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
@@ -301,11 +246,6 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     SQLLEN len;
     for ( int i = 0; i < m_columncount; i++ )
     {
-      // if ( m_columnInfo[ i ].m_pData == NULL ) {
-      //   row.push_back("NULL because unknown type in column info?");
-      //   continue;
-      // }
-
       // Clear buffer.
       // cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
       SQLCHAR         coldata[128*1024];
@@ -413,102 +353,6 @@ SODBC::~SODBC( void )
   // }
 }
 
-
-// Executes a query.
-// int SODBC::doQuery( const std::string & query )
-// {
-//   SQLRETURN   result;
-//   char        *tmp;
-  
-//   if ( m_busy )
-//     throw SSqlException( "Tried to execute another query while being busy." );
-
-//   tmp = strdup( query.c_str());
-
-//   // Execute query.
-//   result = SQLExecDirect( m_statement, reinterpret_cast< SQLTCHAR * >( tmp ), query.length());
-//   free( tmp );
-
-//   testResult( result, "Could not execute query." );
-
-//   // We are now busy.
-//   m_busy = true;
-
-//   // Determine the number of columns.
-//   SQLSMALLINT numColumns;
-//   SQLNumResultCols( m_statement, &numColumns );
-
-//   if ( numColumns == 0 )
-//     throw SSqlException( "Could not determine the number of columns." );
-
-//   // Fill m_columnInfo.
-//   m_columnInfo.clear();
-
-//   column_t    column;
-//   SQLSMALLINT nullable;
-//   SQLSMALLINT type;
-
-//   for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
-//   {
-//     SQLDescribeCol( m_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
-
-//     if ( nullable == SQL_NULLABLE )
-//       column.m_canBeNull = true;
-//     else
-//       column.m_canBeNull = false;
-
-//     // Allocate memory.
-//     switch ( type )
-//     {
-//     case SQL_CHAR:
-//     case SQL_VARCHAR:
-//     case SQL_LONGVARCHAR:
-//       column.m_type   = SQL_C_CHAR;
-//       column.m_pData  = new SQLCHAR[ column.m_size ];
-//       break;
-
-//     case SQL_SMALLINT:
-//     case SQL_INTEGER:
-//       column.m_type  = SQL_C_SLONG;
-//       column.m_size  = sizeof( long int );
-//       column.m_pData = new long int;
-//       break;
-
-//     case SQL_REAL:
-//     case SQL_FLOAT:
-//     case SQL_DOUBLE:
-//       column.m_type   = SQL_C_DOUBLE;
-//       column.m_size   = sizeof( double );
-//       column.m_pData  = new double;
-//       break;
-
-//     default:
-//       column.m_pData = NULL;
-
-//     }
-
-//     m_columnInfo.push_back( column );
-//   }
-
-//   return 0;
-// }
-
-
-// Executes a query.
-// int SODBC::doQuery( const std::string & query, result_t & result )
-// {
-//   result.clear();
-
-//   doQuery( query );
-
-//   row_t row;
-//   while ( getRow( row ))
-//     result.push_back( row );
-
-//   return result.size();
-// }
-
-
 // Executes a command.
 void SODBC::execute( const std::string & command )
 {
@@ -518,30 +362,11 @@ void SODBC::execute( const std::string & command )
   stmt.execute()->reset();
 }
 
-// Escapes a SQL string.
-// std::string SODBC::escape( const std::string & name )
-// {
-//   std::string a;
-
-//   for( std::string::const_iterator i = name.begin(); i != name.end(); ++i ) 
-//   {
-//     if( *i == '\'' || *i == '\\' )
-//       a += '\\';
-//     a += *i;
-//   }
-
-//   return a;
-// }
-
-
-
-
 // Sets the log state.
 void SODBC::setLog( bool state )
 {
   m_log = state;
 }
-
 
 // Returns an exception.
 SSqlException SODBC::sPerrorException( const std::string & reason )
@@ -549,39 +374,37 @@ SSqlException SODBC::sPerrorException( const std::string & reason )
   return SSqlException( reason );
 }
 
-
 SSqlStatement* SODBC::prepare(const string& query, int nparams)
 {
   return new SODBCStatement(query, true, nparams, m_connection);
 }
 
 
+void SODBC::startTransaction() {
+  // cerr<<"starting transaction"<<endl;
+  SQLRETURN result;
+  result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+  testResult( result, SQL_HANDLE_DBC, m_connection, "startTransaction (enable autocommit) failed" );
+}
 
-  void SODBC::startTransaction() {
-    // cerr<<"starting transaction"<<endl;
-    SQLRETURN result;
-    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
-    testResult( result, SQL_HANDLE_DBC, m_connection, "startTransaction (enable autocommit) failed" );
-  }
+void SODBC::commit() {
+  // cerr<<"commit!"<<endl;
+  SQLRETURN result;
 
-  void SODBC::commit() {
-    // cerr<<"commit!"<<endl;
-    SQLRETURN result;
+  result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_COMMIT); // don't really need this, AUTOCOMMIT_OFF below will also commit
+  testResult( result, SQL_HANDLE_DBC, m_connection, "commit failed" );
 
-    result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_COMMIT); // don't really need this, AUTOCOMMIT_OFF below will also commit
-    testResult( result, SQL_HANDLE_DBC, m_connection, "commit failed" );
+  result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+  testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after commit failed" );
+}
 
-    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
-    testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after commit failed" );
-  }
+void SODBC::rollback() {
+  // cerr<<"rollback!"<<endl;
+  SQLRETURN result;
 
-  void SODBC::rollback() {
-    // cerr<<"rollback!"<<endl;
-    SQLRETURN result;
+  result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_ROLLBACK);
+  testResult( result, SQL_HANDLE_DBC, m_connection, "rollback failed" );
 
-    result = SQLEndTran(SQL_HANDLE_DBC, m_connection, SQL_ROLLBACK);
-    testResult( result, SQL_HANDLE_DBC, m_connection, "rollback failed" );
-
-    result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
-    testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after rollback failed" );
-  }
+  result = SQLSetConnectAttr(m_connection, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, 0);
+  testResult( result, SQL_HANDLE_DBC, m_connection, "disabling autocommit after rollback failed" );
+}
