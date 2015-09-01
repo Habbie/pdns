@@ -169,65 +169,64 @@ public:
         testResult( result, SQL_HANDLE_STMT, d_statement, "Could not execute query ("+d_query+")." );
 
     // Determine the number of columns.
-    SQLSMALLINT numColumns;
-    result = SQLNumResultCols( d_statement, &numColumns );
+    result = SQLNumResultCols( d_statement, &m_columncount );
     testResult( result, SQL_HANDLE_STMT, d_statement, "Could not determine the number of columns." );
 
 
     // if ( numColumns == 0 )
     //   throw SSqlException( "SQLNumResultCols claims 0 columns." );
 
-    // Fill m_columnInfo.
-    m_columnInfo.clear();
+    // // Fill m_columnInfo.
+    // m_columnInfo.clear();
 
-    column_t    column;
-    SQLSMALLINT nullable;
-    SQLSMALLINT type;
-    // cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
-    for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
-    {
-      SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
+    // column_t    column;
+    // SQLSMALLINT nullable;
+    // SQLSMALLINT type;
+    // // cerr<<"collecting column info, "<<numColumns<<" columns"<<endl;
+    // for ( SQLSMALLINT i = 1; i <= numColumns; i++ )
+    // {
+    //   SQLDescribeCol( d_statement, i, NULL, 0, NULL, &type, &column.m_size, NULL, &nullable );
 
-      if ( nullable == SQL_NULLABLE )
-        column.m_canBeNull = true;
-      else
-        column.m_canBeNull = false;
+    //   if ( nullable == SQL_NULLABLE )
+    //     column.m_canBeNull = true;
+    //   else
+    //     column.m_canBeNull = false;
 
-      if(column.m_size > 128*1024) column.m_size=128*1024; //hacky, but avoids 2GB mallocs. FIXME?
-      // // Allocate memory.
-      // switch ( type )
-      // {
-      // case SQL_CHAR:
-      // case SQL_VARCHAR:
-      // case SQL_LONGVARCHAR:
-        column.m_type   = SQL_C_CHAR;
-        column.m_pData  = new SQLCHAR[ 128*1024 ];
-      //   break;
+    //   if(column.m_size > 128*1024) column.m_size=128*1024; //hacky, but avoids 2GB mallocs. FIXME?
+    //   // // Allocate memory.
+    //   // switch ( type )
+    //   // {
+    //   // case SQL_CHAR:
+    //   // case SQL_VARCHAR:
+    //   // case SQL_LONGVARCHAR:
+    //     column.m_type   = SQL_C_CHAR;
+    //     column.m_pData  = new SQLCHAR[ 128*1024 ];
+    //   //   break;
 
-      // case SQL_SMALLINT:
-      // case SQL_INTEGER:
-      // case SQL_BIT:
-      //   column.m_type  = SQL_C_SLONG;
-      //   column.m_size  = sizeof( long int );
-      //   column.m_pData = new long int;
-      //   break;
+    //   // case SQL_SMALLINT:
+    //   // case SQL_INTEGER:
+    //   // case SQL_BIT:
+    //   //   column.m_type  = SQL_C_SLONG;
+    //   //   column.m_size  = sizeof( long int );
+    //   //   column.m_pData = new long int;
+    //   //   break;
 
-      // case SQL_REAL:
-      // case SQL_FLOAT:
-      // case SQL_DOUBLE:
-      //   column.m_type   = SQL_C_DOUBLE;
-      //   column.m_size   = sizeof( double );
-      //   column.m_pData  = new double;
-      //   break;
+    //   // case SQL_REAL:
+    //   // case SQL_FLOAT:
+    //   // case SQL_DOUBLE:
+    //   //   column.m_type   = SQL_C_DOUBLE;
+    //   //   column.m_size   = sizeof( double );
+    //   //   column.m_pData  = new double;
+    //   //   break;
 
-      // default:
-      //   column.m_pData = NULL;
+    //   // default:
+    //   //   column.m_pData = NULL;
 
-      // }
+    //   // }
 
-      m_columnInfo.push_back( column );
-    }
-    // cerr<<"collecting column info done"<<endl;
+    //   m_columnInfo.push_back( column );
+    // }
+    // // cerr<<"collecting column info done"<<endl;
 
     // cerr<<"first SQLFetch"<<endl;
     d_result = SQLFetch(d_statement);
@@ -280,7 +279,7 @@ private:
   };
 
   //! Column info.
-  std::vector< column_t > m_columnInfo;
+  SQLSMALLINT m_columncount;
 
 };
 
@@ -300,12 +299,12 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     // cerr<<"got row"<<endl;
     // We've got a data row, now lets get the results.
     SQLLEN len;
-    for ( int i = 0; i < m_columnInfo.size(); i++ )
+    for ( int i = 0; i < m_columncount; i++ )
     {
-      if ( m_columnInfo[ i ].m_pData == NULL ) {
-        row.push_back("NULL because unknown type in column info?");
-        continue;
-      }
+      // if ( m_columnInfo[ i ].m_pData == NULL ) {
+      //   row.push_back("NULL because unknown type in column info?");
+      //   continue;
+      // }
 
       // Clear buffer.
       // cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
@@ -324,38 +323,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
         row.push_back( "" );
         continue;
       }
-
-      // Convert the data into strings.
-      std::ostringstream str;
-
-      // cerr<<"column "<<i<<" has type "<< m_columnInfo[ i ].m_type<<endl;
-      switch ( m_columnInfo[ i ].m_type )
-      {
-      case SQL_C_CHAR:
-            // cerr<<"got char data "<<(reinterpret_cast< char * >( m_columnInfo[ i ].m_pData))<<endl;
-        // row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));        
-        row.push_back(reinterpret_cast<char*>(coldata));
-        break;
-
-      case SQL_C_SSHORT:
-      case SQL_C_SLONG:
-        str << *( reinterpret_cast< long * >( m_columnInfo[ i ].m_pData ));
-        row.push_back( str.str());
-
-        break;
-
-      case SQL_C_DOUBLE:
-        str << *( reinterpret_cast< double * >( m_columnInfo[ i ].m_pData ));
-        row.push_back( str.str());
-
-        break;
-
-      default:
-        // Eh?
-        str<<"SQL_C_?="<<m_columnInfo[ i ].m_type;
-        row.push_back( str.str() );
-
-      }
+      row.push_back(reinterpret_cast<char*>(coldata));
     }
 
     // Done!
