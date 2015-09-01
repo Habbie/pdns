@@ -36,7 +36,7 @@ static void testResult( SQLRETURN result, SQLSMALLINT type, SQLHANDLE handle, co
     sizeof(text), &len );
     // cerr<<"getdiagrec said "<<ret<<endl;
     if (SQL_SUCCEEDED(ret)) { // cerr<<"got it"<<endl; 
-      errmsg<<state<<i<<native<<text<<" "; 
+      errmsg<<state<<i<<native<<text<<"/";
     }
   }
   while( ret == SQL_SUCCESS );
@@ -194,36 +194,36 @@ public:
         column.m_canBeNull = false;
 
       if(column.m_size > 128*1024) column.m_size=128*1024; //hacky, but avoids 2GB mallocs. FIXME?
-      // Allocate memory.
-      switch ( type )
-      {
-      case SQL_CHAR:
-      case SQL_VARCHAR:
-      case SQL_LONGVARCHAR:
+      // // Allocate memory.
+      // switch ( type )
+      // {
+      // case SQL_CHAR:
+      // case SQL_VARCHAR:
+      // case SQL_LONGVARCHAR:
         column.m_type   = SQL_C_CHAR;
-        column.m_pData  = new SQLCHAR[ column.m_size ];
-        break;
+        column.m_pData  = new SQLCHAR[ 128*1024 ];
+      //   break;
 
-      case SQL_SMALLINT:
-      case SQL_INTEGER:
-      case SQL_BIT:
-        column.m_type  = SQL_C_SLONG;
-        column.m_size  = sizeof( long int );
-        column.m_pData = new long int;
-        break;
+      // case SQL_SMALLINT:
+      // case SQL_INTEGER:
+      // case SQL_BIT:
+      //   column.m_type  = SQL_C_SLONG;
+      //   column.m_size  = sizeof( long int );
+      //   column.m_pData = new long int;
+      //   break;
 
-      case SQL_REAL:
-      case SQL_FLOAT:
-      case SQL_DOUBLE:
-        column.m_type   = SQL_C_DOUBLE;
-        column.m_size   = sizeof( double );
-        column.m_pData  = new double;
-        break;
+      // case SQL_REAL:
+      // case SQL_FLOAT:
+      // case SQL_DOUBLE:
+      //   column.m_type   = SQL_C_DOUBLE;
+      //   column.m_size   = sizeof( double );
+      //   column.m_pData  = new double;
+      //   break;
 
-      default:
-        column.m_pData = NULL;
+      // default:
+      //   column.m_pData = NULL;
 
-      }
+      // }
 
       m_columnInfo.push_back( column );
     }
@@ -303,17 +303,20 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     for ( int i = 0; i < m_columnInfo.size(); i++ )
     {
       if ( m_columnInfo[ i ].m_pData == NULL ) {
-        row.push_back("NULL");
+        row.push_back("NULL because unknown type in column info?");
         continue;
       }
 
       // Clear buffer.
       // cerr<<"clearing m_pData of size "<<m_columnInfo[ i ].m_size<<endl;
-      memset( m_columnInfo[ i ].m_pData, 0, m_columnInfo[ i ].m_size );
+      SQLCHAR         coldata[128*1024];
+      memset(coldata, 'A', 128*1024);
+
 
 
       // FIXME: because we cap m_size to 128kbyte, this can truncate silently. see Retrieving Variable-Length Data in Parts at https://msdn.microsoft.com/en-us/library/ms715441(v=vs.85).aspx
-      result = SQLGetData( d_statement, i + 1, m_columnInfo[ i ].m_type, m_columnInfo[ i ].m_pData, m_columnInfo[ i ].m_size, &len );
+      result = SQLGetData( d_statement, i + 1, SQL_C_CHAR, (SQLPOINTER) coldata, 128*1024-1, &len );
+      // cerr<<"len="<<len<<endl;
       testResult( result, SQL_HANDLE_STMT, d_statement, "Could not get data." );
       if ( len == SQL_NULL_DATA )
       {
@@ -330,7 +333,8 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
       {
       case SQL_C_CHAR:
             // cerr<<"got char data "<<(reinterpret_cast< char * >( m_columnInfo[ i ].m_pData))<<endl;
-        row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));        
+        // row.push_back( reinterpret_cast< char * >( m_columnInfo[ i ].m_pData ));        
+        row.push_back(reinterpret_cast<char*>(coldata));
         break;
 
       case SQL_C_SSHORT:
