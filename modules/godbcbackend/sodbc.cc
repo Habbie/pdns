@@ -171,13 +171,18 @@ public:
     // Determine the number of columns.
     result = SQLNumResultCols( d_statement, &m_columncount );
     testResult( result, SQL_HANDLE_STMT, d_statement, "Could not determine the number of columns." );
+    // cerr<<"got "<<m_columncount<<" columns"<<endl;  
 
+    if(m_columncount) {
+      // cerr<<"first SQLFetch"<<endl;
+      d_result = SQLFetch(d_statement);
+      // cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
+    }
+    else
+      d_result = SQL_NO_DATA;
 
-    // cerr<<"first SQLFetch"<<endl;
-    d_result = SQLFetch(d_statement);
-    // cerr<<"first SQLFetch done, d_result="<<d_result<<endl;
     if(d_result != SQL_NO_DATA)
-        testResult( result, SQL_HANDLE_STMT, d_statement, "Could not do first SQLFetch for ("+d_query+")." );
+        testResult( d_result, SQL_HANDLE_STMT, d_statement, "Could not do first SQLFetch for ("+d_query+")." );
     return this;
   }
 
@@ -273,6 +278,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
     // cerr<<"subsequent SQLFetch done, d_result="<<d_result<<endl;
     if(d_result == SQL_NO_DATA) {
       SQLRETURN result = SQLMoreResults(d_statement);
+      // cerr<<"SQLMoreResults done, result="<<d_result<<endl;
       if (result == SQL_NO_DATA) {
         d_result = result;
       }
