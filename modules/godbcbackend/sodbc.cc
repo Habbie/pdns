@@ -127,7 +127,7 @@ public:
 
     ODBCParam p;
 
-    p.ParameterValuePtr = (char*) new char[value.size()+1]; // FIXME: not NUL-safe, need len in struct?
+    p.ParameterValuePtr = (char*) new char[value.size()+1];
     value.copy((char*)p.ParameterValuePtr, value.size());
     ((char*)p.ParameterValuePtr)[value.size()]=0;
 
