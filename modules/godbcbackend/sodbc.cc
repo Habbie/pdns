@@ -76,10 +76,7 @@ public:
   }
 
   typedef struct {
-    SQLSMALLINT     ValueType;
-    SQLULEN         ColumnSize;
     SQLPOINTER      ParameterValuePtr;
-    SQLLEN          BufferLength;
   } ODBCParam;
 
   vector<ODBCParam> d_req_bind;
@@ -129,10 +126,10 @@ public:
     if(d_req_bind.size() > (d_parnum+1)) throw SSqlException("Trying to bind too many parameters.");
 
     ODBCParam p;
-    string* copy=new string(value);
 
-    p.ParameterValuePtr = (SQLPOINTER) copy->c_str();
-    // *((long*)p.ParameterValuePtr) = value;
+    p.ParameterValuePtr = (char*) new char[value.size()+1]; // FIXME: not NUL-safe, need len in struct?
+    value.copy((char*)p.ParameterValuePtr, value.size());
+    ((char*)p.ParameterValuePtr)[value.size()]=0;
 
     d_req_bind.push_back(p);
 
@@ -142,10 +139,10 @@ public:
       SQL_PARAM_INPUT,       // InputOutputType,
       SQL_C_CHAR,            // ValueType,
       SQL_VARCHAR,       // ParameterType,
-      copy->length(),         // ColumnSize,
+      value.size(),         // ColumnSize,
       0,                     // DecimalDigits,
       p.ParameterValuePtr,   // ParameterValuePtr,
-      copy->length(),         // BufferLength,
+      value.size()+1,         // BufferLength,
       NULL                   // StrLen_or_IndPtr
     );
     testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
@@ -203,6 +200,7 @@ public:
   SSqlStatement* reset() {
     SQLCloseCursor(d_statement); // hack, this probably violates some state transitions
 
+    for(auto &i: d_req_bind) { delete [] (char*) i.ParameterValuePtr; }
     d_req_bind.clear();
     d_residx = 0;
     d_paridx = 0; return this;
@@ -268,7 +266,7 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
         row.push_back( "" );
         continue;
       }
-      row.push_back(reinterpret_cast<char*>(coldata));
+      row.push_back(reinterpret_cast<char*>(coldata)); // FIXME: not NUL-safe, use len
     }
 
     // Done!
@@ -291,16 +289,6 @@ SSqlStatement* SODBCStatement::nextRow(row_t& row)
 
     return this;
   }
-
-  // No further results, or error.
-  // m_busy = false;
-
-  // Free all allocated column memory.
-  // for ( int i = 0; i < m_columnInfo.size(); i++ )
-  // {
-  //   if ( m_columnInfo[ i ].m_pData )
-  //     delete m_columnInfo[ i ].m_pData;
-  // }
 
   SQLFreeStmt( d_statement, SQL_CLOSE );
   throw SSqlException( "the end" );
