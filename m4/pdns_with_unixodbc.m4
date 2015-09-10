@@ -5,7 +5,7 @@ AC_DEFUN([PDNS_WITH_UNIXODBC],[
 	    AC_HELP_STRING([--with-unixodbc=<path>],[root directory path of unixodbc installation]),
 	    [UNIXODBC_lib_check="$withval/lib/unixodbc $with_unixodbc/lib $withval/lib"
 	     UNIXODBC_inc_check="$withval/include/unixodbc $withval/include"],
-	    [UNIXODBC_lib_check="/usr/local/unixodbc/lib/unixodbc /usr/local/lib/unixodbc /usr/lib/unixodbc /usr/local/unixodbc/lib /usr/local/lib /opt/unixodbc/lib /usr/lib /usr/lib/x86_64-linux-gnu"
+	    [UNIXODBC_lib_check="/usr/local/unixodbc/lib/unixodbc /usr/local/lib/unixodbc /usr/lib/unixodbc /usr/local/unixodbc/lib /usr/local/lib /opt/unixodbc/lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib64"
 	     UNIXODBC_inc_check="/usr/local/unixodbc/include/unixodbc /usr/local/include/unixodbc/ /usr/local/include /opt/unixodbc/include/unixodbc /opt/unixodbc/include /usr/include/ /usr/include/unixodbc"])
 	AC_ARG_WITH(unixodbc-lib,
 	    AC_HELP_STRING([--with-unixodbc-lib=<path>],[directory path of unixodbc library installation]),
