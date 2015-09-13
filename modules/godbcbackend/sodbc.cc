@@ -77,6 +77,7 @@ public:
 
   typedef struct {
     SQLPOINTER      ParameterValuePtr;
+    SQLLEN*         Ind;
   } ODBCParam;
 
   vector<ODBCParam> d_req_bind;
@@ -94,7 +95,8 @@ public:
 
     p.ParameterValuePtr = new long[1];
     *((long*)p.ParameterValuePtr) = value;
-
+    p.Ind = new SQLLEN;
+    *(p.Ind) = sizeof(long);
     d_req_bind.push_back(p);
 
     SQLRETURN result = SQLBindParameter(
@@ -107,7 +109,7 @@ public:
       0,                     // DecimalDigits,
       p.ParameterValuePtr,  // ParameterValuePtr,
       0,                     // BufferLength,
-      NULL                      // StrLen_or_IndPtr
+      p.ind                  // StrLen_or_IndPtr
     );
     testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
     d_paridx++;
@@ -130,7 +132,8 @@ public:
     p.ParameterValuePtr = (char*) new char[value.size()+1];
     value.copy((char*)p.ParameterValuePtr, value.size());
     ((char*)p.ParameterValuePtr)[value.size()]=0;
-
+    p.Ind = new SQLLEN;
+    *(p.Ind) = value.size();
     d_req_bind.push_back(p);
 
     SQLRETURN result = SQLBindParameter(
@@ -143,14 +146,25 @@ public:
       0,                     // DecimalDigits,
       p.ParameterValuePtr,   // ParameterValuePtr,
       value.size()+1,         // BufferLength,
-      NULL                   // StrLen_or_IndPtr
+      p.Ind                   // StrLen_or_IndPtr
     );
     testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
     d_paridx++;
 
     return this;
   }
-  SSqlStatement* bindNull(const string& name) { return this; }
+  SSqlStatement* bindNull(const string& name) {
+    ODBCParam p;
+    p.ParameterValuePtr = NULL;
+    p.Ind = new SQLLEN;
+    *(p.Ind) = SQL_NULL_DATA;
+    d_req_bind.push_back(p);
+
+    SQLRETURN result = SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0, NULL, 0, p.Ind);
+    testResult( result, SQL_HANDLE_STMT, d_statement, "Binding parameter.");
+    d_paridx++;
+    return this;
+  }
 
 
   SSqlStatement* execute()
@@ -200,7 +214,7 @@ public:
   SSqlStatement* reset() {
     SQLCloseCursor(d_statement); // hack, this probably violates some state transitions
 
-    for(auto &i: d_req_bind) { delete [] (char*) i.ParameterValuePtr; }
+    for(auto &i: d_req_bind) { delete [] (char*) i.ParameterValuePtr; delete i.Ind; }
     d_req_bind.clear();
     d_residx = 0;
     d_paridx = 0; return this;
