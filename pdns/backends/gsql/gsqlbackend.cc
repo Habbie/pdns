@@ -1508,19 +1508,15 @@ string GSQLBackend::directBackendCmd(const string &query)
    ostringstream out;
 
    unique_ptr<SSqlStatement> stmt(d_db->prepare(query,0));
-   // cerr<<"execute"<<endl;
+
    stmt->execute();
 
    SSqlStatement::row_t row;
 
-   // cerr<<"hasnextrow?"<<endl;
    while(stmt->hasNextRow()) {
-    // cerr<<"directBackendCmd calling nextRow"<<endl;
      stmt->nextRow(row);
-     for(const auto &col: row) {
-      // cerr<<"got data "<<col<<endl;
+     for(const auto &col: row)
        out<<"\'"<<col<<"\'\t";
-     }
      out<<endl;
    }
 
