@@ -1,4 +1,4 @@
-AM_CPPFLAGS += -I@UNIXODBC_incdir@
+AM_CPPFLAGS += $(UNIXODBC_CFLAGS)
 pkglib_LTLIBRARIES = libgodbcbackend.la
 
 EXTRA_DIST=OBJECTFILES OBJECTLIBS
@@ -6,4 +6,5 @@ EXTRA_DIST=OBJECTFILES OBJECTLIBS
 libgodbcbackend_la_SOURCES=godbcbackend.cc godbcbackend.hh \
                 sodbc.hh sodbc.cc
 
-libgodbcbackend_la_LDFLAGS=-module -avoid-version -lodbc
+libgodbcbackend_la_LDFLAGS=-module -avoid-version
+libgodbcbackend_la_LIBADD=$(UNIXODBC_LIBS)
