@@ -25,7 +25,7 @@ godbc-password=$GODBC_MSSQL_PASSWORD
 godbc-dnssec=yes
 __EOF__
 
-		gsql-master godbc_mssql nodyndns
+		gsql_master godbc_mssql nodyndns
 		;;
 
 	*)

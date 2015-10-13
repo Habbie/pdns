@@ -73,7 +73,7 @@ godbc-update-serial-query=update domains set notified_serial=? where id=?
 godbc-zone-lastchange-query=select max(change_date) from records where domain_id=?
 __EOF__
 
-		gsql-master godbc_sqlite3 nodyndns
+		gsql_master godbc_sqlite3 nodyndns
 		;;
 
 	*)
