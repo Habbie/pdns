@@ -150,7 +150,7 @@ public:
 
     return this;
   }
-  SSqlStatement* bindNull(const string& name) { return this; }
+  SSqlStatement* bindNull(const string& name) { return this; // FIXME https://github.com/Habbie/pdns/pull/32/commits }
 
 
   SSqlStatement* execute()
