@@ -417,7 +417,7 @@ DNSName PacketReader::getName()
   content.insert(content.begin(), sizeof(dnsheader), 0);
 
   try {
-    DNSName dn((const char*) content.data(), content.size(), d_pos + sizeof(dnsheader), true /* uncompress */, 0 /* qtype */, 0 /* qclass */, &consumed);
+    DNSName dn((const char*) content.data(), content.size(), d_pos + sizeof(dnsheader), true /* uncompress */, &consumed);
     
     d_pos+=consumed;
     return dn;

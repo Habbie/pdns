@@ -30,15 +30,15 @@ DNSName::DNSName(const char* p)
     appendRawLabel(e);
 }
 
-DNSName::DNSName(const char* pos, int len, int offset, bool uncompress, uint16_t* qtype, uint16_t* qclass, unsigned int* consumed)
+DNSName::DNSName(const char* pos, int len, int offset, bool uncompress, unsigned int* consumed)
 {
   d_empty=false;
   d_recurse = 0;
-  packetParser(pos, len, offset, uncompress, qtype, qclass, consumed);
+  packetParser(pos, len, offset, uncompress, consumed);
 }
 
 // this should be the __only__ dns name parser in PowerDNS.
-void DNSName::packetParser(const char* pos, int len, int offset, bool uncompress, uint16_t* qtype, uint16_t* qclass, unsigned int* consumed)
+void DNSName::packetParser(const char* pos, int len, int offset, bool uncompress, unsigned int* consumed)
 {
   unsigned char labellen;
   const char *opos = pos;
@@ -70,12 +70,12 @@ void DNSName::packetParser(const char* pos, int len, int offset, bool uncompress
   }
   if(consumed)
     *consumed = pos - opos - offset;
-  if(qtype && pos + labellen + 2 <= end)
-    *qtype=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
+  // if(qtype && pos + labellen + 2 <= end)
+  //   *qtype=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
 
-  pos+=2;
-  if(qclass && pos + labellen + 2 <= end)
-    *qclass=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
+  // pos+=2;
+  // if(qclass && pos + labellen + 2 <= end)
+  //   *qclass=(*(const unsigned char*)pos)*256 + *((const unsigned char*)pos+1);
 
 }
 
