@@ -1193,16 +1193,12 @@ bool secureZone(DNSSECKeeper& dk, const DNSName& zone)
      throw runtime_error("KSK key size must be equal to or greater than 0");
   }
 
-  if (k_algos.size() < 1) {
-     throw runtime_error("No algorithm(s) given for KSK");
+  if (k_algos.size() < 1 && z_algos.size() < 1) {
+     throw runtime_error("Zero algorithms given for KSK+ZSK in total");
   }
 
   if (z_size < 0) {
      throw runtime_error("ZSK key size must be equal to or greater than 0");
-  }
-
-  if (z_algos.size() < 1) {
-     throw runtime_error("No algorithm(s) given for ZSK");
   }
 
   if(dk.isSecuredZone(zone)) {
