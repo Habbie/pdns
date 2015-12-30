@@ -56,7 +56,7 @@ sortlist.cc"
 curl https://publicsuffix.org/list/public_suffix_list.dat > effective_tld_names.dat
 ./mkpubsuffixcc
 
-DIRNAME=pdns-recursor-$VERSION
+DIRNAME=recursordist
 rm -rf $DIRNAME
 mkdir  $DIRNAME
 cp $INCLUDES $CFILES $DIRNAME
