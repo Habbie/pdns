@@ -33,7 +33,6 @@ curl https://publicsuffix.org/list/public_suffix_list.dat > effective_tld_names.
 DIRNAME=recursordist
 rm -rf $DIRNAME
 mkdir  $DIRNAME
-cp config-recursor.h $DIRNAME/config.h
 cat >>$DIRNAME/config.h <<EOF
 #define VERSION "$VERSION"
 #define DIST_HOST "$DIST_HOST"
