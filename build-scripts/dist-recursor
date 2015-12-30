@@ -43,8 +43,6 @@ mkdir -p $DIRNAME/ext/rapidjson/include/rapidjson/internal
 cp -a ../ext/rapidjson/include/rapidjson/*.h $DIRNAME/ext/rapidjson/include/rapidjson/
 cp -a ../ext/rapidjson/include/rapidjson/internal/*.h $DIRNAME/ext/rapidjson/include/rapidjson/internal
 
-cp -a ../ext/yahttp/ $DIRNAME/ext/yahttp
-
 mkdir -p $DIRNAME/ext/luawrapper/include
 cp ../ext/luawrapper/include/LuaContext.hpp $DIRNAME/ext/luawrapper/include
 echo '#include "../../../config.h"' > $DIRNAME/ext/yahttp/yahttp/yahttp-config.h
