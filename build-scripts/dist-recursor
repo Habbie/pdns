@@ -39,9 +39,6 @@ cat >>$DIRNAME/config.h <<EOF
 #define HAVE_BOOST 1
 #define HAVE_MBEDTLS2 1
 EOF
-mkdir -p $DIRNAME/ext/rapidjson/include/rapidjson/internal
-cp -a ../ext/rapidjson/include/rapidjson/*.h $DIRNAME/ext/rapidjson/include/rapidjson/
-cp -a ../ext/rapidjson/include/rapidjson/internal/*.h $DIRNAME/ext/rapidjson/include/rapidjson/internal
 
 echo '#include "../../../config.h"' > $DIRNAME/ext/yahttp/yahttp/yahttp-config.h
 cp ../docs/pdns_recursor.1 ../docs/rec_control.1 $DIRNAME
