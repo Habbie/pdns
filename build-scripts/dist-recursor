@@ -34,7 +34,6 @@ DIRNAME=recursordist
 rm -rf $DIRNAME
 mkdir  $DIRNAME
 cat >>$DIRNAME/config.h <<EOF
-#define VERSION "$VERSION"
 #define DIST_HOST "$DIST_HOST"
 #define HAVE_BOOST 1
 EOF
