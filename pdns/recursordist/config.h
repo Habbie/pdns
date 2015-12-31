@@ -1,1 +1,2 @@
 #define RECURSOR
+#define HAVE_MBEDTLS2 1
