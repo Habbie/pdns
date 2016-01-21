@@ -1,10 +1,11 @@
 case $context in
-	ldap)
-		[ -z "$LDAPUSER" ] && LDAPUSER='uid=peter,o=habbie'
+	ldap-tree | ldap-simple)
+		[ -z "$LDAPUSER" ] && LDAPUSER='uid=testuser,o=power'
 		[ -z "$LDAPPASSWD" ] && LDAPPASSWD='secret'
-		[ -z "$LDAPBASEDN" ] && LDAPBASEDN='ou=dns,o=habbie'
+		[ -z "$LDAPBASEDN" ] && LDAPBASEDN='ou=dns,o=power'
 		[ -z "$LDAPRELATTR" ] && LDAPRELATTR='ou: dns'
 
+		layout=${context:5}
 		ldapdelete -D $LDAPUSER -w $LDAPPASSWD -r $LDAPBASEDN || true
 		ldapadd -D $LDAPUSER -w $LDAPPASSWD << __EOF__
 dn: $LDAPBASEDN
@@ -12,13 +13,13 @@ objectClass: organizationalUnit
 $LDAPRELATTR
 __EOF__
 
-		../pdns/zone2ldap --dnsttl=yes --basedn=$LDAPBASEDN --layout=tree --named-conf=named.conf | ldapmodify -D $LDAPUSER -w $LDAPPASSWD -c || true
+		../pdns/zone2ldap --dnsttl=yes --basedn=$LDAPBASEDN --layout=$layout --named-conf=named.conf | ldapmodify -D $LDAPUSER -w $LDAPPASSWD -c || true
 
 		cat > pdns-ldap.conf << __EOF__
 module-dir=./modules
 launch=ldap
 ldap-basedn=$LDAPBASEDN
-ldap-method=tree
+ldap-method=$layout
 __EOF__
 
 		# $PDNSUTIL --config-dir=. --config-name=oracle import-tsig-key test $ALGORITHM $KEY
