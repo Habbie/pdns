@@ -202,7 +202,7 @@ int LdapGssapiAuthenticator::updateTgt()
 	krb5_keytab_entry entry;
 	if ( ( code = krb5_kt_next_entry( context, keytab, &entry, &cursor ) ) == 0 ) {
 		code = krb5_copy_principal( context, entry.principal, &principal );
-		krb5_kt_free_entry( context, &entry );
+		// krb5_kt_free_entry( context, &entry ); FIXME FIXME
 	}
 
 	krb5_kt_end_seq_get( context, keytab, &cursor );
