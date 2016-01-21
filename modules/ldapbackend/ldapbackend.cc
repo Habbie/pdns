@@ -577,7 +577,7 @@ void LdapBackend::setNotified( uint32_t id, uint32_t serial )
   try
   {
     // Try to find the notified domain
-    filter = strbind( ":target:", "PdnsDomainId=" + boost::lexical_cast<string>( id ), getArg( "filter-axfr" ) );
+    filter = strbind( ":target:", "PdnsDomainId=" + std::to_string( id ), getArg( "filter-axfr" ) );
     msgid = m_pldap->search( getArg( "basedn" ), LDAP_SCOPE_SUBTREE, filter, attronly );
     m_pldap->getSearchResults( msgid, results, true );
   }
@@ -605,11 +605,11 @@ void LdapBackend::setNotified( uint32_t id, uint32_t serial )
   }
 
   if ( results.empty() )
-    throw PDNSException( "No results found when trying to update domain notified_serial for ID " + boost::lexical_cast<string>( id ) );
+    throw PDNSException( "No results found when trying to update domain notified_serial for ID " + std::to_string( id ) );
 
   entry = results.front();
   string dn = entry["dn"][0];
-  string serialStr = boost::lexical_cast<string>( serial );
+  string serialStr = std::to_string( serial );
   LDAPMod *mods[2];
   LDAPMod mod;
   char *vals[2];
@@ -701,7 +701,7 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
     fillSOAData( result["sOARecord"][0], sd );
 
     if ( result.count( "PdnsDomainId" ) && !result["PdnsDomainId"].empty() )
-      di.id = boost::lexical_cast<int>( result["PdnsDomainId"][0] );
+      di.id = std::stoi( result["PdnsDomainId"][0] );
     else
       di.id = 0;
 
@@ -709,12 +709,12 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
     di.zone = DNSName(domain);
 
     if( result.count( "PdnsDomainLastCheck" ) && !result["PdnsDomainLastCheck"].empty() )
-      di.last_check = boost::lexical_cast<time_t>( result["PdnsDomainLastCheck"][0] );
+      di.last_check = pdns_stou( result["PdnsDomainLastCheck"][0] );
     else
       di.last_check = 0;
 
     if ( result.count( "PdnsDomainNotifiedSerial" ) && !result["PdnsDomainNotifiedSerial"].empty() )
-      di.notified_serial = boost::lexical_cast<uint32_t>( result["PdnsDomainNotifiedSerial"][0] );
+      di.notified_serial = pdns_stou( result["PdnsDomainNotifiedSerial"][0] );
     else
       di.notified_serial = 0;
 
