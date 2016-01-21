@@ -144,7 +144,7 @@ bool LdapBackend::list( const DNSName& target, int domain_id, bool include_disab
 		if ( reconnect() )
 			this->list( target, domain_id );
 		else
-			throw AhuException( "Failed to reconnect to LDAP server" );
+			throw PDNSException( "Failed to reconnect to LDAP server" );
         }
         catch( LDAPException &le )
         {
@@ -231,7 +231,7 @@ void LdapBackend::lookup( const QType &qtype, const DNSName &qname, DNSPacket *d
 		if ( reconnect() )
 			this->lookup( qtype, qname, dnspkt, zoneid );
 		else
-			throw AhuException( "Failed to reconnect to LDAP server" );
+			throw PDNSException( "Failed to reconnect to LDAP server" );
         }
         catch( LDAPException &le )
         {
@@ -537,12 +537,12 @@ void LdapBackend::getUpdatedMasters( vector<DomainInfo>* domains )
     if ( reconnect() )
       this->getUpdatedMasters( domains );
     else
-      throw AhuException( "Failed to reconnect to LDAP server" );
+      throw PDNSException( "Failed to reconnect to LDAP server" );
   }
   catch( LDAPException &le )
   {
     L << Logger::Error << m_myname << " Unable to search LDAP directory: " << le.what() << endl;
-    throw( AhuException( "LDAP server unreachable" ) );   // try to reconnect to another server
+    throw( PDNSException( "LDAP server unreachable" ) );   // try to reconnect to another server
   }
   catch( std::exception &e )
   {
@@ -592,12 +592,12 @@ void LdapBackend::setNotified( uint32_t id, uint32_t serial )
     if ( reconnect() )
       this->setNotified( id, serial );
     else
-      throw AhuException( "Failed to reconnect to LDAP server" );
+      throw PDNSException( "Failed to reconnect to LDAP server" );
   }
   catch( LDAPException &le )
   {
     L << Logger::Error << m_myname << " Unable to search LDAP directory: " << le.what() << endl;
-    throw( AhuException( "LDAP server unreachable" ) );   // try to reconnect to another server
+    throw( PDNSException( "LDAP server unreachable" ) );   // try to reconnect to another server
   }
   catch( std::exception &e )
   {
@@ -605,7 +605,7 @@ void LdapBackend::setNotified( uint32_t id, uint32_t serial )
   }
 
   if ( results.empty() )
-    throw AhuException( "No results found when trying to update domain notified_serial for ID " + boost::lexical_cast<string>( id ) );
+    throw PDNSException( "No results found when trying to update domain notified_serial for ID " + boost::lexical_cast<string>( id ) );
 
   entry = results.front();
   string dn = entry["dn"][0];
@@ -633,12 +633,12 @@ void LdapBackend::setNotified( uint32_t id, uint32_t serial )
     if ( reconnect() )
       this->setNotified( id, serial );
     else
-      throw AhuException( "Failed to reconnect to LDAP server" );
+      throw PDNSException( "Failed to reconnect to LDAP server" );
   }
   catch( LDAPException &le )
   {
     L << Logger::Error << m_myname << " Unable to search LDAP directory: " << le.what() << endl;
-    throw( AhuException( "LDAP server unreachable" ) );   // try to reconnect to another server
+    throw( PDNSException( "LDAP server unreachable" ) );   // try to reconnect to another server
   }
   catch( std::exception &e )
   {
@@ -683,12 +683,12 @@ bool LdapBackend::getDomainInfo( const string& domain, DomainInfo& di )
     if ( reconnect() )
       this->getDomainInfo( domain, di );
     else
-      throw AhuException( "Failed to reconnect to LDAP server" );
+      throw PDNSException( "Failed to reconnect to LDAP server" );
   }
   catch( LDAPException &le )
   {
     L << Logger::Error << m_myname << " Unable to search LDAP directory: " << le.what() << endl;
-    throw( AhuException( "LDAP server unreachable" ) );   // try to reconnect to another server
+    throw( PDNSException( "LDAP server unreachable" ) );   // try to reconnect to another server
   }
   catch( std::exception &e )
   {
