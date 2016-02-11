@@ -158,7 +158,7 @@ script:
   - sudo chown -R openldap:openldap /etc/ldap/slapd.d/
   - sudo service slapd restart
   - popd
-  - sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/modify.ldif
-  - sudo ldapsearch -Y EXTERNAL -H ldapi:/// -b dc=nodomain
+  - sudo ldapadd -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/modify.ldif
+  - sudo ldapsearch -Y EXTERNAL -H ldapi:/// -b o=power
   - sudo ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=config objectClass=olcDatabaseConfig
-  - ldapsearch -D cn=admin,dc=nodomain -w secret -b dc=nodomain
+  - ldapsearch -D uid=testuser,o=power -w secret -b dc=nodomain

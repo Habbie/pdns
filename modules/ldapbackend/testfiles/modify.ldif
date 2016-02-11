@@ -1,7 +1,0 @@
-dn: olcDatabase={1}hdb,cn=config
-changetype: modify
-add: olcdbIndex
-olcDbIndex: associatedDomain eq
--
-replace: olcRootPW
-olcRootPW: secret
