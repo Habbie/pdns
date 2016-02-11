@@ -14,3 +14,11 @@ olcDbConfig: {3}set_lk_max_lockers 1500
 olcDbIndex: objectClass eq
 olcDbIndex: associatedDomain eq
 olcRootPW: secret
+
+dn: o=power
+objectClass: organization
+o: power
+
+dn: uid=testuser,o=power
+objectClass: account
+uid: testuser
