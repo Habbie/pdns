@@ -37,8 +37,15 @@ before_script:
   - cd pdns
 
 script:
-  - for schema in /etc/ldap/schema/{core,cosine}.schema $(PWD)/modules/ldapbackend/{dnsdomain2,pdns-domaininfo}.schema ; do echo include $schema ; done > ldap-dns.conf
-  - mkdir ldap-dns.d
-  - slaptest -f dns.conf -F slapd.d
+  - set
+  - sudo apt-get -qq --no-install-recommends install slapd ldap-utils
+  - mkdir /tmp/ldap-dns
+  - pushd /tmp/ldap-dns
+  - for schema in /etc/ldap/schema/{core,cosine}.schema ${TRAVIS_BUILD_DIR}/modules/ldapbackend/{dnsdomain2,pdns-domaininfo}.schema ; do echo include $schema ; done > ldap.conf
+  - mkdir slapd.d
+  - slaptest -f ldap.conf -F slapd.d
   - sudo cp slapd.d/cn=config/cn=schema/cn={*dns*.ldif /etc/ldap/slapd.d/cn=config/cn=schema/
-  - sudo chown openldap:openldap /etc/ldap/slapd.d/cn=config/cn=schema/*dns*
+  - sudo chown -R openldap:openldap /etc/ldap/slapd.d/
+  - sudo service slapd restart
+  - popd
+  - sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/modify.ldif
