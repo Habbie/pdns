@@ -158,8 +158,8 @@ script:
   - sudo chown -R openldap:openldap /etc/ldap/slapd.d/
   - sudo service slapd restart
   - popd
-  - sudo mkdir /var/lib/ldap-powerdns
-  - sudo chown openldap:openldap /var/lib/ldap-powerdns
+  - sudo mkdir /var/lib/ldap/powerdns
+  - sudo chown openldap:openldap /var/lib/ldap/powerdns
   - sudo ldapadd -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/add.ldif
   - sudo ldapsearch -Y EXTERNAL -H ldapi:/// -b cn=config objectClass=olcDatabaseConfig
   - sudo ldapsearch -Y EXTERNAL -H ldapi:/// -b o=power

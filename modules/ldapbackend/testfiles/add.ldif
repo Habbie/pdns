@@ -1,8 +1,8 @@
-dn: olcDatabase=powerdns,cn=config
+dn: olcDatabase=hdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
-olcDatabase: powerdns
-olcDbDirectory: /var/lib/ldap-powerdns
+olcDatabase: hdb
+olcDbDirectory: /var/lib/ldap/powerdns
 olcSuffix: o=powerdns
 olcLastMod: TRUE
 olcRootDN: uid=testuser,o=powerdns
