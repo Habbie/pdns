@@ -159,6 +159,8 @@ script:
   - sudo service slapd restart
   - popd
   - sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/modify.ldif
+  - export LDAPUSER='cn=admin,dc=nodomain'
+  - export LDAPBASEDN='ou=dns,dc=nodomain'
   - ./bootstrap
   # Build without --enable-botan1.10 option, Botan/SoftHSM conflict #2496
   - source $HOME/.venv/bin/activate
@@ -200,6 +202,10 @@ script:
   - cd ..
 
   - cd regression-tests
+
+  - ./timestamp ./start-test-stop 5300 ldap-tree
+  - ./timestamp ./start-test-stop 5300 ldap-simple
+
   - ./timestamp ./start-test-stop 5300 bind-both
   - ./timestamp ./start-test-stop 5300 bind-dnssec-both
   - ./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-both
