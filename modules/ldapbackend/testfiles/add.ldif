@@ -3,7 +3,7 @@ objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
 olcDatabase: hdb
 olcDbDirectory: /var/lib/ldap/powerdns
-olcSuffix: o=powerdns
+olcSuffix: o=power
 olcLastMod: TRUE
 olcRootDN: uid=testuser,o=powerdns
 olcDbCheckpoint: 512 30
