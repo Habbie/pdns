@@ -207,6 +207,8 @@ script:
   - cd regression-tests
 
   - ./timestamp ./start-test-stop 5300 ldap-tree
+  - ldapsearch -D uid=testuser,o=power -w secret -b o=power | head -500
+
   - ./timestamp ./start-test-stop 5300 ldap-simple
 
   - ./timestamp ./start-test-stop 5300 bind-both
