@@ -19,6 +19,8 @@ __EOF__
 module-dir=./modules
 launch=ldap
 ldap-basedn=$LDAPBASEDN
+ldap-binddn=$LDAPUSER
+ldap-secret=$LDAPPASSWD
 ldap-method=$layout
 __EOF__
 
