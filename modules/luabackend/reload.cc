@@ -106,7 +106,7 @@ void LUABackend::reload() {
     		get_lua_function(lua, "getsoa", &f_lua_getsoa);
     		
     		if (f_lua_list == 0 || f_lua_lookup == 0 || f_lua_get == 0 || f_lua_getsoa == 0) {
-			throw LUAException (backend_name + "MINIMAL BACKEND: Missing required function(s)!");
+			throw LUAException (backend_name + "MINIMAL BACKEND: Missing required function(s), require list+lookup+get+getsoa!");
     		}
     		
     		//master functions....
