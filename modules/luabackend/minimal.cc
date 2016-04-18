@@ -145,6 +145,7 @@ bool LUABackend::get(DNSResourceRecord &rr) {
 //    uint16_t qt;
     string qt;
 
+    // FIXME: lots of crashes down here if the table entries are missing or of the wrong type
     if (getValueFromTable(lua, "type", qt) )
 	rr.qtype = qt;
     getValueFromTable(lua, "name", rr.qname);

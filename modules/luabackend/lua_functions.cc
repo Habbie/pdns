@@ -149,7 +149,7 @@ int l_logger (lua_State *lua) {
 
     for(j=2; j<=i; j++) {
 	ss = lua_tostring(lua, j);
-	s << space << ss;
+	s << space << ss; // FIXME: we crashed here because ss was NULL for some reason
 	space = " ";
     }
 
@@ -247,7 +247,7 @@ bool LUABackend::getValueFromTable(lua_State *lua, const std::string& key, DNSNa
   bool ret = false;
 
   if(!lua_isnil(lua, -1)) {
-    value = DNSName(lua_tostring(lua, -1));
+    value = DNSName(lua_tostring(lua, -1)); // FIXME:  crashed here because lua_tostring returned NULL
     ret = true;
   }
 
