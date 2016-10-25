@@ -320,6 +320,9 @@ zone_collection
     }
 
 
+Note: when listing all zones, only a reduced set of information is returned.
+
+
 Where `RRset` is defined as:
 
     {
