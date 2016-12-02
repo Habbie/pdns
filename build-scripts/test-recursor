@@ -46,6 +46,7 @@ sudo netstat -lpen
 ./start.sh
 sleep 3
 svstat configs/*
+cat configs/*/logfile
 ./runtests || EXIT=1
 ./stop.sh
 sleep 3
