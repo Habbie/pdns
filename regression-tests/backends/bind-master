@@ -1,3 +1,5 @@
+set -x
+
 case $context in
 	bind)
 		cat > pdns-bind.conf << __EOF__
@@ -45,6 +47,7 @@ gmysql-host=$GMYSQLHOST
 gmysql-password=$GMYSQLPASSWD
 gmysql-dnssec
 __EOF__
+		cat pdns-bind.conf
 		else
 			echo "bind-dnssec-db=./dnssec.sqlite3" >> pdns-bind.conf
 			$PDNSUTIL --config-dir=. --config-name=bind create-bind-db dnssec.sqlite3
