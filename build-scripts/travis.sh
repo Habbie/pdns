@@ -440,15 +440,15 @@ test_auth() {
 
   run "cd regression-tests"
 
-  run "./timestamp ./start-test-stop 5300 ldap-tree"
-  run "./timestamp ./start-test-stop 5300 ldap-simple"
-  run "./timestamp ./start-test-stop 5300 ldap-strict"
+  # run "./timestamp ./start-test-stop 5300 ldap-tree"
+  # run "./timestamp ./start-test-stop 5300 ldap-simple"
+  # run "./timestamp ./start-test-stop 5300 ldap-strict"
 
-  run "./timestamp ./start-test-stop 5300 bind-both"
-  run "./timestamp ./start-test-stop 5300 bind-dnssec-both"
-  run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-both"
-  run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-optout-both"
-  run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-narrow"
+  # run "./timestamp ./start-test-stop 5300 bind-both"
+  # run "./timestamp ./start-test-stop 5300 bind-dnssec-both"
+  # run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-both"
+  # run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-optout-both"
+  # run "./timestamp ./start-test-stop 5300 bind-dnssec-nsec3-narrow"
   run "./timestamp ./start-test-stop 5300 bind-hybrid-nsec3"
   #ecdsa - ./timestamp ./start-test-stop 5300 bind-dnssec-pkcs11
 
