@@ -4,7 +4,7 @@ case $context in
 	gmysql-nodnssec | gmysql | gmysql-nsec3 | gmysql-nsec3-optout | gmysql-nsec3-narrow)
 		[ -z "$GMYSQLDB" ] && GMYSQLDB=pdnstest
 		[ -z "$GMYSQLUSER" ] && GMYSQLUSER=root
-		[ -z "$GMYSQLHOST" ] && GMYSQLHOST=localhost
+		[ -z "$GMYSQLHOST" ] && GMYSQLHOST=127.0.0.1
 		[ -z "$GMYSQLPASSWD" ] && GMYSQLPASSWD=''
 
 		mysqladmin --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" --force drop "$GMYSQLDB" \

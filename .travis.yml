@@ -15,6 +15,9 @@ matrix:
     - compiler: clang
       env: PDNS_BUILD_PRODUCT=docs
 
+before_install:
+  - mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('')"
+
 before_script:
   - git describe --always --dirty=+
 

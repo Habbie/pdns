@@ -2,7 +2,7 @@ case $context in
 	mydns)
 		[ -z "$MYDNSDB" ] && MYDNSDB=pdnstest
 		[ -z "$MYDNSUSER" ] && MYDNSUSER=root
-		[ -z "$MYDNSHOST" ] && MYDNSHOST=localhost
+		[ -z "$MYDNSHOST" ] && MYDNSHOST=127.0.0.1
 		[ -z "$MYDNSPASSWD" ] && MYDNSPASSWD=''
 
 		mysqladmin --user="$MYDNSUSER" --password="$MYDNSPASSWD" --host="$MYDNSHOST" --force drop "$MYDNSDB" \

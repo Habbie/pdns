@@ -1,7 +1,7 @@
 	context=${context}-presigned-gmysql
 	[ -z "$GMYSQL2DB" ] && GMYSQL2DB=pdnstest2
 	[ -z "$GMYSQL2USER" ] && GMYSQL2USER=root
-	[ -z "$GMYSQL2HOST" ] && GMYSQL2HOST=localhost
+	[ -z "$GMYSQL2HOST" ] && GMYSQL2HOST=127.0.0.1
 	[ -z "$GMYSQL2PASSWD" ] && GMYSQL2PASSWD=''
 
 	mysqladmin --user="$GMYSQL2USER" --password="$GMYSQL2PASSWD" --host="$GMYSQL2HOST" \

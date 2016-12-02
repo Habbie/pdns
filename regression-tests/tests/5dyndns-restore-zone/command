@@ -2,7 +2,7 @@
 
 [ -z "$GMYSQLDB" ] && GMYSQLDB=pdnstest
 [ -z "$GMYSQLUSER" ] && GMYSQLUSER=root
-[ -z "$GMYSQLHOST" ] && GMYSQLHOST=localhost
+[ -z "$GMYSQLHOST" ] && GMYSQLHOST=127.0.0.1
 [ -z "$GMYSQLPASSWD" ] && GMYSQLPASSWD=''
 
 mysql --user="$GMYSQLUSER" --password="$GMYSQLPASSWD" --host="$GMYSQLHOST" \

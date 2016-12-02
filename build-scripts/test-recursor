@@ -40,6 +40,8 @@ sed -i 's!PREFIX=.*!PREFIX=127.0.0!' vars
 
 EXIT=0
 
+ps auxfww
+sudo netstat -lpen
 ./config.sh
 ./start.sh
 sleep 3
@@ -49,8 +51,12 @@ svstat configs/*
 sleep 3
 ./clean.sh
 
+ps auxfww
+sudo netstat -lpen
 cd ../regression-tests.recursor-dnssec
 ./runtests || EXIT=1
 ./printlogs.py || true
 
+ps auxfww
+sudo netstat -lpen
 exit $EXIT
