@@ -8,4 +8,8 @@ Table of Contents
    install
    quickstart
    introduction
+   guides/index.rst
+   advanced/index.rst
    config
+   changelog
+   glossary

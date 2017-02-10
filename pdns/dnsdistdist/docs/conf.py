@@ -129,7 +129,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'dnsdist.tex', 'dnsdist',
-     'PowerDNS.COM BV and its contributors', 'manual'),
+     'PowerDNS.COM BV', 'manual'),
 ]
 
 latex_logo = '_static/powerdns-logo-trans.png'

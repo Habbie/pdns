@@ -4,15 +4,15 @@
 Concepts
 --------
 
-dnsdist receives packets in one or several addresses it listens on. 
-These addresses can of course be IPv4 or IPv6 (dnsdist internally does not know the difference).
+dnsdist receives packets on one or several addresses it listens on.
+It then determines whether it will process this packet based on the :doc:`acl`.
+Should be packet be processed, dnsdist attempts to match any of the configured :doc:`rules` in order and when one matches, the associated :doc:`action <actions>` is performed.
+
+
+
+dnsdist is IPv4 and IPv6 agnostic, this means that dnsdist internally does not know the difference.
 If you listen on the magic ``0.0.0.0`` or ``::`` interfaces, dnsdist does the right thing to set the return address of queries.
 So feel free to listen on the ANY addresses.
-
-By default, the program listens on ``127.0.0.1`` (not ``::1``!), port 53.
-
-Before packets are processed they have to pass the ACL, which helpfully defaults to :rfc:`1918` private IP space.
-This prevents us from easily becoming an open DNS resolver.
 
 
 ``addACL("130.161.0.0/16")``. To change the listen address, pass

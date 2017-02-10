@@ -13,7 +13,7 @@ After :doc:`installing <install>` dnsdist, the quickest way to start experimenti
 This will make dnsdist listen on IP address 127.0.0.1, port 5300 and forward all queries to the two listed IP addresses, with a sensible balancing policy.
 
 ``dnsdist`` Console and Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------
 
 Here is more complete configuration, save it to ``dnsdist.conf``::
 
@@ -53,7 +53,7 @@ Note that dnsdist dropped us in a prompt above, and on it we can get some statis
   4   192.168.1.2:53               up     0.0       0   1  1          0       0   0.0   0.0
   All                                     0.0                         1       0
 
-:func:`showServers()` is usually one of the first commands you will use when logging into the :ref:`console`.
+:func:`showServers()` is usually one of the first commands you will use when logging into the :doc:`guides/console`.
 
 Here we also see our configuration. 5 downstream servers have been configured, of which the first 4 have a QPS limit (of 1, 1, 10 and 10 queries per second, respectively).
 
@@ -96,16 +96,31 @@ To change the QPS for a server, use :meth:`Server:setQPS`::
 
   > getServer(0):setQPS(1000)
 
-Health checks
--------------
+Restricting Access
+------------------
 
-By default, the availability of a downstream server is checked by regularly sending an A query for "a.root-servers.net.".
-A different query type and target can be specified by passing, respectively, the ``checkType`` and ``checkName`` parameters to :func:`newServer`.
-The default behavior is to consider any valid response with an RCODE different from ServFail as valid.
-If the ``mustResolve`` parameter of :func:`newServer` is set to ``true``, a response will only be considered valid if its RCODE differs from NXDomain, ServFail and Refused.
-The number of health check failures before a server is considered down is configurable via the ``maxCheckFailures`` parameter, defaulting to 1.
-The CD flag can be set on the query by setting ``setCD`` to true.
-e.g.::
+By default, dnsdist listens on ``127.0.0.1`` (not ``::1``!), port 53.
 
-  newServer({address="192.0.2.1", checkType="AAAA", checkName="a.root-servers.net.", mustResolve=true})
+To listen on a different address, use the ``-l`` command line option (useful for testing in the foreground), or use :func:`setLocal` and :func:`addLocal` in the configuration file:
 
+.. code-block:: lua
+
+  setLocal('192.0.2.53')      -- Listen on 192.0.2.53, port 53
+  addLocal('192.0.2.54:5300') -- Also listen on 192.0.2.54, port 5300
+
+Before packets are processed they have to pass the ACL, which helpfully defaults to :rfc:`1918` private IP space.
+This prevents us from easily becoming an open DNS resolver.
+
+Adding network ranges to the :term:`ACL` is done with the :func:`setACL` and :func:`addACL` functions:
+
+.. code-block:: lua
+
+  setACL({'192.0.2.0/28', '2001:DB8:1::/56'}) -- Set the ACL to only allow these subnets
+  addACL('2001:DB8:2::/56')                   -- Add this subnet to the existing ACL
+
+More Information
+----------------
+
+Following this quickstart guide allowed you to set up a basic balancing dnsdist instance.
+However, dnsdist is much more powerful.
+See the :doc:`guides/index` and/or the :doc:`advanced/index` sections on how to shape, shut and otherwise manipulate DNS traffic.
