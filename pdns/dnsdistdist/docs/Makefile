@@ -12,6 +12,11 @@ BUILDDIR      = _build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+upload: html latexpdf
+	rsync -r $(BUILDDIR)/html/* mango.plexis.eu:/srv/www/dump.plexis.eu/pdns/dnsdist-docs/html
+	rsync $(BUILDDIR)/latex/dnsdist.pdf mango.plexis.eu:/srv/www/dump.plexis.eu/pdns/dnsdist-docs
+
+
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
