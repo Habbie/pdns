@@ -1,13 +1,13 @@
 Built-in webserver
 ==================
 
-To visually interact with dnsdist, try adding:
+To visually interact with dnsdist, try add :func:`webServer` to the configuration:
 
 .. code-block:: lua
 
-  webserver("127.0.0.1:8083", "supersecretpassword", "supersecretAPIkey")
+  webServer("127.0.0.1:8083", "supersecretpassword", "supersecretAPIkey")
 
-to the configuration, and point your browser at http://127.0.0.1:8083 and log in with any username, and that password. Enjoy!
+Now point your browser at http://127.0.0.1:8083 and log in with any username, and that password. Enjoy!
 
 Security of the Webserver
 -------------------------

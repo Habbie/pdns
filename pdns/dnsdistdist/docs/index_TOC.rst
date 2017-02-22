@@ -7,9 +7,10 @@ Table of Contents
    index
    install
    quickstart
-   introduction
+   running
+   rules-actions
    guides/index.rst
    advanced/index.rst
-   config
+   reference/index.rst
    changelog
    glossary

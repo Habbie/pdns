@@ -38,7 +38,7 @@ So feel free to listen on the magic ``0.0.0.0`` or ``::`` addresses, dnsdist doe
 Modifying the ACL
 -----------------
 
-ACLs can be modfied at runtime from the :doc:`console`.
+ACLs can be modfied at runtime from the :ref:`Console`.
 To inspect the currently active :term:`ACL`, run :func:`showACL`.
 
 To add a new network range to the existing ACL, use :func:`addACL`:

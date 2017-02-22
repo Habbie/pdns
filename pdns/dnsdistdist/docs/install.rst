@@ -73,8 +73,10 @@ To compile from git, these additional dependencies are required:
 
 dnsdist sourcecode lives in the `PowerDNS git repository <https://github.com/PowerDNS/pdns>`_ but is independent of PowerDNS.
 
-* ``git clone https://github.com/PowerDNS/pdns.git``
-* ``cd pdns/pdns/dnsdistdist``
-* ``autoreconf -i``
-* ``./configure``
-* ``make``
+::
+
+  git clone https://github.com/PowerDNS/pdns.git
+  cd pdns/pdns/dnsdistdist
+  autoreconf -i
+  ./configure
+  make

@@ -1,3 +1,5 @@
+.. _Console:
+
 Working with the dnsdist Console
 ================================
 

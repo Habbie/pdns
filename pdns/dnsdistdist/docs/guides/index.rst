@@ -7,7 +7,8 @@ These chapters contain several guides and nuggets of information regarding dnsdi
    :maxdepth: 2
 
    console
+   cache
    webserver
-   healthcheck
+   downstreams
    serverpools
 

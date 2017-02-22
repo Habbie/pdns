@@ -23,11 +23,12 @@ Running dnsdist
 If you have not worked with dnsdist before, here are some resources to get you going:
 
 * :doc:`Install dnsdist <install>`.
-* To dive in immediately, see the :doc:`Quickstart Guide <quickstart>`.
-* The :doc:`Introduction <introduction>` page covers the rationale of dnsdist.
-* There are several :doc:`guides/index` about the different functions
-* :doc:`advanced` describes some of the more advanced features and internals
-* All functions and classes are described in the :doc:`config`
+* To get a feeling for how it works, see the :doc:`Quickstart Guide <quickstart>`.
+* :doc:`running`
+* The :doc:`rules-actions` page covers how to apply policies to traffic
+* There are several :doc:`guides/index` about the different features and options
+* :doc:`advanced/index` describes some of the more advanced features
+* :doc:`reference/index` has all the configuration and object information
 
 Questions, requests or comments?
 --------------------------------

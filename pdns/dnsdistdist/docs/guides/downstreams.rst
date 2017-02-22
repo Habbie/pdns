@@ -1,6 +1,28 @@
-Health checks
-=============
+Configuring Downstream Servers
+==============================
 
+As dnsdist is a loadbalancer and does not do any DNS resolving or serving by itself, it needs downstream servers.
+To add downstream servers, either include them on the command line::
+
+    dnsdist -l 130.161.252.29 -a 130.161.0.0/16 8.8.8.8 208.67.222.222 2620:0:ccc::2 2620:0:ccd::2
+
+Or add them to the configuration file:
+
+.. code-block:: lua
+
+    setLocal("130.161.252.29:53")
+    setACL("130.161.0.0/16")
+    newServer("8.8.8.8")
+    newServer("208.67.222.222")
+    newServer("2620:0:ccc::2")
+    newServer("2620:0:0ccd::2")
+
+These two equivalent configurations give you sane load balancing using a very sensible distribution policy.
+Many users will simply be done with this configuration.
+It works as well for authoritative as for recursive servers.
+
+Healthcheck
+-----------
 dnsdist uses a health check, sent once every second, to determine the availability of a backend server.
 
 By default, an A query for "a.root-servers.net." is sent.
