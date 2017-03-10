@@ -41,7 +41,7 @@ And a 405 response is returned when the HTTP methos is not allowed.
 URL Endpoints
 ~~~~~~~~~~~~~
 
-.. http:get:: /jsonstats
+.. http:get:: /jsonstat
 
   Get statistics from dnsdist in JSON format.
   The ``Accept`` request header is ignored.
@@ -55,7 +55,7 @@ URL Endpoints
 
    .. sourcecode:: http
 
-      GET /jsonstats?command=stats HTTP/1.1
+      GET /jsonstat?command=stats HTTP/1.1
       Host: example.com
       Accept: application/json, text/javascript
 
@@ -77,7 +77,7 @@ URL Endpoints
 
    .. sourcecode:: http
 
-      GET /jsonstats?command=dynblocklist HTTP/1.1
+      GET /jsonstat?command=dynblocklist HTTP/1.1
       Host: example.com
       Accept: application/json, text/javascript
 
