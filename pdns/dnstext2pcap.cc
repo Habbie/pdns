@@ -34,10 +34,12 @@ int main(int argc, char **argv)
   FILE *out=fopen(argv[2], "w");
 
   pfh.magic = htonl(0xa1b2c3d4);
-  pfh.linktype = htonl(101);
   pfh.version_major = htons(2);
   pfh.version_minor = htons(4);
+  pfh.thiszone = 0;
+  pfh.sigfigs = 0;
   pfh.snaplen = htonl(1500);
+  pfh.linktype = htonl(101);
 
   fwrite(&pfh, 1, sizeof(pfh), out);
 
