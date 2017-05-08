@@ -78,7 +78,6 @@ int main(int argc, char **argv)
     DNSName qname;
     QType qtype;
     uint16_t qid;
-    uint8_t rcode;
     string flags;
 
     while(!infile.eof()) {
