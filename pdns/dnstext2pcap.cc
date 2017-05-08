@@ -16,7 +16,8 @@ string strip(string& in)
     return out;
 }
 
-void setaddress(struct in_addr *out, u_short *port, const string &value) {
+void setaddress(struct in_addr *out, u_short *port, const string &value)
+{
   string myval = value;
   u_short myport;
   std::replace( myval.begin(), myval.end(), '#', ':');
