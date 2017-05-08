@@ -77,6 +77,7 @@ int main(int argc, char **argv)
         cout<<" writing packet with qname "<<qname.toString()<<endl;
         vector<uint8_t> content;
         DNSPacketWriter pw(content, qname, qtype.getCode(), 1, 0);
+        pw.getHeader()->id = htons(qid);
         pw.commit();
         uh.uh_ulen = htons(sizeof(uh) + content.size());
         uh.uh_sum = 0;
