@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         pheader.len = htonl(sizeof(ih) + sizeof(uh) + content.size());
         pheader.caplen = pheader.len;
 
-        cout<<"lenghts pcap/ip/udp/dns: "<<ntohl(pheader.len)<<", "
+        cout<<"lengths pcap/ip/udp/dns: "<<ntohl(pheader.len)<<", "
                                          <<ntohs(ih.ip_len)<<", "
                                          <<ntohs(uh.uh_ulen)<<", "
                                          <<content.size()<<endl;
