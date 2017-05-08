@@ -91,7 +91,8 @@ bin_PROGRAMS += \
 	saxfr \
 	stubquery \
 	ixplore \
-	sdig
+	sdig \
+	dnstext2pcap
 
 if HAVE_RECVMMSG
 bin_PROGRAMS += calidns
@@ -115,6 +116,7 @@ EXTRA_PROGRAMS = \
 	dnsscan \
 	dnsscope \
 	dnstcpbench \
+	dnstext2pcap \
 	dnswasher \
 	dumresp \
 	kvresp \
@@ -468,6 +470,18 @@ sdig_SOURCES = \
 
 sdig_LDADD = $(LIBCRYPTO_LIBS)
 sdig_LDFLAGS = $(AM_LDFLAGS) $(LIBCRYPTO_LDFLAGS)
+
+dnstext2pcap_SOURCES = \
+	dnstext2pcap.cc \
+	dnspcap.cc dnspcap.hh \
+	dnswriter.cc dnswriter.hh \
+	dnslabeltext.cc \
+	dnsname.cc dnsname.hh \
+	misc.cc misc.hh \
+	qtype.cc qtype.hh
+
+dnstext2pcap_LDADD = # $(LIBCRYPTO_LIBS)
+dnstext2pcap_LDFLAGS = $(AM_LDFLAGS) # $(LIBCRYPTO_LDFLAGS)
 
 calidns_SOURCES = \
 	base32.cc \
