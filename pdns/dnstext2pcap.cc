@@ -116,6 +116,8 @@ int main(int argc, char **argv)
                                                  <<content.size()<<", "
                                                  <<reqsize<<endl;
 
+        if (content.size() != reqsize) throw runtime_error("content/reqsize mismatch");
+
         fwrite(&pheader, 1, sizeof(pheader), out);
         fwrite(&ih, 1, sizeof(ih), out);
         fwrite(&uh, 1, sizeof(uh), out);
