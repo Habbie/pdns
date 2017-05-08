@@ -79,6 +79,7 @@ int main(int argc, char **argv)
     QType qtype;
     uint16_t qid;
     string flags;
+    uint16_t reqsize;
 
     while(!infile.eof()) {
       ih.ip_v=4;
@@ -109,10 +110,11 @@ int main(int argc, char **argv)
         pheader.len = htonl(sizeof(ih) + sizeof(uh) + content.size());
         pheader.caplen = pheader.len;
 
-        cout<<"lengths pcap/ip/udp/dns: "<<ntohl(pheader.len)<<", "
-                                         <<ntohs(ih.ip_len)<<", "
-                                         <<ntohs(uh.uh_ulen)<<", "
-                                         <<content.size()<<endl;
+        cout<<"lengths pcap/ip/udp/dns/reqsize: "<<ntohl(pheader.len)<<", "
+                                                 <<ntohs(ih.ip_len)<<", "
+                                                 <<ntohs(uh.uh_ulen)<<", "
+                                                 <<content.size()<<", "
+                                                 <<reqsize<<endl;
 
         fwrite(&pheader, 1, sizeof(pheader), out);
         fwrite(&ih, 1, sizeof(ih), out);
@@ -158,6 +160,8 @@ int main(int argc, char **argv)
         if (value != "IN") throw runtime_error("unknown query-class");
       } else if (token == "flags") {
         flags = value;
+      } else if (token == "request-size") {
+        reqsize = std::stoul(value);
       } else {
         cout<<"  ignored token/to/value ["<<token<<"] ["<<to<<"] ["<<value<<"]"<<endl;
       }
