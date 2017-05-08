@@ -78,6 +78,7 @@ int main(int argc, char **argv)
         vector<uint8_t> content;
         DNSPacketWriter pw(content, qname, qtype.getCode(), 1, 0);
         pw.getHeader()->id = htons(qid);
+        pw.getHeader()->rd = 1;
         pw.commit();
         uh.uh_ulen = htons(sizeof(uh) + content.size());
         uh.uh_sum = 0;
