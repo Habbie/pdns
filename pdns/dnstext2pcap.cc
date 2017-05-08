@@ -108,6 +108,15 @@ int main(int argc, char **argv)
         cout<<"   got timestamp "<<ts<<endl;
         pheader.ts.tv_sec = htonl(ts);
         pheader.ts.tv_usec = 0;
+      } else if (token == "start-time") {
+        double ts;
+        uint32_t sec, usec;
+        ts = std::stod(value);
+        sec = ts;
+        usec = 1.0e9 * (ts - sec);
+        cout<<"   got start-time "<<sec<<";"<<usec<<endl;
+        pheader.ts.tv_sec = htonl(sec);
+        pheader.ts.tv_usec = htonl(usec);
       } else if (token == "client-address") {
         setaddress(&ih.ip_src, &uh.uh_sport, value);
       } else if (token == "local-address") {
