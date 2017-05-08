@@ -150,6 +150,7 @@ int main(int argc, char **argv)
         qtype = value;
       } else if (token == "query-id") {
         qid = std::stoul(value);
+      // FIXME: for rcode: can we fake up a response packet to make dnsreplay happy, even if it has no content?
       // } else if (token == "result-code") {
       //   if (value == "noerror") rcode = 0;
       //   else throw runtime_error("unknown result-code");
