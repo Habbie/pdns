@@ -4,6 +4,7 @@
 #include <netinet/udp.h>
 #include <netinet/ip.h>
 #include <stdio.h>
+#include <vector>
 
 string strip(string& in)
 {
@@ -26,6 +27,23 @@ void setaddress(struct in_addr *out, u_short *port, const string &value)
   memcpy(out, &ca.sin4.sin_addr.s_addr, sizeof(ca.sin4.sin_addr.s_addr));
   myport = ca.sin4.sin_port;
   memcpy(port, &myport, sizeof(myport));
+}
+
+void setflags(dnsheader *dh, string &flags)
+{
+  vector<string> flagv;
+
+  if(flags[0] != '(' || flags[flags.size()-1] != ')')
+    throw runtime_error("invalid flags");
+  flags = flags.substr(1, flags.size()-2);
+  cout<<"  got flags: ["<<flags<<"]"<<endl;
+  boost::split(flagv, flags, boost::is_any_of(" "));
+  for(auto &flag: flagv) {
+    cout<<"   got flag: "<<flag<<endl;
+    flag = strip(flag);
+    if (flag == "RD") { cout<<"    setting RD"<<endl; dh->rd=1; }
+    else if(flag == "RA") { cout<<"    setting RA"<<endl; dh->ra=1; }
+  }
 }
 
 int main(int argc, char **argv)
@@ -61,6 +79,7 @@ int main(int argc, char **argv)
     QType qtype;
     uint16_t qid;
     uint8_t rcode;
+    string flags;
 
     while(!infile.eof()) {
       ih.ip_v=4;
@@ -81,7 +100,7 @@ int main(int argc, char **argv)
         vector<uint8_t> content;
         DNSPacketWriter pw(content, qname, qtype.getCode(), 1, 0);
         pw.getHeader()->id = htons(qid);
-        pw.getHeader()->rd = 1;
+        setflags(pw.getHeader(), flags);
         pw.commit();
         uh.uh_ulen = htons(sizeof(uh) + content.size());
         uh.uh_sum = 0;
@@ -137,6 +156,8 @@ int main(int argc, char **argv)
       //   else throw runtime_error("unknown result-code");
       } else if (token == "query-class") {
         if (value != "IN") throw runtime_error("unknown query-class");
+      } else if (token == "flags") {
+        flags = value;
       } else {
         cout<<"  ignored token/to/value ["<<token<<"] ["<<to<<"] ["<<value<<"]"<<endl;
       }
