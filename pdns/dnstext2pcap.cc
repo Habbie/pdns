@@ -131,9 +131,9 @@ int main(int argc, char **argv)
         qtype = value;
       } else if (token == "query-id") {
         qid = std::stoul(value);
-      } else if (token == "result-code") {
-        if (value == "noerror") rcode = 0;
-        else throw runtime_error("unknown result-code");
+      // } else if (token == "result-code") {
+      //   if (value == "noerror") rcode = 0;
+      //   else throw runtime_error("unknown result-code");
       } else if (token == "query-class") {
         if (value != "IN") throw runtime_error("unknown query-class");
       } else {
