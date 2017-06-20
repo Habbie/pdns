@@ -1,5 +1,6 @@
 sudo: required
 dist: trusty
+group: edge
 before_script:
  - git describe --always --dirty=+
  - sudo apt-get update -qq
