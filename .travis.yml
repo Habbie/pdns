@@ -1,3 +1,4 @@
+group: edge
 language: cpp
 compiler:
   - gcc
