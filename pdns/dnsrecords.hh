@@ -246,6 +246,15 @@ public:
   DNSName d_content;
 };
 
+class DOARecordContent : public DNSRecordContent
+{
+public:
+  includeboilerplate(DOA)
+
+  uint32_t d_enterprise, d_type;
+  uint8_t d_location;
+  string d_media_type, d_data;
+};
 
 class DNAMERecordContent : public DNSRecordContent
 {

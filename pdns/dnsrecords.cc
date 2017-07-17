@@ -144,6 +144,13 @@ boilerplate_conv(OPT, QType::OPT,
                    conv.xfrBlob(d_data)
                  );
 
+boilerplate_conv(DOA, QType::DOA,
+                   conv.xfr32BitInt(d_enterprise);
+                   conv.xfr32BitInt(d_type);
+                   conv.xfr8BitInt(d_location);
+                   conv.xfrUnquotedText(d_media_type, true);
+                   conv.xfrBlob(d_data));
+
 void OPTRecordContent::getData(vector<pair<uint16_t, string> >& options)
 {
   string::size_type pos=0;
@@ -580,6 +587,7 @@ void reportOtherTypes()
    AFSDBRecordContent::report();
    DNAMERecordContent::report();
    ALIASRecordContent::report();
+   DOARecordContent::report();
    SPFRecordContent::report();
    NAPTRRecordContent::report();
    LOCRecordContent::report();

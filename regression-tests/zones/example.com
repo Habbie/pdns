@@ -20193,3 +20193,5 @@ rhs-at-expansion	IN   CNAME      @
 google-alias		IN 	ALIAS 	google-public-dns-a.google.com.
 ;
 host-for-auto-ptr	IN	A 192.0.2.1
+;
+doa					IN DOA 65 66 1 text/plain aHR0cHM6Ly93d3cucG93ZXJkbnMuY29tLwo=
