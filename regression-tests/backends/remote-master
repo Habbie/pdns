@@ -43,11 +43,11 @@ case $context in
 		unix)
 			connstr="unix:path=$testsdir/remote.socket"
                         rm -f $testsdir/remote.socket
-			socat unix-listen:$testsdir/remote.socket,fork exec:'bundle exec $testsdir/unix-backend.rb' &
+			socat unix-listen:$testsdir/remote.socket,fork exec:'$testsdir/unix-backend.rb' &
 			echo $! > pdns-remotebackend.pid
 			;;
 		pipe)
-			connstr="pipe:command=bundle exec $testsdir/pipe-backend.rb"
+			connstr="pipe:command=$testsdir/pipe-backend.rb"
 			;;
 		*)
 			echo "Invalid usage"
