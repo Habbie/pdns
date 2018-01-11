@@ -24,7 +24,7 @@ socat=$(which socat)
 function start_web() {
   local service_logfile="${mode%\.test}_server.log"
 
-  ./unittest_${1}.rb >> ${service_logfile} 2>&1 &
+  bundle exec ./unittest_${1}.rb >> ${service_logfile} 2>&1 &
   webrick_pid=$!
 
   local timeout=0
@@ -91,7 +91,7 @@ function start_zeromq() {
 
   local service_logfile="${mode%\.test}_server.log"
 
-  ./unittest_zeromq.rb >> ${service_logfile} 2>&1 &
+  bundle exec ./unittest_zeromq.rb >> ${service_logfile} 2>&1 &
   zeromq_pid=$!
 
   local timeout=0
@@ -154,7 +154,7 @@ function start_unix() {
     exit 77
   fi
 
-  $socat unix-listen:/tmp/remotebackend.sock exec:./unittest_pipe.rb &
+  $socat unix-listen:/tmp/remotebackend.sock exec:'bundle exec ./unittest_pipe.rb' &
   socat_pid=$!
 
   local timeout=0
