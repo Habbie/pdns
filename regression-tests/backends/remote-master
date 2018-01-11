@@ -19,7 +19,7 @@ case $context in
 			connstr="http:url=http://localhost:62434/dns"
 			rm -f remotebackend-server.log
 			rm -f remotebackend-access.log
-			$testsdir/http-backend.rb &
+			bundle exec $testsdir/http-backend.rb &
 			echo $! > pdns-remotebackend.pid
 			set +e
 			# make sure it runs before continuing
@@ -37,17 +37,17 @@ case $context in
 			;;
 		zeromq)
 			connstr="zeromq:endpoint=ipc:///tmp/pdns.0"
-			$testsdir/zeromq-backend.rb &
+			bundle exec $testsdir/zeromq-backend.rb &
 			echo $! > pdns-remotebackend.pid
 			;;
 		unix)
 			connstr="unix:path=$testsdir/remote.socket"
                         rm -f $testsdir/remote.socket
-			socat unix-listen:$testsdir/remote.socket,fork exec:$testsdir/unix-backend.rb &
+			socat unix-listen:$testsdir/remote.socket,fork exec:'bundle exec $testsdir/unix-backend.rb' &
 			echo $! > pdns-remotebackend.pid
 			;;
 		pipe)
-			connstr="pipe:command=$testsdir/pipe-backend.rb"
+			connstr="pipe:command=bundle exec $testsdir/pipe-backend.rb"
 			;;
 		*)
 			echo "Invalid usage"
