@@ -8,6 +8,8 @@ env:
   - PDNS_BUILD_PRODUCT=auth
   - PDNS_BUILD_PRODUCT=recursor
   - PDNS_BUILD_PRODUCT=dnsdist
+cache:
+  - ccache
 
 matrix:
   exclude:
