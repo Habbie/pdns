@@ -394,7 +394,7 @@ build_recursor() {
   run "cd pdns/recursordist"
   run "tar xf pdns-recursor-*.tar.bz2"
   run "rm -f pdns-recursor-*.tar.bz2"
-  run "cd pdns-recursor-*"
+  run "cd pdns-recursor-*/"
   # Build without --enable-botan, no botan 2.x in Travis CI
   run "CFLAGS='-O1' CXXFLAGS='-O1' CXX=${COMPILER} ./configure \
     --prefix=$PDNS_RECURSOR_DIR \
@@ -411,7 +411,7 @@ build_dnsdist(){
   run "./build-scripts/dist-dnsdist"
   run "cd pdns/dnsdistdist"
   run "tar xf dnsdist*.tar.bz2"
-  run "cd dnsdist-*"
+  run "cd dnsdist-*/"
   run "CFLAGS='-O1' CXXFLAGS='-O1' ./configure \
     --enable-unit-tests \
     --enable-libsodium \
@@ -555,7 +555,7 @@ test_recursor() {
   export PDNSRECURSOR="${PDNS_RECURSOR_DIR}/sbin/pdns_recursor"
   export DNSBULKTEST="/usr/bin/dnsbulktest"
   export RECCONTROL="${PDNS_RECURSOR_DIR}/bin/rec_control"
-  run "cd pdns/recursordist/pdns-recursor-*"
+  run "cd pdns/recursordist/pdns-recursor-*/"
   run "make -j 3 check || (cat test-suite.log; false)"
   run "cd ${TRAVIS_BUILD_DIR}"
   run "./build-scripts/test-recursor"
