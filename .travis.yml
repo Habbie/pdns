@@ -36,7 +36,9 @@ before_script:
   - export BUILDER_VERSION=git
 
 script:
+  - ccache -z
   - ./build-scripts/travis.sh
+  - ccache -s
 
 notifications:
   irc:
