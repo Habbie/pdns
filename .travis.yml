@@ -33,6 +33,7 @@ before_script:
   - export CXXFLAGS=-O0
   - export OPTFLAGS=-O0
   - sudo apt-get -qq update
+  - export BUILDER_VERSION=git
 
 script:
   - ./build-scripts/travis.sh
