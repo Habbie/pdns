@@ -1,0 +1,7 @@
+skipreasons="nodnssec nodyndns nometa"
+port=$((port+100))
+
+killall tdns || true
+sleep 5
+../../hello-dns/tdns/tdns 127.0.0.1:$port &
+sleep 5

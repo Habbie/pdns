@@ -71,6 +71,9 @@ start_master ()
 				source ./ext/bind-master
 				;;
 
+			tdns)
+				source ./ext/tdns
+				;;
 			*)
 				nocontext=yes
 	esac
