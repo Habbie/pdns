@@ -22,6 +22,7 @@
 
 extern "C" {
   typedef struct pdns_ffi_param pdns_ffi_param_t;
+  typedef struct pdns_ffi_param_wrapper pdns_ffi_param_wrapper_t;
 
   typedef struct pdns_ednsoption {
     uint16_t    optionCode;
@@ -29,6 +30,7 @@ extern "C" {
     const void* data;
   } pdns_ednsoption_t;
 
+  pdns_ffi_param_t* pdns_ffi_param_unwrap(pdns_ffi_param_wrapper_t* wrap);
   const char* pdns_ffi_param_get_qname(pdns_ffi_param_t* ref) __attribute__ ((visibility ("default")));
   uint16_t pdns_ffi_param_get_qtype(const pdns_ffi_param_t* ref) __attribute__ ((visibility ("default")));
   const char* pdns_ffi_param_get_remote(pdns_ffi_param_t* ref) __attribute__ ((visibility ("default")));
@@ -49,4 +51,42 @@ extern "C" {
   void pdns_ffi_param_set_deviceid(pdns_ffi_param_t* ref, size_t len, const void* name) __attribute__ ((visibility ("default")));
   void pdns_ffi_param_set_variable(pdns_ffi_param_t* ref, bool variable) __attribute__ ((visibility ("default")));
   void pdns_ffi_param_set_ttl_cap(pdns_ffi_param_t* ref, uint32_t ttl) __attribute__ ((visibility ("default")));
+
+
 }
+
+struct pdns_ffi_param_wrapper
+{
+public:
+  struct pdns_ffi_param* param;
+};
+
+struct pdns_ffi_param
+{
+public:
+  pdns_ffi_param(const DNSName& qname_, uint16_t qtype_, const ComboAddress& local_, const ComboAddress& remote_, const Netmask& ednssubnet_, std::vector<std::string>& policyTags_, const std::map<uint16_t, EDNSOptionView>& ednsOptions_, std::string& requestorId_, std::string& deviceId_, uint32_t& ttlCap_, bool& variable_, bool tcp_): qname(qname_), local(local_), remote(remote_), ednssubnet(ednssubnet_), policyTags(policyTags_), ednsOptions(ednsOptions_), requestorId(requestorId_), deviceId(deviceId_), ttlCap(ttlCap_), variable(variable_), qtype(qtype_), tcp(tcp_)
+  {
+  }
+
+  std::unique_ptr<std::string> qnameStr{nullptr};
+  std::unique_ptr<std::string> localStr{nullptr};
+  std::unique_ptr<std::string> remoteStr{nullptr};
+  std::unique_ptr<std::string> ednssubnetStr{nullptr};
+  std::vector<pdns_ednsoption_t> ednsOptionsVect;
+
+  const DNSName& qname;
+  const ComboAddress& local;
+  const ComboAddress& remote;
+  const Netmask& ednssubnet;
+  std::vector<std::string>& policyTags;
+  const std::map<uint16_t, EDNSOptionView>& ednsOptions;
+  std::string& requestorId;
+  std::string& deviceId;
+  uint32_t& ttlCap;
+  bool& variable;
+
+  unsigned int tag{0};
+  uint16_t qtype;
+  bool tcp;
+};
+

@@ -47,7 +47,8 @@ struct LuaContext::Pusher<pdns_ffi_param*> {
     static const int maxSize = 1;
 
     static PushedObject push(lua_State* state, pdns_ffi_param* ptr) noexcept {
-        lua_pushlightuserdata(state, ptr);
+        auto wrapper = (struct pdns_ffi_param_wrapper *) lua_newuserdata(state, sizeof(struct pdns_ffi_param_wrapper *));
+        wrapper->param = ptr;
         return PushedObject{state, 1};
     }
 };

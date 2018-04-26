@@ -480,34 +480,6 @@ unsigned int RecursorLua4::gettag(const ComboAddress& remote, const Netmask& edn
   return 0;
 }
 
-struct pdns_ffi_param
-{
-public:
-  pdns_ffi_param(const DNSName& qname_, uint16_t qtype_, const ComboAddress& local_, const ComboAddress& remote_, const Netmask& ednssubnet_, std::vector<std::string>& policyTags_, const std::map<uint16_t, EDNSOptionView>& ednsOptions_, std::string& requestorId_, std::string& deviceId_, uint32_t& ttlCap_, bool& variable_, bool tcp_): qname(qname_), local(local_), remote(remote_), ednssubnet(ednssubnet_), policyTags(policyTags_), ednsOptions(ednsOptions_), requestorId(requestorId_), deviceId(deviceId_), ttlCap(ttlCap_), variable(variable_), qtype(qtype_), tcp(tcp_)
-  {
-  }
-
-  std::unique_ptr<std::string> qnameStr{nullptr};
-  std::unique_ptr<std::string> localStr{nullptr};
-  std::unique_ptr<std::string> remoteStr{nullptr};
-  std::unique_ptr<std::string> ednssubnetStr{nullptr};
-  std::vector<pdns_ednsoption_t> ednsOptionsVect;
-
-  const DNSName& qname;
-  const ComboAddress& local;
-  const ComboAddress& remote;
-  const Netmask& ednssubnet;
-  std::vector<std::string>& policyTags;
-  const std::map<uint16_t, EDNSOptionView>& ednsOptions;
-  std::string& requestorId;
-  std::string& deviceId;
-  uint32_t& ttlCap;
-  bool& variable;
-
-  unsigned int tag{0};
-  uint16_t qtype;
-  bool tcp;
-};
 
 unsigned int RecursorLua4::gettag_ffi(const ComboAddress& remote, const Netmask& ednssubnet, const ComboAddress& local, const DNSName& qname, uint16_t qtype, std::vector<std::string>* policyTags, LuaContext::LuaObject& data, const std::map<uint16_t, EDNSOptionView>& ednsOptions, bool tcp, std::string& requestorId, std::string& deviceId, uint32_t& ttlCap, bool& variable) const
 {
@@ -583,6 +555,11 @@ loop:;
 }
 
 RecursorLua4::~RecursorLua4(){}
+
+pdns_ffi_param_t* pdns_ffi_param_unwrap(pdns_ffi_param_wrapper_t* wrap)
+{
+  return wrap->param;
+}
 
 const char* pdns_ffi_param_get_qname(pdns_ffi_param_t* ref)
 {
