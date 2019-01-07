@@ -4,5 +4,5 @@ pkglib_LTLIBRARIES = liblmdbbackend.la
 
 EXTRA_DIST = OBJECTFILES OBJECTLIBS
 
-liblmdbbackend_la_SOURCES = lmdbbackend.cc lmdbbackend.hh lmdb-safe.cc lmdb-typed.hh lmdb-typed.cc
+liblmdbbackend_la_SOURCES = lmdbbackend.cc lmdbbackend.hh lmdb-safe.hh lmdb-safe.cc lmdb-typed.hh lmdb-typed.cc
 liblmdbbackend_la_LDFLAGS = -module -avoid-version
