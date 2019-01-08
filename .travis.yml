@@ -56,7 +56,6 @@ addons:
       - lua-posix
       - moreutils
       - p11-kit
-      - pdns-tools
       - protobuf-compiler
       - ruby-json
       - rubygems-integration
