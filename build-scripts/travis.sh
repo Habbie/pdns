@@ -239,7 +239,7 @@ install_auth() {
   run "sudo service slapd restart"
   run "popd"
   run "sudo -u openldap mkdir -p /var/lib/ldap/powerdns"
-  run "sudo ldapadd -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/add.ldif"
+  run "sudo ldapadd -Y EXTERNAL -H ldapi:/// -f ./modules/ldapbackend/testfiles/add.ldif || true"
 
   # remote-backend tests requirements
   run "gem update --system"
