@@ -9,6 +9,8 @@ env:
   - PDNS_BUILD_PRODUCT=recursor
   - PDNS_BUILD_PRODUCT=dnsdist
   - PDNS_BUILD_PRODUCT=ixfrdist
+rvm:
+  - 2.6.0
 
 cache:
   - pip
