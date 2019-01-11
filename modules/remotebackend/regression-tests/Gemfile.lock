@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ffi (1.9.24)
-    ffi-rzmq (2.0.1)
+    ffi-rzmq (2.0.7)
       ffi-rzmq-core (>= 1.0.1)
     ffi-rzmq-core (1.0.3)
       ffi (~> 1.9)
