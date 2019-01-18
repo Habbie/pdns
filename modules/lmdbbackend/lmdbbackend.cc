@@ -870,7 +870,7 @@ bool LMDBBackend::deactivateDomainKey(const DNSName& name, unsigned int id)
 
 bool LMDBBackend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qname, DNSName& unhashed, DNSName& before, DNSName& after) 
 {
-  cout << __PRETTY_FUNCTION__<< ": "<<id <<", "<<qname << endl;
+  DLOG(g_log << __PRETTY_FUNCTION__<< ": "<<id <<", "<<qname << endl);
 #if 0
   auto txn = getRecordsROTransaction(id);
   compoundOrdername co;
@@ -963,7 +963,7 @@ bool LMDBBackend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qna
 bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, const DNSName& qname, DNSName& before, DNSName& after)
 {
   DNSName zonename = zonenameU.makeLowerCase();
-  cout << __PRETTY_FUNCTION__<< ": "<<id <<", "<<zonename << ", '"<<qname<<"'"<<endl;
+  DLOG(g_log << __PRETTY_FUNCTION__<< ": "<<id <<", "<<zonename << ", '"<<qname<<"'"<<endl);
 
   auto txn = getRecordsROTransaction(id);
   compoundOrdername co;
@@ -1086,7 +1086,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
 // XXX this function does not actually update ordername, which it should do for NSEC3
 bool LMDBBackend::updateDNSSECOrderNameAndAuth(uint32_t domain_id, const DNSName& qname, const DNSName& ordername, bool auth, const uint16_t qtype)
 {
-  cout << __PRETTY_FUNCTION__<< ": "<< domain_id <<", '"<<qname <<"', '"<<ordername<<"', "<<auth<< ", " << qtype << endl;
+  DLOG(g_log << __PRETTY_FUNCTION__<< ": "<< domain_id <<", '"<<qname <<"', '"<<ordername<<"', "<<auth<< ", " << qtype << endl);
   shared_ptr<RecordsRWTransaction> txn;
   if(0 && d_rwtxn) { // we might reuse one for the wrong domain_id
     txn = d_rwtxn;
