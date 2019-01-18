@@ -971,22 +971,22 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
   string matchkey=co(id,qname2);
   auto cursor = txn->txn.getCursor(txn->db->dbi);
   MDBOutVal key, val;
-  cout<<"Lower_bound for "<<qname2<<endl;
+  DLOG(g_log<<"Lower_bound for "<<qname2<<endl);
   if(cursor.lower_bound(matchkey, key, val)) {
-    cout << "Hit end of database, bummer"<<endl;
+    DLOG(g_log << "Hit end of database, bummer"<<endl);
     cursor.last(key, val);
     if(co.getDomainID(key.get<string_view>()) == id) {
       before = co.getQName(key.get<string_view>()) + zonename;
       after = zonename;
     }
     else
-      cout << "We were at end of database, but this zone is not there?!"<<endl;
+      DLOG(g_log << "We were at end of database, but this zone is not there?!"<<endl);
     return true;
   }
-  cout<<"Cursor is at "<<co.getQName(key.get<string_view>()) <<", in zone id "<<co.getDomainID(key.get<string_view>())<< endl;
+  DLOG(g_log<<"Cursor is at "<<co.getQName(key.get<string_view>()) <<", in zone id "<<co.getDomainID(key.get<string_view>())<< endl);
 
   if(co.getDomainID(key.get<string_view>()) ==id && co.getQName(key.get<string_view>()) == qname2) {
-    cout << "Had an exact match!"<<endl;
+    DLOG(g_log << "Had an exact match!"<<endl);
     before = qname2 + zonename;
     int rc;
     for(;;) {
@@ -1001,7 +1001,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
         break;
     }
     if(rc || co.getDomainID(key.get<string_view>()) != id) {
-      cout << "We hit the end of the zone or database. 'after' is apex" << endl;
+      DLOG(g_log << "We hit the end of the zone or database. 'after' is apex" << endl);
       after=zonename;
       return false;
     }
@@ -1011,19 +1011,19 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
 
   
   if(co.getDomainID(key.get<string_view>()) != id) {
-    cout << "Ended up in next zone, 'after' is zonename" <<endl;
+    DLOG(g_log << "Ended up in next zone, 'after' is zonename" <<endl);
     after = zonename;
-    cout << "Now hunting for previous" << endl;
+    DLOG(g_log << "Now hunting for previous" << endl);
     int rc;
     for(;;) {
       rc=cursor.prev(key, val);
       if(rc) {
-        cout<<"Reversed into zone, but got not found from lmdb" <<endl;
+        DLOG(g_log<<"Reversed into zone, but got not found from lmdb" <<endl);
         return false;
       }
       
       if(co.getDomainID(key.get<string_view>()) != id) {
-        cout<<"Reversed into zone, but found wrong zone id " << co.getDomainID(key.get<string_view>()) << " != "<<id<<endl;
+        DLOG(g_log<<"Reversed into zone, but found wrong zone id " << co.getDomainID(key.get<string_view>()) << " != "<<id<<endl);
         // "this can't happen"
         return false;
       }
@@ -1034,11 +1034,11 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
     }
 
     before = co.getQName(key.get<string_view>()) + zonename;
-    cout<<"Found: "<< before<<endl;
+    DLOG(g_log<<"Found: "<< before<<endl);
     return true;
   }
 
-  cout <<"We ended up after "<<qname<<", on "<<co.getQName(key.get<string_view>())<<endl;
+  DLOG(g_log <<"We ended up after "<<qname<<", on "<<co.getQName(key.get<string_view>())<<endl);
 
   int skips = 0;
   for(; ;) {
@@ -1046,15 +1046,15 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
     serFromString(val.get<StringView>(), rr);
     if(rr.auth || rr.qtype.getCode() == QType::NS) {
       after = co.getQName(key.get<string_view>()) + zonename;
-      cout <<"Found auth or an NS record "<<after<<endl;
+      DLOG(g_log <<"Found auth or an NS record "<<after<<endl);
       break;
     }
-    cout <<"  oops, " << co.getQName(key.get<string_view>()) << " was not auth "<<rr.auth<< " " << rr.qtype.getName()<<" or NS, so need to skip ahead a bit more" << endl;
+    DLOG(g_log <<"  oops, " << co.getQName(key.get<string_view>()) << " was not auth "<<rr.auth<< " " << rr.qtype.getName()<<" or NS, so need to skip ahead a bit more" << endl);
     int rc = cursor.next(key, val);
     if(!rc)
       ++skips;
     if(rc || co.getDomainID(key.get<string_view>()) != id ) {
-      cout << "  oops, hit end of database or zone. This means after is apex" <<endl;
+      DLOG(g_log << "  oops, hit end of database or zone. This means after is apex" <<endl);
       after = zonename;
       break;
     }
@@ -1067,16 +1067,16 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const DNSName& zonenameU, 
     int rc = cursor.prev(key, val);
     if(rc || co.getDomainID(key.get<string_view>()) != id) {
       // XX I don't think this case can happen
-      cout << "We hit the beginning of the zone or database.. now what" << endl;
+      DLOG(g_log << "We hit the beginning of the zone or database.. now what" << endl);
       return false;
     }
     before = co.getQName(key.get<string_view>()) + zonename;
     DNSResourceRecord rr;
     serFromString(val.get<string_view>(), rr);
-    cout<<"And before to "<<before<<", auth = "<<rr.auth<<endl;
+    DLOG(g_log<<"And before to "<<before<<", auth = "<<rr.auth<<endl);
     if(rr.auth || co.getQType(key.get<string_view>()) == QType::NS)
       break;
-    cout << "Oops, that was wrong, go back one more"<<endl;
+    DLOG(g_log << "Oops, that was wrong, go back one more"<<endl);
   }
 
   return true;
