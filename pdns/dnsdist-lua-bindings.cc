@@ -29,9 +29,6 @@
 #include "dnsdist-lua.hh"
 #include "dnsdist-protobuf.hh"
 
-#include "dnsparser.hh"
-#include "stubresolver.hh"
-
 #include "dnstap.hh"
 #include "dolog.hh"
 #include "fstrm_logger.hh"
