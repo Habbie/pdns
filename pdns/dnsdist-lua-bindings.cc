@@ -22,10 +22,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include "dnsdist.hh"
 #include "dnsdist-lua.hh"
 #include "dnsdist-protobuf.hh"
+
+#include "dnsparser.hh"
+#include "stubresolver.hh"
 
 #include "dnstap.hh"
 #include "dolog.hh"
@@ -665,5 +670,36 @@ void setupLuaBindings(bool client)
       values.push_back(std::make_pair(values.size(), std::string(value.content, value.size)));
     }
     return values;
+  });
+
+  /* getaddrinfo */
+  g_lua.writeFunction("blockingGetAddrInfo", [](DNSName &qname) {
+#if 0
+      std::vector<DNSZoneRecord> ret;
+      std::unordered_map<int, DNSResourceRecord> luaResult;
+      stubDoResolve(DNSName(qname), qtype, ret);
+      int i = 0;
+      for(const auto &row: ret) {
+        luaResult[++i] = DNSResourceRecord::fromWire(row.dr);
+        luaResult[i].auth = row.auth;
+      }
+      return luaResult;
+#endif
+    struct addrinfo hints, *result;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int error = getaddrinfo(qname.toString().c_str(), 0, &hints, &result);
+    if (error) {
+        throw std::runtime_error(gai_strerror(error));
+    }
+
+    std::unordered_map<int, ComboAddress> luaResult;
+
+    int i = 0;
+    for(auto rp = result ; rp != NULL; rp = rp->ai_next) {
+      luaResult[++i] = ComboAddress(rp->ai_addr, rp->ai_addrlen);
+    }
+    return luaResult;
   });
 }
