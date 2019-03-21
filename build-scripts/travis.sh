@@ -311,7 +311,7 @@ build_auth() {
   run "autoreconf -vi"
   run "./configure \
     ${sanitizerflags} \
-    --with-dynmodules='bind gmysql geoip gpgsql gsqlite3 ldap lmdb lua mydns opendbx pipe random remote tinydns godbc lua2' \
+    --with-dynmodules='bind gmysql geoip gpgsql gsqlite3 ldap lua mydns opendbx pipe random remote tinydns godbc lua2' \
     --with-modules='' \
     --with-sqlite3 \
     --with-libsodium \
