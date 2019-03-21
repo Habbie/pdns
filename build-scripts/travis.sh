@@ -457,7 +457,7 @@ test_auth() {
   # run "./timestamp ./start-test-stop 5300 gsqlite3-nsec3-optout-both"
   # run "./timestamp ./start-test-stop 5300 gsqlite3-nsec3-narrow"
 
-  run "./timestamp ./start-test-stop 5300 mydns"
+  # run "./timestamp ./start-test-stop 5300 mydns"
 
   run "./timestamp ./start-test-stop 5300 opendbx-sqlite3"
 
