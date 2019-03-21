@@ -200,7 +200,7 @@ void dbBench(const std::string& fname)
   dt.set();
   unsigned int hits=0, misses=0;
   for(; n < 10000; ++n) {
-    DNSName domain(domains[random() % domains.size()]);
+    DNSName domain(domains[dns_random(domains.size())]);
     B.lookup(QType(QType::NS), domain);
     while(B.get(rr)) {
       hits++;
@@ -241,7 +241,7 @@ int checkZone(DNSSECKeeper &dk, UeberBackend &B, const DNSName& zone, const vect
 {
   SOAData sd;
   if(!B.getSOAUncached(zone, sd)) {
-    cout<<"[error] No SOA record present, or active, in zone '"<<zone<<"'"<<endl;
+    cout<<"[Error] No SOA record present, or active, in zone '"<<zone<<"'"<<endl;
     cout<<"Checked 0 records of '"<<zone<<"', 1 errors, 0 warnings."<<endl;
     return 1;
   }
@@ -786,14 +786,17 @@ int listZone(const DNSName &zone) {
   di.backend->list(zone, di.id);
   DNSResourceRecord rr;
   cout<<"$ORIGIN ."<<endl;
+  cout.sync_with_stdio(false);
+  
   while(di.backend->get(rr)) {
     if(rr.qtype.getCode()) {
       if ( (rr.qtype.getCode() == QType::NS || rr.qtype.getCode() == QType::SRV || rr.qtype.getCode() == QType::MX || rr.qtype.getCode() == QType::CNAME) && !rr.content.empty() && rr.content[rr.content.size()-1] != '.') 
 	rr.content.append(1, '.');
 	
-      cout<<rr.qname<<"\t"<<rr.ttl<<"\tIN\t"<<rr.qtype.getName()<<"\t"<<rr.content<<endl;
+      cout<<rr.qname<<"\t"<<rr.ttl<<"\tIN\t"<<rr.qtype.getName()<<"\t"<<rr.content<<"\n";
     }
   }
+  cout.flush();
   return EXIT_SUCCESS;
 }
 
@@ -1215,7 +1218,7 @@ int addOrReplaceRecord(bool addOrReplace, const vector<string>& cmds) {
   di.backend->lookup(rr.qtype, name, 0, di.id);
   cout<<"New rrset:"<<endl;
   while(di.backend->get(rr)) {
-    cout<<rr.qname.toString()<<" IN "<<rr.qtype.getName()<<" "<<rr.ttl<<" "<<rr.content<<endl;      
+    cout<<rr.qname.toString()<<" "<<rr.ttl<<" IN "<<rr.qtype.getName()<<" "<<rr.content<<endl;
   }
   return EXIT_SUCCESS;
 }
@@ -1316,7 +1319,7 @@ void testSpeed(DNSSECKeeper& dk, const DNSName& zone, const string& remote, int 
   DTime dt;
   dt.set();
   for(unsigned int n=0; n < 100000; ++n) {
-    rnd = random();
+    rnd = dns_random(UINT32_MAX);
     snprintf(tmp, sizeof(tmp), "%d.%d.%d.%d", 
       octets[0], octets[1], octets[2], octets[3]);
     rr.content=tmp;
@@ -2360,14 +2363,16 @@ try
     exit(listKeys(zname, dk));
   }
   else if(cmds[0] == "load-zone") {
-    if(cmds.size() != 3) {
-      cerr<<"Syntax: pdnsutil load-zone ZONE FILENAME"<<endl;
+    if(cmds.size() < 3) {
+      cerr<<"Syntax: pdnsutil load-zone ZONE FILENAME [ZONE FILENAME] .."<<endl;
       return 0;
     }
     if(cmds[1]==".")
       cmds[1].clear();
 
-    exit(loadZone(DNSName(cmds[1]), cmds[2]));
+    for(size_t n=1; n + 2 <= cmds.size(); n+=2)
+      loadZone(DNSName(cmds[n]), cmds[n+1]);
+    return 0;
   }
   else if(cmds[0] == "secure-zone") {
     if(cmds.size() < 2) {

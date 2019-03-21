@@ -47,10 +47,7 @@
 #include "mplexer.hh"
 #include "sholder.hh"
 #include "tcpiohandler.hh"
-
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include "uuid-utils.hh"
 
 void carbonDumpThread();
 uint64_t uptimeOfProcess(const std::string& str);
@@ -58,8 +55,6 @@ uint64_t uptimeOfProcess(const std::string& str);
 extern uint16_t g_ECSSourcePrefixV4;
 extern uint16_t g_ECSSourcePrefixV6;
 extern bool g_ECSOverride;
-
-extern thread_local boost::uuids::random_generator t_uuidGenerator;
 
 typedef std::unordered_map<string, string> QTag;
 
@@ -84,6 +79,7 @@ struct DNSQuestion
   unsigned int consumed{0};
   uint16_t len;
   uint16_t ecsPrefixLength;
+  uint8_t ednsRCode{0};
   boost::optional<uint32_t> tempFailureTTL;
   const bool tcp;
   const struct timespec* queryTime;
@@ -261,6 +257,7 @@ struct DNSDistStats
     {"latency-avg1000000", &latencyAvg1000000},
     {"uptime", uptimeOfProcess},
     {"real-memory-usage", getRealMemoryUsage},
+    {"special-memory-usage", getSpecialMemoryUsage},
     {"noncompliant-queries", &nonCompliantQueries},
     {"noncompliant-responses", &nonCompliantResponses},
     {"rdqueries", &rdQueries},
@@ -706,12 +703,16 @@ struct DownstreamState
   int tcpConnectTimeout{5};
   int tcpRecvTimeout{30};
   int tcpSendTimeout{30};
+  unsigned int checkInterval{1};
+  unsigned int lastCheck{0};
   const unsigned int sourceItf{0};
   uint16_t retries{5};
   uint16_t xpfRRCode{0};
   uint16_t checkTimeout{1000}; /* in milliseconds */
   uint8_t currentCheckFailures{0};
+  uint8_t consecutiveSuccesfulChecks{0};
   uint8_t maxCheckFailures{1};
+  uint8_t minRiseSuccesses{1};
   StopWatch sw;
   set<string> pools;
   enum class Availability { Up, Down, Auto} availability{Availability::Auto};
@@ -826,8 +827,8 @@ struct ServerPool
     for (const auto& server : d_servers) {
       if (!upOnly || std::get<1>(server)->isUp() ) {
         count++;
-      };
-    };
+      }
+    }
     return count;
   }
 
@@ -961,6 +962,7 @@ extern bool g_useTCPSinglePipe;
 extern std::atomic<uint16_t> g_downstreamTCPCleanupInterval;
 extern size_t g_udpVectorSize;
 extern bool g_preserveTrailingData;
+extern bool g_allowEmptyResponse;
 
 #ifdef HAVE_EBPF
 extern shared_ptr<BPFFilter> g_defaultBPFFilter;

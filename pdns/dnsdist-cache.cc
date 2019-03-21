@@ -168,7 +168,7 @@ void DNSDistPacketCache::insert(uint32_t key, const boost::optional<Netmask>& su
     return;
   }
 
-  const time_t now = time(NULL);
+  const time_t now = time(nullptr);
   time_t newValidity = now + minTTL;
   CacheValue newValue;
   newValue.qname = qname;
@@ -214,7 +214,7 @@ bool DNSDistPacketCache::get(const DNSQuestion& dq, uint16_t consumed, uint16_t 
   }
 
   uint32_t shardIndex = getShardIndex(key);
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   time_t age;
   bool stale = false;
   auto& shard = d_shards.at(shardIndex);
@@ -292,19 +292,20 @@ bool DNSDistPacketCache::get(const DNSQuestion& dq, uint16_t consumed, uint16_t 
 /* Remove expired entries, until the cache has at most
    upTo entries in it.
 */
-void DNSDistPacketCache::purgeExpired(size_t upTo)
+size_t DNSDistPacketCache::purgeExpired(size_t upTo)
 {
-  time_t now = time(NULL);
+  size_t removed = 0;
   uint64_t size = getSize();
 
-  if (upTo >= size) {
-    return;
+  if (size == 0 || upTo >= size) {
+    return removed;
   }
 
   size_t toRemove = size - upTo;
 
   size_t scannedMaps = 0;
 
+  const time_t now = time(nullptr);
   do {
     uint32_t shardIndex = (d_expungeIndex++ % d_shardCount);
     WriteLock w(&d_shards.at(shardIndex).d_lock);
@@ -317,6 +318,7 @@ void DNSDistPacketCache::purgeExpired(size_t upTo)
         it = map.erase(it);
         --toRemove;
         d_shards[shardIndex].d_entriesCount--;
+        ++removed;
       } else {
         ++it;
       }
@@ -325,20 +327,22 @@ void DNSDistPacketCache::purgeExpired(size_t upTo)
     scannedMaps++;
   }
   while (toRemove > 0 && scannedMaps < d_shardCount);
+
+  return removed;
 }
 
 /* Remove all entries, keeping only upTo
    entries in the cache */
-void DNSDistPacketCache::expunge(size_t upTo)
+size_t DNSDistPacketCache::expunge(size_t upTo)
 {
+  size_t removed = 0;
   const uint64_t size = getSize();
 
   if (upTo >= size) {
-    return;
+    return removed;
   }
 
   size_t toRemove = size - upTo;
-  size_t removed = 0;
 
   for (uint32_t shardIndex = 0; shardIndex < d_shardCount; shardIndex++) {
     WriteLock w(&d_shards.at(shardIndex).d_lock);
@@ -358,10 +362,14 @@ void DNSDistPacketCache::expunge(size_t upTo)
       d_shards[shardIndex].d_entriesCount = 0;
     }
   }
+
+  return removed;
 }
 
-void DNSDistPacketCache::expungeByName(const DNSName& name, uint16_t qtype, bool suffixMatch)
+size_t DNSDistPacketCache::expungeByName(const DNSName& name, uint16_t qtype, bool suffixMatch)
 {
+  size_t removed = 0;
+
   for (uint32_t shardIndex = 0; shardIndex < d_shardCount; shardIndex++) {
     WriteLock w(&d_shards.at(shardIndex).d_lock);
     auto& map = d_shards[shardIndex].d_map;
@@ -372,11 +380,14 @@ void DNSDistPacketCache::expungeByName(const DNSName& name, uint16_t qtype, bool
       if ((value.qname == name || (suffixMatch && value.qname.isPartOf(name))) && (qtype == QType::ANY || qtype == value.qtype)) {
         it = map.erase(it);
         d_shards[shardIndex].d_entriesCount--;
+        ++removed;
       } else {
         ++it;
       }
     }
   }
+
+  return removed;
 }
 
 bool DNSDistPacketCache::isFull()

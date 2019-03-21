@@ -17,6 +17,9 @@ AC_DEFINE([DNSDIST], [1],
 LT_PREREQ([2.2.2])
 LT_INIT([disable-static])
 
+CFLAGS="-Wall -g -O3 $CFLAGS"
+CXXFLAGS="-Wall -g -O3 $CXXFLAGS"
+
 PDNS_WITH_LIBSODIUM
 PDNS_CHECK_DNSTAP
 PDNS_CHECK_RAGEL([dnslabeltext.cc], [www.dnsdist.org])
@@ -43,6 +46,7 @@ PDNS_WITH_NET_SNMP
 PDNS_WITH_LIBCAP
 
 AX_AVAILABLE_SYSTEMD
+AX_CHECK_SYSTEMD_FEATURES
 AM_CONDITIONAL([HAVE_SYSTEMD], [ test x"$systemd" = "xy" ])
 
 AC_SUBST([YAHTTP_CFLAGS], ['-I$(top_srcdir)/ext/yahttp'])
@@ -51,10 +55,12 @@ AC_SUBST([YAHTTP_LIBS], ['$(top_builddir)/ext/yahttp/yahttp/libyahttp.la'])
 PDNS_WITH_LUA([mandatory])
 PDNS_CHECK_LUA_HPP
 
+AM_CONDITIONAL([HAVE_GNUTLS], [false])
+AM_CONDITIONAL([HAVE_LIBSSL], [false])
 DNSDIST_ENABLE_DNS_OVER_TLS
-DNSDIST_WITH_GNUTLS
-DNSDIST_WITH_LIBSSL
 AS_IF([test "x$enable_dns_over_tls" != "xno"], [
+  DNSDIST_WITH_GNUTLS
+  DNSDIST_WITH_LIBSSL
   AS_IF([test "$HAVE_LIBSSL" = "1"], [
     # we need libcrypto if libssl is enabled
     PDNS_CHECK_LIBCRYPTO
@@ -90,11 +96,12 @@ LDFLAGS="$RELRO_LDFLAGS $LDFLAGS"
 
 CFLAGS="$PIE_CFLAGS $CFLAGS"
 CXXFLAGS="$PIE_CFLAGS $CXXFLAGS"
+
 PROGRAM_LDFLAGS="$PIE_LDFLAGS $PROGRAM_LDFLAGS"
 AC_SUBST([PROGRAM_LDFLAGS])
 
 AC_SUBST([AM_CPPFLAGS],
-  ["AS_ESCAPE([-I$(top_builddir) -I$(top_srcdir)]) -Wall -O3 -pthread $BOOST_CPPFLAGS"]
+  ["AS_ESCAPE([-I$(top_builddir) -I$(top_srcdir)]) $THREADFLAGS $BOOST_CPPFLAGS"]
 )
 
 AC_ARG_VAR(PACKAGEVERSION, [The version used in secpoll queries])
@@ -159,16 +166,15 @@ AS_IF([test "x$NET_SNMP_LIBS" != "x"],
   [AC_MSG_NOTICE([SNMP: yes])],
   [AC_MSG_NOTICE([SNMP: no])]
 )
-AS_IF([test "x$enable_dns_over_tls" != "xno"],
-  [AC_MSG_NOTICE([DNS over TLS: yes])],
+AS_IF([test "x$enable_dns_over_tls" != "xno"], [
+  AC_MSG_NOTICE([DNS over TLS: yes])
+  AS_IF([test "x$GNUTLS_LIBS" != "x"],
+    [AC_MSG_NOTICE([GnuTLS: yes])],
+    [AC_MSG_NOTICE([GnuTLS: no])])
+  AS_IF([test "x$LIBSSL_LIBS" != "x"],
+    [AC_MSG_NOTICE([OpenSSL: yes])],
+    [AC_MSG_NOTICE([OpenSSL: no])])
+  ],
   [AC_MSG_NOTICE([DNS over TLS: no])]
-)
-AS_IF([test "x$GNUTLS_LIBS" != "x"],
-  [AC_MSG_NOTICE([GnuTLS: yes])],
-  [AC_MSG_NOTICE([GnuTLS: no])]
-)
-AS_IF([test "x$LIBSSL_LIBS" != "x"],
-  [AC_MSG_NOTICE([OpenSSL: yes])],
-  [AC_MSG_NOTICE([OpenSSL: no])]
 )
 AC_MSG_NOTICE([])

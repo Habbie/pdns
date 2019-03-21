@@ -37,9 +37,9 @@ public:
 
   void insert(uint32_t key, const boost::optional<Netmask>& subnet, uint16_t queryFlags, bool dnssecOK, const DNSName& qname, uint16_t qtype, uint16_t qclass, const char* response, uint16_t responseLen, bool tcp, uint8_t rcode, boost::optional<uint32_t> tempFailureTTL);
   bool get(const DNSQuestion& dq, uint16_t consumed, uint16_t queryId, char* response, uint16_t* responseLen, uint32_t* keyOut, boost::optional<Netmask>& subnetOut, bool dnssecOK, uint32_t allowExpired=0, bool skipAging=false);
-  void purgeExpired(size_t upTo=0);
-  void expunge(size_t upTo=0);
-  void expungeByName(const DNSName& name, uint16_t qtype=QType::ANY, bool suffixMatch=false);
+  size_t purgeExpired(size_t upTo=0);
+  size_t expunge(size_t upTo=0);
+  size_t expungeByName(const DNSName& name, uint16_t qtype=QType::ANY, bool suffixMatch=false);
   bool isFull();
   string toString();
   uint64_t getSize();
@@ -53,7 +53,17 @@ public:
   uint64_t getTTLTooShorts() const { return d_ttlTooShorts; }
   uint64_t getEntriesCount();
   uint64_t dump(int fd);
+
   bool isECSParsingEnabled() const { return d_parseECS; }
+
+  bool keepStaleData() const
+  {
+    return d_keepStaleData;
+  }
+  void setKeepStaleData(bool keep)
+  {
+    d_keepStaleData = keep;
+  }
 
   static uint32_t getMinTTL(const char* packet, uint16_t length, bool* seenNoDataSOA);
   static uint32_t getKey(const std::string& qname, uint16_t consumed, const unsigned char* packet, uint16_t packetLen, bool tcp);
@@ -124,4 +134,5 @@ private:
   bool d_dontAge;
   bool d_deferrableInsertLock;
   bool d_parseECS;
+  bool d_keepStaleData{false};
 };

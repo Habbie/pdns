@@ -17,8 +17,9 @@ AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip tar-ustar -Wno-portability sub
 AM_SILENT_RULES([yes])
 
 AC_CANONICAL_HOST
-: ${CFLAGS="-Wall -g -O2"}
-: ${CXXFLAGS="-Wall -g -O2"}
+# Add some default CFLAGS and CXXFLAGS, can be appended to using the environment variables
+CFLAGS="-Wall -g -O2 $CFLAGS"
+CXXFLAGS="-Wall -g -O2 $CXXFLAGS"
 
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -215,6 +216,10 @@ for a in $modules $dynmodules; do
         [AC_MSG_ERROR([${a} backend needs lua but we cannot find it])]
       )
       ;;
+    lmdb)
+      PDNS_CHECK_LMDB
+      BOOST_SERIALIZATION
+      ;;
   esac
 done
 
@@ -270,6 +275,7 @@ for a in $dynmodules; do
 done
 
 AX_AVAILABLE_SYSTEMD
+AX_CHECK_SYSTEMD_FEATURES
 AM_CONDITIONAL([HAVE_SYSTEMD], [ test x"$systemd" = "xy" ])
 
 LDFLAGS="$RELRO_LDFLAGS $LDFLAGS"
@@ -320,6 +326,7 @@ AC_CONFIG_FILES([
   modules/gpgsqlbackend/Makefile
   modules/gsqlite3backend/Makefile
   modules/ldapbackend/Makefile
+  modules/lmdbbackend/Makefile
   modules/luabackend/Makefile
   modules/lua2backend/Makefile
   modules/mydnsbackend/Makefile

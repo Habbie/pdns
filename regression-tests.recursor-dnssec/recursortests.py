@@ -791,3 +791,35 @@ distributor-threads=1""".format(confdir=confdir,
 
         if not found:
             raise AssertionError("No SOA record found in the authority section:\n%s" % msg.to_text())
+
+    def assertResponseMatches(self, query, expectedRRs, response):
+        expectedResponse = dns.message.make_response(query)
+
+        if query.flags & dns.flags.RD:
+            expectedResponse.flags |= dns.flags.RA
+        if query.flags & dns.flags.CD:
+            expectedResponse.flags |= dns.flags.CD
+
+        expectedResponse.answer = expectedRRs
+        print(expectedResponse)
+        print(response)
+        self.assertEquals(response, expectedResponse)
+
+    @classmethod
+    def sendQuery(cls, name, rdtype, useTCP=False):
+        """Helper function that creates the query"""
+        msg = dns.message.make_query(name, rdtype, want_dnssec=True)
+        msg.flags |= dns.flags.AD
+
+        if useTCP:
+            return cls.sendTCPQuery(msg)
+        return cls.sendUDPQuery(msg)
+
+    def createQuery(self, name, rdtype, flags, ednsflags):
+        """Helper function that creates the query with the specified flags.
+        The flags need to be strings (no checking is performed atm)"""
+        msg = dns.message.make_query(name, rdtype)
+        msg.flags = dns.flags.from_text(flags)
+        msg.flags += dns.flags.from_text('RD')
+        msg.use_edns(edns=0, ednsflags=dns.flags.edns_from_text(ednsflags))
+        return msg
