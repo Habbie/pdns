@@ -40,6 +40,7 @@ addons:
       - libfstrm-dev
       - libgeoip-dev
       - libldap-dev
+      - liblmdb-dev
       - libluajit-5.1-dev
       - libmaxminddb-dev
       - libnet-dns-perl
