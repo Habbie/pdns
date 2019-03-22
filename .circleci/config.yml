@@ -53,7 +53,7 @@ jobs:
           name: set up gsqlite3 odbc
           command: |
             ./build-scripts/circleci.sh configure-odbc-sqlite
-            echo GODBC_SQLITE3_DSN=pdns-sqlite3-1 > vars
+            echo GODBC_SQLITE3_DSN=pdns-sqlite3-1 > regression-tests/vars
 
       - auth-regress:
           context: godbc_sqlite3-nsec3
