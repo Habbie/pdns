@@ -472,10 +472,10 @@ test_auth() {
 
   run "./timestamp ./start-test-stop 5300 tinydns"
 
-  run "./timestamp ./start-test-stop 5300 lmdb-nodnssec-both"
-  run "./timestamp ./start-test-stop 5300 lmdb-both"
-  run "./timestamp ./start-test-stop 5300 lmdb-nsec3-both"
-  run "./timestamp ./start-test-stop 5300 lmdb-nsec3-optout-both"
+  # run "./timestamp ./start-test-stop 5300 lmdb-nodnssec-both"
+  # run "./timestamp ./start-test-stop 5300 lmdb-both"
+  # run "./timestamp ./start-test-stop 5300 lmdb-nsec3-both"
+  # run "./timestamp ./start-test-stop 5300 lmdb-nsec3-optout-both"
 
   run "rm tests/ent-asterisk/fail.nsec"
 
