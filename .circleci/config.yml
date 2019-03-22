@@ -43,15 +43,20 @@ jobs:
 
       - run:
           name: configure
-          command: ./configure --disable-lua-records --with-modules='bind gmysql godbc random'
+          command: ./configure --disable-lua-records --with-modules='bind gmysql godbc gsqlite3 random'
 
       - run:
           name: build
           command: make -j3 -k
 
       - run:
-          name: test gsqlite3 odbc
-          command: ./build-scripts/circleci.sh configure-odbc-sqlite; cd regression-tests ; touch tests/verify-dnssec-zone/allow-missing ; GODBC_SQLITE3_DSN=pdns-sqlite3-1 ./start-test-stop 5300 godbc_sqlite3-nsec3
+          name: set up gsqlite3 odbc
+          command: |
+            ./build-scripts/circleci.sh configure-odbc-sqlite
+            echo GODBC_SQLITE3_DSN=pdns-sqlite3-1 > vars
+
+      - auth-regress:
+          context: godbc_sqlite3-nsec3
 
       - run:
           name: set up mssql odbc
