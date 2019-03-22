@@ -18,6 +18,7 @@ case $1 in
             git \
             ldnsutils \
             libboost-all-dev \
+            libsqlite3-dev \
             libsqliteodbc \
             libssl-dev \
             libtool \
