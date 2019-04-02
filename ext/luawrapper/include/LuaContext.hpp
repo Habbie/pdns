@@ -2163,6 +2163,28 @@ struct LuaContext::Pusher<std::vector<std::pair<int,TType2>>> {
     }
 };
 
+// vectors of short, X pairs
+template<typename TType2>
+struct LuaContext::Pusher<std::vector<std::pair<short,TType2>>> {
+    static const int minSize = 1;
+    static const int maxSize = 1;
+
+    static PushedObject push(lua_State* state, const std::vector<std::pair<short,TType2>>& value) noexcept {
+        static_assert(Pusher<typename std::decay<short>::type>::minSize == 1 && Pusher<typename std::decay<short>::type>::maxSize == 1, "Can't push multiple elements for a table key");
+        static_assert(Pusher<typename std::decay<TType2>::type>::minSize == 1 && Pusher<typename std::decay<TType2>::type>::maxSize == 1, "Can't push multiple elements for a table value");
+
+        auto obj = Pusher<EmptyArray_t>::push(state, EmptyArray);
+
+        if(value.size() && value.begin()->first == 0) {
+            throw std::runtime_error("0-indexed vector spotted");
+        }
+
+        for (auto i = value.begin(), e = value.end(); i != e; ++i)
+            setTable<TType2>(state, obj, i->first, i->second);
+        
+        return obj;
+    }
+};
 
 
 // vectors of pairs
