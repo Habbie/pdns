@@ -513,8 +513,8 @@ jobs:
             slaptest -f schema.conf -F config
             find config
             slapcat -F config -n0 -s cn=schema,cn=config
-            slapcat -F config -n0 -s cn=schema,cn=config | slapadd -n0
-            slapadd -n0 -f ./modules/ldapbackend/testfiles/add.ldif
+            slapcat -F config -n0 -s cn=schema,cn=config | ldapadd -Y EXTERNAL -H ldap:///
+            ldapadd -Y EXTERNAL -H ldap:/// -f ./modules/ldapbackend/testfiles/add.ldif
       - auth-regress:
           context: ldap-nodnssec-both
       - auth-regress:
