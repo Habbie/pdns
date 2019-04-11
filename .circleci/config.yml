@@ -511,6 +511,8 @@ jobs:
             mkdir config
             for schema in /etc/ldap/schema/{core,cosine}.schema $PWD/modules/ldapbackend/{dnsdomain2,pdns-domaininfo}.schema ; do echo include $schema >> schema.conf; done
             slaptest -f schema.conf -F config
+            find config
+            slapcat -F config -n0 -s cn=schema,cn=config
             slapcat -F config -n0 -s cn=schema,cn=config | slapadd -n0
             slapadd -n0 -f ./modules/ldapbackend/testfiles/add.ldif
       - auth-regress:
