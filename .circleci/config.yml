@@ -271,7 +271,7 @@ jobs:
             CXXFLAGS="-O1 -Werror=vla" \
             ./configure \
               --disable-lua-records \
-              --with-modules='bind lmdb ldap gmysql gsqlite3 gpgsql godbc mydns random' \
+              --with-modules='bind lmdb ldap pipe gmysql gsqlite3 gpgsql godbc mydns random' \
               --enable-tools \
               --with-lmdb=/usr \
               --with-libsodium \
