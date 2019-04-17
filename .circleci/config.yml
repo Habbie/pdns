@@ -22,9 +22,18 @@ jobs:
 
       - run:
           name: build
-          command: cd pdns/dnsdistdist && make -j3 -k
+          command: cd pdns/dnsdistdist && make -j2 -k
+
+      - run:
+          name: setup snmp
+          command: |
+            apt-get -qq --no-install-recommends install snmpd
+            sed -i "s/agentxperms 0700 0755 dnsdist/agentxperms 0700 0755 ${USER}/g" regression-tests.dnsdist/snmpd.conf
+            cp -f regression-tests.dnsdist/snmpd.conf /etc/snmp/snmpd.conf
+            /etc/init.d/snmpd start
+            # fun story, the directory perms are only applied if it doesn't exist yet, and it is created by the init script, so..
+            chmod 0755 /var/agentx
 
       - run:
           name: run tests
           command: cd regression-tests.dnsdist && DNSDISTBIN=../pdns/dnsdistdist/dnsdist ./runtests
-
