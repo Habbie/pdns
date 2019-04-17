@@ -35,5 +35,9 @@ jobs:
             chmod 0755 /var/agentx
 
       - run:
+          name: install python2 UNDO ME
+          command: apt-get -qq --no-install-recommends install python2.7
+
+      - run:
           name: run tests
-          command: cd regression-tests.dnsdist && DNSDISTBIN=../pdns/dnsdistdist/dnsdist ./runtests
+          command: cd regression-tests.dnsdist && DNSDISTBIN=../pdns/dnsdistdist/dnsdist PYTHON=python2.7 ./runtests
