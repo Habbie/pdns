@@ -30,7 +30,23 @@ case $1 in
             unixodbc \
             unixodbc-dev \
             virtualenv \
-            wget
+            wget \
+            libfstrm-dev \
+            libcap-dev \
+            libboost-dev \
+            libcap-dev \
+            libedit-dev \
+            libfstrm-dev \
+            libgnutls28-dev \
+            libluajit-5.1-dev \
+            libprotobuf-dev \
+            libre2-dev \
+            libsodium-dev \
+            libssl-dev \
+            pkg-config \
+            protobuf-compiler \
+            ragel \
+            libh2o-dev
 
         wget https://github.com/dblacka/jdnssec-tools/releases/download/0.14/jdnssec-tools-0.14.tar.gz
         tar xfz jdnssec-tools-0.14.tar.gz --strip-components=1 -C /
