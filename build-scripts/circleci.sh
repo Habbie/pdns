@@ -46,7 +46,7 @@ case $1 in
             pkg-config \
             protobuf-compiler \
             ragel \
-            libh2o-dev
+            libh2o-evloop-dev
 
         wget https://github.com/dblacka/jdnssec-tools/releases/download/0.14/jdnssec-tools-0.14.tar.gz
         tar xfz jdnssec-tools-0.14.tar.gz --strip-components=1 -C /
