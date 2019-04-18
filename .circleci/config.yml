@@ -39,5 +39,9 @@ jobs:
           command: apt-get -qq --no-install-recommends install python2.7
 
       - run:
+          name: install pv UNDO ME
+          command: apt-get -qq --no-install-recommends install pv
+
+      - run:
           name: run tests
-          command: cd regression-tests.dnsdist && DNSDISTBIN=../pdns/dnsdistdist/dnsdist PYTHON=python2.7 ./runtests
+          command: cd regression-tests.dnsdist && yes '' | pv -q -L 1 | DNSDISTBIN=../pdns/dnsdistdist/dnsdist PYTHON=python2.7 ./runtests
