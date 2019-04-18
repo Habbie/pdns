@@ -44,4 +44,4 @@ jobs:
 
       - run:
           name: run tests
-          command: cd regression-tests.dnsdist && yes '' | pv -q -L 1 | DNSDISTBIN=../pdns/dnsdistdist/dnsdist PYTHON=python2.7 ./runtests
+          command: cd regression-tests.dnsdist && (yes '';true) | (pv -q -L 1;true)| DNSDISTBIN=../pdns/dnsdistdist/dnsdist PYTHON=python2.7 ./runtests
