@@ -508,6 +508,8 @@ jobs:
       - image: powerdns/ldap-regress:1.2.4-0 # OpenLDAP 2.4.47
         name: ldapserver
         command: '--loglevel debug'
+        environment:
+          LDAP_LOG_LEVEL: 0
     steps:
       - auth-regress-setup
       - run: DEBIAN_FRONTEND=noninteractive apt-get install -qq -y ldap-utils
