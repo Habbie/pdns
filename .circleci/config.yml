@@ -509,6 +509,7 @@ jobs:
         name: ldapserver
         environment:
           LDAP_LOG_LEVEL: '-1'
+        command: '--loglevel debug'
     steps:
       - auth-regress-setup
       - run: DEBIAN_FRONTEND=noninteractive apt-get install -qq -y ldap-utils
