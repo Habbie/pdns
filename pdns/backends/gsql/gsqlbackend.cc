@@ -435,14 +435,35 @@ void GSQLBackend::getUpdatedMasters(vector<DomainInfo> *updatedDomains)
   for(size_t n=0;n<numanswers;++n) { // id,name,master,last_check,notified_serial
     DomainInfo sd;
     ASSERT_ROW_COLUMNS("info-all-master-query", d_result[n], 6);
-    sd.id=pdns_stou(d_result[n][0]);
+
+    try {
+      sd.id=pdns_stou(d_result[n][0]);
+    } catch (...) {
+      g_log<<Logger::Error<<"in GetUpdatedMasters: Could not convert domain id '"<<d_result[n][0]<<"'' to number, skipping"<<endl;
+      continue;
+    }
+
     try {
       sd.zone= DNSName(d_result[n][1]);
     } catch (...) {
+      g_log<<Logger::Error<<"in GetUpdatedMasters: For domain with id "<<sd.id<<": Could not convert '"<<d_result[n][1]<<"'' to DNS name, skipping"<<endl;
       continue;
     }
-    sd.last_check=pdns_stou(d_result[n][3]);
-    sd.notified_serial=pdns_stou(d_result[n][4]);
+
+    try {
+      sd.last_check=pdns_stou(d_result[n][3]);
+    } catch (...) {
+      g_log<<Logger::Error<<"in GetUpdatedMasters: For domain '"<<sd.zone<<"' with id "<<sd.id<<": Could not convert last_check '"<<d_result[n][3]<<"' to number, skipping"<<endl;
+      continue;
+    }
+
+    try {
+     sd.notified_serial=pdns_stou(d_result[n][4]);
+    } catch (...) {
+      g_log<<Logger::Error<<"in GetUpdatedMasters: For domain '"<<sd.zone<<"' with id "<<sd.id<<": Could not convert notified_serial '"<<d_result[n][4]<<"' to number, skipping"<<endl;
+      continue;
+    }
+
     sd.backend=this;
     sd.kind=DomainInfo::Master;
     allMasters.push_back(sd);
@@ -1324,8 +1345,21 @@ void GSQLBackend::getAllDomains(vector<DomainInfo> *domains, bool include_disabl
       SOAData sd;
       fillSOAData(row[2], sd);
       di.serial = sd.serial;
-      di.notified_serial = pdns_stou(row[5]);
-      di.last_check = pdns_stou(row[6]);
+
+      try {
+        di.notified_serial = pdns_stou(row[5]);
+      } catch (...) {
+        g_log<<Logger::Error<<"in getAllDomains: For domain '"<<di.zone<<"' with id "<<di.id<<": Could not convert notified_serial '"<<row[5]<<"' to number, skipping"<<endl;
+        continue;
+      }
+
+      try {
+        di.last_check = pdns_stou(row[6]);
+      } catch (...) {
+        g_log<<Logger::Error<<"in getAllDomains: For domain '"<<di.zone<<"' with id "<<di.id<<": Could not convert last_check '"<<row[6]<<"' to number, skipping"<<endl;
+        continue;
+      }
+
       di.account = row[7];
 
       di.backend = this;
