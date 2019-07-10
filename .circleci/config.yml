@@ -748,6 +748,18 @@ jobs:
       - auth-regress:
           context: lmdb-nsec3-narrow
 
+  test-auth-regress-geoip:
+    docker:
+      - image: debian:stretch
+    steps:
+      - auth-regress-setup
+      - run:
+          command: apt-get install -qq -y libgeoip1 libyaml-cpp0.5v5 libmaxminddb0
+      - auth-regress:
+          context: geoip
+      - auth-regress:
+          context: geoip-nsec3-narrow
+
   test-auth-algorithms:
     docker:
       - image: debian:stretch
@@ -1320,6 +1332,9 @@ workflows:
           requires:
             - build-auth
       - test-auth-regress-tinydns:
+          requires:
+            - build-auth
+      - test-auth-regress-gmysql:
           requires:
             - build-auth
       - build-recursor
