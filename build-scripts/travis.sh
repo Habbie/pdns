@@ -370,6 +370,7 @@ install_dnsdist() {
   # test requirements / setup
   run "sudo add-apt-repository -y ppa:zeha/libfstrm-ppa"
   run 'curl "http://keyserver.ubuntu.com:11371/pks/lookup?op=get&search=0x396160EF8126A2E2" | sudo apt-key add - '
+  run "sudo add-apt-repository -y ppa:maarten-fonville/protobuf"
   run "sudo apt-get -qq update"
   run "sudo apt-get -qq --no-install-recommends install \
     snmpd \
