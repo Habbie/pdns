@@ -1,0 +1,21 @@
+#!/bin/sh
+alias putil="$PDNSUTIL --config-dir=. --config-name=gsqlite3 2>&1"
+
+echo --- create zone
+putil create-zone pdnsutil.example.com
+
+echo
+echo --- add record
+putil add-record pdnsutil.example.com add-delete. A 127.0.0.108
+
+echo
+echo -- list-zone
+putil list-zone pdnsutil.example.com
+
+echo
+echo -- delete-rrset
+putil delete-rrset pdnsutil.example.com add-delete A
+
+echo
+echo -- list-zone
+putil list-zone pdnsutil.example.com

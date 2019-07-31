@@ -1,0 +1,17 @@
+--- create zone
+Creating empty zone 'pdnsutil.example.com'
+
+--- add record
+New rrset:
+add-delete.pdnsutil.example.com. 3600 IN A 127.0.0.108
+
+-- list-zone
+$ORIGIN .
+add-delete.pdnsutil.example.com	3600	IN	A	127.0.0.108
+pdnsutil.example.com	3600	IN	SOA	a.misconfigured.powerdns.server hostmaster.pdnsutil.example.com 1 10800 3600 604800 3600
+
+-- delete-rrset
+
+-- list-zone
+$ORIGIN .
+pdnsutil.example.com	3600	IN	SOA	a.misconfigured.powerdns.server hostmaster.pdnsutil.example.com 1 10800 3600 604800 3600
