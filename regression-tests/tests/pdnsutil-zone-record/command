@@ -1,5 +1,5 @@
 #!/bin/sh
-alias putil="$PDNSUTIL --config-dir=. --config-name=gsqlite3 2>&1"
+alias putil="$PDNSUTIL --config-dir=. --config-name=$PDNSUTILCONFIGNAME 2>&1"
 
 echo --- create zone
 putil create-zone pdnsutil.example.com
