@@ -62,6 +62,8 @@ do
 		SKIPIT=1
 		result="	Skipped test $a"
 	else
+		echo skipreasons: $skipreasons
+		echo context: $context
 		for reason in $skipreasons $context
 		do
 			if [ -e $a/skip.$reason ]
