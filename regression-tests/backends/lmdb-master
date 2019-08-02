@@ -1,3 +1,5 @@
+export PDNSUTILCONFIGNAME=lmdb
+
 case $context in
     lmdb | lmdb-nodnssec | lmdb-nsec3 | lmdb-nsec3-optout | lmdb-nsec3-narrow)
         cat > pdns-lmdb.conf << __EOF__
