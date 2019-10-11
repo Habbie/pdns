@@ -755,7 +755,6 @@ TCPConnection::TCPConnection(int fd, const ComboAddress& addr) : data(2, 0), d_r
 
 TCPConnection::~TCPConnection()
 {
-  g_log<<Logger::Warning<<"closing socket for TCPConnection " <<d_fd <<endl;
   try {
     if(closesocket(d_fd) < 0)
       g_log<<Logger::Error<<"Error closing socket for TCPConnection"<<endl;
@@ -1783,7 +1782,6 @@ static void startDoResolve(void *p)
             // A read error might have happened. If we add the fd back, it will most likely error again.
             // This is not a big issue, the next handleTCPClientReadable() will see another read error
             // and take action.
-            cerr << "Reenabling " << dc->d_socket << ' ' << dc->d_tcpConnection->d_requestsInFlight << endl;
             ttd.tv_sec += g_tcpTimeout;
             t_fdm->addReadFD(dc->d_socket, handleRunningTCPQuestion, dc->d_tcpConnection, &ttd);
           } else {
@@ -2166,7 +2164,6 @@ static void handleRunningTCPQuestion(int fd, FDMultiplexer::funcparam_t& var)
         ++g_stats.tcpqcounter;
         ++conn->d_requestsInFlight;
         if (conn->d_requestsInFlight >= conn->d_maxInFlight) {
-          cerr << "Disabling " << fd << ' ' << conn->d_requestsInFlight << endl;
           t_fdm->removeReadFD(fd); // should no longer awake ourselves when there is data to read
         } else {
           Utility::gettimeofday(&g_now, 0); // needed?
