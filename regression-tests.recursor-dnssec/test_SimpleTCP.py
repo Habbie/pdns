@@ -2,8 +2,8 @@ import dns
 import os
 from recursortests import RecursorTest
 
-class testSimple(RecursorTest):
-    _confdir = 'Simple'
+class testSimpleTCP(RecursorTest):
+    _confdir = 'SimpleTCP'
 
     _config_template = """dnssec=validate
 auth-zones=authzone.example=configs/%s/authzone.zone""" % _confdir
