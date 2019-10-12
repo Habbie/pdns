@@ -868,7 +868,7 @@ Maximum number of seconds to cache an item in the DNS cache, no matter what the 
 -  Integer
 -  Default: 10
 
-Maximum number of requests handled concurrently per tcp connection.
+Maximum number of incoming requests handled concurrently per tcp connection.
 
 .. _setting-max-mthreads:
 
