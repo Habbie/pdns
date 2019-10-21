@@ -1780,6 +1780,7 @@ static void startDoResolve(void *p)
         else {
           Utility::gettimeofday(&g_now, 0); // needs to be updated
           struct timeval ttd = g_now;
+          // If we cross from max to max-1 in flight requests, the fd was not listened to, add it back
           if (dc->d_tcpConnection->d_requestsInFlight == TCPConnection::s_maxInFlight - 1) {
             // A read error might have happened. If we add the fd back, it will most likely error again.
             // This is not a big issue, the next handleTCPClientReadable() will see another read error
