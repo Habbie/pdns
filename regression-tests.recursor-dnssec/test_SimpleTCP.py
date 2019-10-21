@@ -123,6 +123,23 @@ auth-zones=authzone.example=configs/%s/authzone.zone""" % _confdir
             self.assertRRsetInAnswer(res, exp)
             self.assertMatchingRRSIGInAnswer(res, exp)
 
-   # Missing: out of order test, not sure yet on how to do that.
-   # Maybe with lua records introducing delays?
+    def testVeryBasicOOO(self):
+        expected = {}
+        queries = []
+        for zone in ['1.delay.example.', '0.delay.example.']:
+            expected[zone] = dns.rrset.from_text(zone, 0, dns.rdataclass.IN, 'TXT', 'a')
+            query = dns.message.make_query(zone, 'TXT', want_dnssec=True)
+            query.flags |= dns.flags.AD
+            queries.append(query)
+
+        ress = self.sendTCPQueries(queries)
+
+        self.assertEqual(len(ress), len(expected))
+
+        i = 0
+        for exp in [expected['0.delay.example.'], expected['1.delay.example.']]:
+            self.assertMessageIsAuthenticated(ress[i])
+            self.assertRRsetInAnswer(ress[i], exp)
+            self.assertMatchingRRSIGInAnswer(ress[i], exp)
+            i = i + 1
 

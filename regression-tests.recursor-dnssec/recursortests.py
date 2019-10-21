@@ -114,6 +114,8 @@ sort.example.                      3600 IN A     17.38.42.80
 sort.example.                      3600 IN A     192.168.0.1
 sort.example.                      3600 IN A     17.238.240.5
 sort.example.                      3600 IN MX    25 mx
+
+*.delay.example.                     0    LUA TXT ";" "local socket=require('socket')" "socket.sleep(tonumber(qname:getRawLabels()[1])/10)" "return 'a'"
         """,
         'secure.example': """
 secure.example.          3600 IN SOA  {soa}
@@ -360,6 +362,7 @@ query-cache-ttl=0
 log-dns-queries=yes
 log-dns-details=yes
 loglevel=9
+enable-lua-records
 dname-processing=yes
 distributor-threads=1""".format(confdir=confdir,
                                 bind_dnssec_db=bind_dnssec_db))
