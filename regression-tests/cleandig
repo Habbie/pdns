@@ -35,7 +35,7 @@ then
 fi
 if [ ! -e ${testsdir}/${testname}/skip-unboundhost ]
 then
-	unbound-host -v -C unbound-host.conf -t $2 "$1" > ${testsdir}/${testname}/unbound-host.out 2>&1
+	unbound-host -d -d -v -C unbound-host.conf -t $2 "$1" > ${testsdir}/${testname}/unbound-host.out 2>&1
 	echo RETVAL: $? >> ${testsdir}/${testname}/unbound-host.out
 fi
 if [ -e ${testsdir}/${testname}/use.drill ]
