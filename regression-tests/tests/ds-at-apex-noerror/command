@@ -3,3 +3,4 @@ cleandig example.com DS dnssec
 
 
 ls -alt --time-style=+%s ${testsdir}/${testname}/ > /dev/stderr
+cat ${testsdir}/${testname}/unbound-host.out > /dev/stderr
