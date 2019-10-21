@@ -746,9 +746,10 @@ static void writePid(void)
   }
 }
 
+uint16_t TCPConnection::s_maxInFlight;
+
 TCPConnection::TCPConnection(int fd, const ComboAddress& addr) : data(2, 0), d_remote(addr), d_fd(fd)
 {
-  d_maxInFlight = ::arg().asNum("max-concurrent-requests-per-tcp-connection");
   ++s_currentConnections;
   (*t_tcpClientCounts)[d_remote]++;
 }
@@ -1750,8 +1751,9 @@ static void startDoResolve(void *p)
         hadError=false;
 
       // update tcp connection status, closing if needed and doing the fd multiplexer accounting
-
-      dc->d_tcpConnection->d_requestsInFlight--;
+      if  (dc->d_tcpConnection->d_requestsInFlight > 0) {
+        dc->d_tcpConnection->d_requestsInFlight--;
+      }
 
       // In the code below, we try to remove the fd from the set, but
       // we don't know if another mthread already did the remove, so we can get a
@@ -1778,7 +1780,7 @@ static void startDoResolve(void *p)
         else {
           Utility::gettimeofday(&g_now, 0); // needs to be updated
           struct timeval ttd = g_now;
-          if (dc->d_tcpConnection->d_requestsInFlight == dc->d_tcpConnection->d_maxInFlight - 1) {
+          if (dc->d_tcpConnection->d_requestsInFlight == TCPConnection::s_maxInFlight - 1) {
             // A read error might have happened. If we add the fd back, it will most likely error again.
             // This is not a big issue, the next handleTCPClientReadable() will see another read error
             // and take action.
@@ -2163,7 +2165,7 @@ static void handleRunningTCPQuestion(int fd, FDMultiplexer::funcparam_t& var)
         ++g_stats.qcounter;
         ++g_stats.tcpqcounter;
         ++conn->d_requestsInFlight;
-        if (conn->d_requestsInFlight >= conn->d_maxInFlight) {
+        if (conn->d_requestsInFlight >= TCPConnection::s_maxInFlight) {
           t_fdm->removeReadFD(fd); // should no longer awake ourselves when there is data to read
         } else {
           Utility::gettimeofday(&g_now, 0); // needed?
@@ -3951,6 +3953,7 @@ static int serviceMain(int argc, char*argv[])
   SyncRes::s_ecscachelimitttl = ::arg().asNum("ecs-cache-limit-ttl");
 
   SyncRes::s_qnameminimization = ::arg().mustDo("qname-minimization");
+  TCPConnection::s_maxInFlight = ::arg().asNum("max-concurrent-requests-per-tcp-connection");
 
   if (!::arg().isEmpty("ecs-scope-zero-address")) {
     ComboAddress scopeZero(::arg()["ecs-scope-zero-address"]);

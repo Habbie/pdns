@@ -97,7 +97,9 @@ auth-zones=authzone.example=configs/%s/authzone.zone""" % _confdir
         self.assertRRsetInAnswer(res, expectedA)
 
 
-    def testVeryBasicOOO(self):
+    def testVeryBasicPipeline(self):
+        # This test does not enforce order, it will accept replies in any order. So
+        # it does not actually test OOO behaviour.
         expected = {}
         queries = []
         for zone in ['.', 'example.', 'secure.example.']:
@@ -120,4 +122,7 @@ auth-zones=authzone.example=configs/%s/authzone.zone""" % _confdir
             self.assertMessageIsAuthenticated(res)
             self.assertRRsetInAnswer(res, exp)
             self.assertMatchingRRSIGInAnswer(res, exp)
+
+   # Missing: out of order test, not sure yet on how to do that.
+   # Maybe with lua records introducing delays?
 
