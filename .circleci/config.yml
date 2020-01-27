@@ -242,6 +242,7 @@ commands:
               git \
               libboost-all-dev \
               libcdb-dev \
+              libcurl4-openssl-dev \
               libkrb5-dev \
               libldap2-dev \
               liblmdb-dev \
