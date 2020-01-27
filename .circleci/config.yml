@@ -178,9 +178,11 @@ commands:
           apt-get install -qq -y --no-install-recommends \
             libboost-all-dev \
             libcdb1 \
+            libcurl4 \
             libkrb5-3 \
             libldap-2.4-2 \
             liblmdb0 \
+            libluajit-5.1-2 \
             libpq5 \
             libssl1.1 \
             libsodium23 \
