@@ -35,7 +35,7 @@
 class SPgSQLStatement: public SSqlStatement
 {
 public:
-  SPgSQLStatement(const string& query, bool dolog, int nparams, SPgSQL* db) {
+  SPgSQLStatement(const string& query, bool dolog, int nparams, SPgSQL* db, unsigned int nstatement) {
     d_query = query;
     d_dolog = dolog;
     d_parent = db;
@@ -45,6 +45,7 @@ public:
     d_res_set = NULL;
     paramValues = NULL;
     paramLengths = NULL;
+    d_nstatement = nstatement;
     d_paridx = 0;
     d_residx = 0;
     d_resnum = 0;
@@ -242,6 +243,7 @@ private:
   int d_resnum;
   int d_fnum;
   int d_cur_set;
+  unsigned int d_nstatement;
 };
 
 bool SPgSQL::s_dolog;
@@ -252,6 +254,7 @@ SPgSQL::SPgSQL(const string &database, const string &host, const string& port, c
   d_db=0;
   d_in_trx = false;
   d_connectstr="";
+  d_nstatement = 0;
 
   if (!database.empty())
     d_connectstr+="dbname="+database;
@@ -318,7 +321,8 @@ void SPgSQL::execute(const string& query)
 
 std::unique_ptr<SSqlStatement> SPgSQL::prepare(const string& query, int nparams)
 {
-  return std::unique_ptr<SSqlStatement>(new SPgSQLStatement(query, s_dolog, nparams, this));
+  d_nstatement++;
+  return std::unique_ptr<SSqlStatement>(new SPgSQLStatement(query, s_dolog, nparams, this, d_nstatement));
 }
 
 void SPgSQL::startTransaction() {
