@@ -442,15 +442,26 @@ public:
     return std::string();
   }
 
-  std::string getPeerCertificate() override
+  std::string getPeerPubKey() override
   {
     if (d_conn) {
-      X509* cert = SSL_get_peer_certificate(d_conn.get()); // FIXME THIS LEAKS
-      if (cert) {
-        unsigned char *ppout = NULL;
-        int len = i2d_X509(cert, &ppout);
-        return std::string((char*) ppout, len);
+      X509* cert = SSL_get_peer_certificate(d_conn.get());
+      if (!cert) {
+        return std::string();
       }
+
+      EVP_PKEY* pubkey = X509_get_pubkey(cert);
+
+      if (!pubkey) {
+        X509_free(cert);
+        return std::string();
+      }
+      unsigned char *ppout = NULL;
+      int len = i2d_PUBKEY(pubkey, &ppout);
+      auto ret = std::string((char*) ppout, len);
+      X509_free(cert);
+      EVP_PKEY_free(pubkey);
+      return ret;
     }
     return std::string();
   }

@@ -205,7 +205,7 @@ try
     TCPIOHandler handler("FIXME.hostname", sock.getHandle(), timeout, tlsCtx, time(nullptr));
     handler.connect(fastOpen, dest, timeout);
     handler.doHandshake();
-    cerr<<Base64Encode(handler.getPeerCertificate())<<endl;
+    cerr<<Base64Encode(handler.getPeerPubKey())<<endl;
     uint16_t len;
     len = htons(packet.size());
     if (handler.write(&len, sizeof(len), timeout) != sizeof(len))
