@@ -442,6 +442,19 @@ public:
     return std::string();
   }
 
+  std::string getPeerCertificate() override
+  {
+    if (d_conn) {
+      X509* cert = SSL_get_peer_certificate(d_conn.get()); // FIXME THIS LEAKS
+      if (cert) {
+        unsigned char *ppout = NULL;
+        int len = i2d_X509(cert, &ppout);
+        return std::string((char*) ppout, len);
+      }
+    }
+    return std::string();
+  }
+
 private:
   std::unique_ptr<SSL, void(*)(SSL*)> d_conn;
   std::string d_hostname;

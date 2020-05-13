@@ -19,6 +19,7 @@ public:
   virtual IOState tryWrite(std::vector<uint8_t>& buffer, size_t& pos, size_t toWrite) = 0;
   virtual IOState tryRead(std::vector<uint8_t>& buffer, size_t& pos, size_t toRead) = 0;
   virtual std::string getServerNameIndication() = 0;
+  virtual std::string getPeerCertificate() = 0;
   virtual void close() = 0;
 
 protected:
@@ -321,6 +322,14 @@ public:
   {
     if (d_conn) {
       return d_conn->getServerNameIndication();
+    }
+    return std::string();
+  }
+
+  std::string getPeerCertificate()
+  {
+    if (d_conn) {
+      return d_conn->getPeerCertificate();
     }
     return std::string();
   }

@@ -17,6 +17,10 @@
 
 #include "tcpiohandler.hh"
 
+
+// FIXME: before merge, check if we still need this
+#include "base64.hh"
+
 StatBag S;
 
 bool hidettl=false;
@@ -201,6 +205,7 @@ try
     TCPIOHandler handler("FIXME.hostname", sock.getHandle(), timeout, tlsCtx, time(nullptr));
     handler.connect(fastOpen, dest, timeout);
     handler.doHandshake();
+    cerr<<Base64Encode(handler.getPeerCertificate())<<endl;
     uint16_t len;
     len = htons(packet.size());
     if (handler.write(&len, sizeof(len), timeout) != sizeof(len))
