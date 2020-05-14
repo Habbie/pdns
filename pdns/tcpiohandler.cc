@@ -884,7 +884,7 @@ class GnuTLSConnection: public TLSConnection
 public:
 
   /* server-side connection */
-  GnuTLSConnection(int socket, unsigned int timeout, const gnutls_certificate_credentials_t creds, const gnutls_priority_t priorityCache, std::shared_ptr<GnuTLSTicketsKey>& ticketsKey, bool enableTickets): d_conn(std::unique_ptr<gnutls_session_int, void(*)(gnutls_session_t)>(nullptr, gnutls_deinit)), d_ticketsKey(ticketsKey)
+  GnuTLSConnection(int socket, unsigned int timeout, const gnutls_certificate_credentials_t creds, const gnutls_priority_t priorityCache, std::shared_ptr<GnuTLSTicketsKey>& ticketsKey, bool enableTickets, bool validateCerts): d_conn(std::unique_ptr<gnutls_session_int, void(*)(gnutls_session_t)>(nullptr, gnutls_deinit)), d_ticketsKey(ticketsKey), d_validateCerts(validateCerts)
   {
     unsigned int sslOptions = GNUTLS_SERVER | GNUTLS_NONBLOCK;
 #ifdef GNUTLS_NO_SIGNAL
@@ -961,7 +961,11 @@ public:
     gnutls_record_set_timeout(d_conn.get(), timeout * 1000);
 
     if (!d_host.empty()) {
-      gnutls_session_set_verify_cert(d_conn.get(), d_host.c_str(), GNUTLS_VERIFY_ALLOW_UNSORTED_CHAIN);
+      if (d_validateCerts) {
+        gnutls_session_set_verify_cert(d_conn.get(), d_host.c_str(), GNUTLS_VERIFY_ALLOW_UNSORTED_CHAIN);
+      } else {
+        gnutls_session_set_verify_cert(d_conn.get(), d_host.c_str(), GNUTLS_VERIFY_ALLOW_UNSORTED_CHAIN | GNUTLS_VERIFY_DISABLE_CA_SIGN);
+      }
       rc = gnutls_server_name_set(d_conn.get(), GNUTLS_NAME_DNS, d_host.c_str(), d_host.size());
       if (rc != GNUTLS_E_SUCCESS) {
         throw std::runtime_error("Error setting the SNI value to '" + d_host + "' on TLS connection: " + std::string(gnutls_strerror(rc)));
@@ -1043,7 +1047,7 @@ public:
     do {
       ret = gnutls_handshake(d_conn.get());
       if (gnutls_error_is_fatal(ret) || ret == GNUTLS_E_WARNING_ALERT_RECEIVED) {
-        throw std::runtime_error("Error accepting a new connection");
+        throw std::runtime_error("Error establishing a new connection: " + std::string(gnutls_strerror(ret)));
       }
     }
     while (ret < 0 && ret == GNUTLS_E_INTERRUPTED);
@@ -1206,6 +1210,16 @@ public:
     return std::string();
   }
 
+  std::string getPeerPubKey() override
+  {
+    if (d_conn) {
+      unsigned int list_size;
+      const gnutls_datum_t *cert = gnutls_certificate_get_peers(d_conn.get(), &list_size);
+      cerr<<"list_size="<<list_size<<endl;
+    }
+    return std::string();
+  }
+
   void close() override
   {
     if (d_conn) {
@@ -1217,6 +1231,7 @@ private:
   std::unique_ptr<gnutls_session_int, void(*)(gnutls_session_t)> d_conn;
   std::shared_ptr<GnuTLSTicketsKey> d_ticketsKey;
   std::string d_host;
+  bool d_validateCerts{true};
 };
 
 class GnuTLSIOCtx: public TLSCtx
@@ -1339,7 +1354,7 @@ public:
       ticketsKey = d_ticketsKey;
     }
 
-    return std::unique_ptr<GnuTLSConnection>(new GnuTLSConnection(socket, timeout, d_creds.get(), d_priorityCache, ticketsKey, d_enableTickets));
+    return std::unique_ptr<GnuTLSConnection>(new GnuTLSConnection(socket, timeout, d_creds.get(), d_priorityCache, ticketsKey, d_enableTickets, d_validateCerts));
   }
 
   std::unique_ptr<TLSConnection> getClientConnection(const std::string& host, int socket, unsigned int timeout) override

@@ -231,39 +231,41 @@ try
     if (!fastOpen || (tlsCtx == nullptr || tlsCtx->supportFastOpen() == false)) {
       SConnectWithTimeout(sock.getHandle(), dest, timeout);
     }
-    TCPIOHandler handler("FIXME.hostname", sock.getHandle(), timeout, tlsCtx, time(nullptr));
+    TCPIOHandler handler("a.ns.facebook.com", sock.getHandle(), timeout, tlsCtx, time(nullptr));
     handler.connect(fastOpen, dest, timeout);
     handler.doHandshake();
-    cerr<<Base64Encode(handler.getPeerPubKey())<<endl;
-    DNSKEYRecordContent drc;
-    drc.d_algorithm = dotpinalg;
-    drc.d_key = handler.getPeerPubKey();
-    drc.d_protocol = 3;
-    cerr<<drc.getZoneRepresentation()<<endl;
-    // FIXME: the hardcoded 2 is bad
-    auto dsrc = makeDSFromDNSKey(dotpinzone, drc, 2);
-    cerr<<dsrc.getZoneRepresentation()<<endl;
+    if (dotpinalg) {
+      cerr<<Base64Encode(handler.getPeerPubKey())<<endl;
+      DNSKEYRecordContent drc;
+      drc.d_algorithm = dotpinalg;
+      drc.d_key = handler.getPeerPubKey();
+      drc.d_protocol = 3;
+      cerr<<drc.getZoneRepresentation()<<endl;
+      // FIXME: the hardcoded 2 is bad
+      auto dsrc = makeDSFromDNSKey(dotpinzone, drc, 2);
+      cerr<<dsrc.getZoneRepresentation()<<endl;
 
-    vector<DNSZoneRecord> dsset;
-    auto ret = stubDoResolve(dotpinzone, QType::DS, dsset);
+      vector<DNSZoneRecord> dsset;
+      auto ret = stubDoResolve(dotpinzone, QType::DS, dsset);
 
-    cerr<<"dsset ="<<dsset.size()<<endl;
+      cerr<<"dsset ="<<dsset.size()<<endl;
 
-    bool verified = false;
-    for (const auto &ds : dsset) {
-      cerr<<ds.dr.d_content->getZoneRepresentation()<<endl;
-      if (*ds.dr.d_content == dsrc) {
-        verified = true;
-        break;
+      bool verified = false;
+      for (const auto &ds : dsset) {
+        cerr<<ds.dr.d_content->getZoneRepresentation()<<endl;
+        if (*ds.dr.d_content == dsrc) {
+          verified = true;
+          break;
+        }
       }
-    }
 
-    if (verified) {
-      cout<<"server pubkey matches a DS"<<endl;
-    } else {
-      cout<<"server pubkey does not match any DS"<<endl;
+      if (verified) {
+        cout<<"server pubkey matches a DS"<<endl;
+      } else {
+        cout<<"server pubkey does not match any DS"<<endl;
+      }
+      cerr<<"==? "<<(*(dsset[0].dr.d_content) == dsrc)<<endl;
     }
-    cerr<<"==? "<<(*(dsset[0].dr.d_content) == dsrc)<<endl;
 
     uint16_t len;
     len = htons(packet.size());
