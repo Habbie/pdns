@@ -480,20 +480,26 @@ zone2ldap_SOURCES = \
 zone2ldap_LDADD = $(LIBCRYPTO_LIBS)
 zone2ldap_LDFLAGS = $(AM_LDFLAGS) $(LIBCRYPTO_LDFLAGS)
 
+# FIXME: arguments and gss are in here because of dnssecinfra and this is terrible
 sdig_SOURCES = \
+	arguments.cc arguments.hh \
 	base32.cc \
 	base64.cc base64.hh \
 	dns.cc \
+	dns_random.cc dns_random.hh \
 	dnslabeltext.cc \
 	dnsname.cc dnsname.hh \
 	dnsparser.cc dnsparser.hh \
 	dnsrecords.cc \
+	dnssecinfra.cc dnssecinfra.hh \
 	dnswriter.cc dnswriter.hh \
 	ednssubnet.cc iputils.cc \
+	gss_context.cc gss_context.hh \
 	libssl.cc libssl.hh \
 	logger.cc \
 	misc.cc misc.hh \
 	nsecrecords.cc \
+	opensslsigners.cc opensslsigners.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sdig.cc \

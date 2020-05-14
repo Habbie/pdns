@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 #include "dnsparser.hh"
+#include "dnssecinfra.hh"
 #include "ednsoptions.hh"
 #include "sstuff.hh"
 #include "misc.hh"
@@ -25,6 +26,19 @@ StatBag S;
 
 bool hidettl=false;
 
+
+
+// FIXME: do not want
+#include "arguments.hh"
+ArgvMap &arg()
+{
+  static ArgvMap theArg;
+  return theArg;
+}
+
+
+
+
 string ttl(uint32_t ttl)
 {
   if(hidettl)
@@ -35,7 +49,7 @@ string ttl(uint32_t ttl)
 
 void usage() {
   cerr<<"sdig"<<endl;
-  cerr<<"Syntax: sdig IP-ADDRESS-OR-DOH-URL PORT QUESTION QUESTION-TYPE [dnssec] [ednssubnet SUBNET/MASK] [hidesoadetails] [hidettl] [recurse] [showflags] [tcp] [xpf XPFDATA]"<<endl;
+  cerr<<"Syntax: sdig IP-ADDRESS-OR-DOH-URL PORT QUESTION QUESTION-TYPE [dnssec] [ednssubnet SUBNET/MASK] [hidesoadetails] [hidettl] [recurse] [showflags] [tcp] [xpf XPFDATA] [dotpin ALG ZONE]"<<endl;
 }
 
 const string nameForClass(uint16_t qclass, uint16_t qtype)
@@ -65,6 +79,8 @@ try
   bool doh=false;
   bool tls=false;
   bool insecureTLS=false;
+  int dotpinalg=0;
+  DNSName dotpinzone;
   boost::optional<Netmask> ednsnm;
   uint16_t xpfcode = 0, xpfversion = 0, xpfproto = 0;
   char *xpfsrc = NULL, *xpfdst = NULL;
@@ -123,6 +139,14 @@ try
         xpfproto = atoi(argv[++i]);
         xpfsrc = argv[++i];
         xpfdst = argv[++i];
+      }
+      if (strcmp(argv[i], "dotpin") == 0) {
+        if(argc <i+3) {
+          cerr<<"dotpin needs two arguments"<<endl;
+          exit(EXIT_FAILURE);
+        }
+        dotpinalg = atoi(argv[++i]);
+        dotpinzone = DNSName(argv[++i]);
       }
     }
   }
@@ -206,6 +230,14 @@ try
     handler.connect(fastOpen, dest, timeout);
     handler.doHandshake();
     cerr<<Base64Encode(handler.getPeerPubKey())<<endl;
+    DNSKEYRecordContent drc;
+    drc.d_algorithm = dotpinalg;
+    drc.d_key = handler.getPeerPubKey();
+    drc.d_protocol = 3;
+    cerr<<drc.getZoneRepresentation()<<endl;
+    // FIXME: the hardcoded 2 is bad
+    auto dsrc = makeDSFromDNSKey(dotpinzone, drc, 2);
+    cerr<<dsrc.getZoneRepresentation()<<endl;
     uint16_t len;
     len = htons(packet.size());
     if (handler.write(&len, sizeof(len), timeout) != sizeof(len))
