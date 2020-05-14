@@ -505,6 +505,7 @@ sdig_SOURCES = \
 	sdig.cc \
 	sillyrecords.cc \
 	sstuff.hh \
+	stubresolver.cc stubresolver.hh \
 	statbag.cc \
 	tcpiohandler.cc tcpiohandler.hh \
 	unix_utility.cc

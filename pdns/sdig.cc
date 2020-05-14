@@ -9,6 +9,7 @@
 #include "dnswriter.hh"
 #include "dnsrecords.hh"
 #include "statbag.hh"
+#include "stubresolver.hh"
 #include <boost/array.hpp>
 #include "ednssubnet.hh"
 
@@ -103,6 +104,10 @@ try
   }
 
   reportAllTypes();
+  ::arg().set("resolver","Use this resolver for ALIAS and the internal stub resolver")="no";
+  ::arg().set("rng", "Specify the random number generator to use. Valid values are auto,sodium,openssl,getrandom,arc4random,urandom.")="auto";
+  ::arg().set("entropy-source", "If set, read entropy from this file")="/dev/urandom";
+
 
   if (argc > 5) {
     for(int i=5; i<argc; i++) {
@@ -238,6 +243,28 @@ try
     // FIXME: the hardcoded 2 is bad
     auto dsrc = makeDSFromDNSKey(dotpinzone, drc, 2);
     cerr<<dsrc.getZoneRepresentation()<<endl;
+
+    vector<DNSZoneRecord> dsset;
+    auto ret = stubDoResolve(dotpinzone, QType::DS, dsset);
+
+    cerr<<"dsset ="<<dsset.size()<<endl;
+
+    bool verified = false;
+    for (const auto &ds : dsset) {
+      cerr<<ds.dr.d_content->getZoneRepresentation()<<endl;
+      if (*ds.dr.d_content == dsrc) {
+        verified = true;
+        break;
+      }
+    }
+
+    if (verified) {
+      cout<<"server pubkey matches a DS"<<endl;
+    } else {
+      cout<<"server pubkey does not match any DS"<<endl;
+    }
+    cerr<<"==? "<<(*(dsset[0].dr.d_content) == dsrc)<<endl;
+
     uint16_t len;
     len = htons(packet.size());
     if (handler.write(&len, sizeof(len), timeout) != sizeof(len))
