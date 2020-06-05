@@ -12,4 +12,15 @@ RUN curl https://repo.powerdns.com/CBC8B383-pub.asc | apt-key add -
 RUN apt-get update
 RUN apt-get install -y pdns-server
 
+RUN apt-get -qq --no-install-recommends install p11-kit softhsm
+RUN mkdir -p /etc/pkcs11/modules/
+COPY softhsm.mod /etc/pkcs11/modules/softhsm.module
+COPY softhsm.conf /etc/softhsm/softhsm.conf
+RUN chmod 0755 /etc/softhsm/
+RUN chmod 0644 /etc/softhsm/softhsm.conf
+RUN chmod 0777 /var/lib/softhsm
+RUN p11-kit -l
+
+
+
 CMD pdns_server --version
