@@ -1,0 +1,15 @@
+FROM debian:buster
+
+RUN apt-get update
+RUN apt-get install -y curl gnupg dnsutils apt-transport-https
+
+COPY dnsdist.debian-and-ubuntu /etc/apt/preferences.d/dnsdist
+COPY pdns.debian-and-ubuntu /etc/apt/preferences.d/pdns
+COPY pdns.list.auth-master.debian-buster /etc/apt/sources.list.d/pdns.list
+
+RUN curl https://repo.powerdns.com/FD380FBB-pub.asc | apt-key add -
+RUN curl https://repo.powerdns.com/CBC8B383-pub.asc | apt-key add -
+RUN apt-get update
+RUN apt-get install -y pdns-server
+
+CMD pdns_server --version
