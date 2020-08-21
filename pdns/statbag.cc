@@ -117,6 +117,10 @@ void StatBag::declare(const string &key, const string &descrip, StatType statTyp
 
 void StatBag::declare(const string &key, const string &descrip, StatBag::func_t func, StatType statType)
 {
+  if(d_stats.count(key)) {
+      throw PDNSException("Attempt to re-declare func statbag '"+key+"'");
+  }
+
   d_funcstats[key]=func;
   d_keyDescrips[key]=descrip;
   d_statTypes[key]=statType;
