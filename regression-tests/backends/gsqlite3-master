@@ -11,9 +11,10 @@ case $context in
 module-dir=./modules
 launch=gsqlite3
 gsqlite3-database=pdns.sqlite3
+any-to-tcp=no
 __EOF__
 
-		gsql_master gsqlite3 nodyndns
+		gsql_master gsqlite3 # nodyndns
 		;;
 
 	*)
