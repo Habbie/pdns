@@ -633,7 +633,13 @@ bool RecursorLua4::genhook(const luacall_t& func, DNSQuestion& dq, int& ret) con
   dq.udpCallback.clear();
 
   dq.rcode = ret;
+
+  CPUTime dt;
+  dt.start();
   bool handled=func(&dq);
+  double cpumsec = dt.ndiff()/1000000.0;
+
+  g_log<<Logger::Debug<<"Lua call took "<<cpumsec<<" msec"<<endl;
 
   if(handled) {
 loop:;
@@ -656,7 +662,13 @@ loop:;
           g_log<<Logger::Error<<"Attempted callback for Lua UDP Query/Response which could not be found"<<endl;
           return false;
         }
+
+        dt.start();
         bool result=cbFunc(&dq);
+        cpumsec = dt.ndiff()/1000000.0;
+
+        g_log<<Logger::Debug<<"Lua callback call took "<<cpumsec<<" msec"<<endl;
+
         if(!result) {
           return false;
         }
