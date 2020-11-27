@@ -42,18 +42,6 @@
 string GenUDPQueryResponse(const ComboAddress& dest, const string& query);
 unsigned int getRecursorThreadId();
 
-// pdns_ffi_param_t is a lightuserdata
-template<>
-struct LuaContext::Pusher<pdns_ffi_param*> {
-    static const int minSize = 1;
-    static const int maxSize = 1;
-
-    static PushedObject push(lua_State* state, pdns_ffi_param* ptr) noexcept {
-        lua_pushlightuserdata(state, ptr);
-        return PushedObject{state, 1};
-    }
-};
-
 class RecursorLua4 : public BaseLua4
 {
 public:
@@ -208,5 +196,33 @@ private:
   ipfilter_t d_ipfilter;
   typedef std::function<bool(PolicyEvent&)> policyEventFilter_t;
   policyEventFilter_t d_policyHitEventFilter;
+};
+
+struct pdns_ffi_param
+{
+public:
+  pdns_ffi_param(RecursorLua4::FFIParams& params_): params(params_)
+  {
+  }
+
+  RecursorLua4::FFIParams& params;
+  std::unique_ptr<std::string> qnameStr{nullptr};
+  std::unique_ptr<std::string> localStr{nullptr};
+  std::unique_ptr<std::string> remoteStr{nullptr};
+  std::unique_ptr<std::string> ednssubnetStr{nullptr};
+  std::vector<pdns_ednsoption_t> ednsOptionsVect;
+  std::vector<pdns_proxyprotocol_value_t> proxyProtocolValuesVect;
+};
+
+// pdns_ffi_param_t is a lightuserdata
+template<>
+struct LuaContext::Pusher<pdns_ffi_param*> {
+    static const int minSize = 1;
+    static const int maxSize = 1;
+
+    static PushedObject push(lua_State* state, pdns_ffi_param* ptr) noexcept {
+        lua_pushlightuserdata(state, ptr);
+        return PushedObject{state, 1};
+    }
 };
 

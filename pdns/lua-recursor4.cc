@@ -599,22 +599,6 @@ unsigned int RecursorLua4::gettag(const ComboAddress& remote, const Netmask& edn
   return 0;
 }
 
-struct pdns_ffi_param
-{
-public:
-  pdns_ffi_param(RecursorLua4::FFIParams& params_): params(params_)
-  {
-  }
-
-  RecursorLua4::FFIParams& params;
-  std::unique_ptr<std::string> qnameStr{nullptr};
-  std::unique_ptr<std::string> localStr{nullptr};
-  std::unique_ptr<std::string> remoteStr{nullptr};
-  std::unique_ptr<std::string> ednssubnetStr{nullptr};
-  std::vector<pdns_ednsoption_t> ednsOptionsVect;
-  std::vector<pdns_proxyprotocol_value_t> proxyProtocolValuesVect;
-};
-
 unsigned int RecursorLua4::gettag_ffi(RecursorLua4::FFIParams& params) const
 {
   if (d_gettag_ffi) {
