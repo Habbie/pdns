@@ -31,6 +31,7 @@
 #include "filterpo.hh"
 #include "rec-snmp.hh"
 #include <unordered_set>
+#include <boost/scope_exit.hpp>
 
 RecursorLua4::RecursorLua4() { prepareContext(); }
 
@@ -455,6 +456,10 @@ void RecursorLua4::postPrepareContext()
       (*event.discardedPolicies)[policy] = true;
     }
   });
+
+  struct pdns_ffi_param_size _buf;
+  d_lw->writeVariable("____ffiparams", _buf);
+  d_ffiparams = (struct pdns_ffi_param*) d_lw->readVariableAddress("____ffiparams");
 }
 
 void RecursorLua4::postLoad() {
@@ -602,14 +607,18 @@ unsigned int RecursorLua4::gettag(const ComboAddress& remote, const Netmask& edn
 unsigned int RecursorLua4::gettag_ffi(RecursorLua4::FFIParams& params) const
 {
   if (d_gettag_ffi) {
-    pdns_ffi_param_t param(params);
+    pdns_ffi_param_t* param = new (d_ffiparams) pdns_ffi_param_t(params);
 
-    auto ret = d_gettag_ffi(&param);
+    BOOST_SCOPE_EXIT(&param) {
+      param->~pdns_ffi_param_t();
+    } BOOST_SCOPE_EXIT_END
+
+    auto ret = d_gettag_ffi(param);
     if (ret) {
       params.data = *ret;
     }
 
-    return param.params.tag;
+    return param->params.tag;
   }
   return 0;
 }

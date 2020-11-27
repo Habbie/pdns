@@ -196,6 +196,7 @@ private:
   ipfilter_t d_ipfilter;
   typedef std::function<bool(PolicyEvent&)> policyEventFilter_t;
   policyEventFilter_t d_policyHitEventFilter;
+  struct pdns_ffi_param* d_ffiparams;
 };
 
 struct pdns_ffi_param
@@ -212,6 +213,11 @@ public:
   std::unique_ptr<std::string> ednssubnetStr{nullptr};
   std::vector<pdns_ednsoption_t> ednsOptionsVect;
   std::vector<pdns_proxyprotocol_value_t> proxyProtocolValuesVect;
+};
+
+struct pdns_ffi_param_size
+{
+  char __buf[sizeof(struct pdns_ffi_param)];
 };
 
 // pdns_ffi_param_t is a lightuserdata

@@ -689,6 +689,18 @@ public:
         return readTopAndPop<TType>(mState, PushedObject{mState, 1});
     }
     
+    void* readVariableAddress(const char* name) const
+    {
+        void* ret = NULL;
+        lua_getglobal(mState, name);
+        if (lua_isuserdata(mState, -1)) {
+            ret = lua_touserdata(mState, -1);
+        }
+
+        lua_pop(mState, 1);
+        return ret;
+    }
+
     /**
      * @sa readVariable
      */
