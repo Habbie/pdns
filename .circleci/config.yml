@@ -1099,8 +1099,7 @@ jobs:
             --with-lua=luajit \
             --with-libcap \
             --with-protobuf=yes \
-            --with-net-snmp \
-            --enable-asan
+            --with-net-snmp
           working_directory: ~/project/pdns/recursordist
       - run:
           name: build
