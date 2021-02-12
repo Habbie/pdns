@@ -137,7 +137,7 @@ pdns_recursor_SOURCES = \
 	namespaces.hh \
 	negcache.hh negcache.cc \
 	noinitvector.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	packetcache.hh \
 	pdns_recursor.cc \
@@ -253,7 +253,7 @@ testrunner_SOURCES = \
 	mtasker_context.cc \
 	namespaces.hh \
 	negcache.hh negcache.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	pdnsexception.hh \
 	pollmplexer.cc \

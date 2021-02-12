@@ -154,6 +154,7 @@ public:
   void xfrBlob(string& blob, int length);
   void xfrHexBlob(string& blob, bool keepReading=false);
   void xfrSvcParamKeyVals(set<SvcParam> &kvs);
+  void xfrNSECBitmap(NSECBitmap& bitmap);
 
   void getDnsrecordheader(struct dnsrecordheader &ah);
   void copyRecord(vector<unsigned char>& dest, uint16_t len);

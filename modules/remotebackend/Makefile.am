@@ -116,7 +116,7 @@ libtestremotebackend_la_SOURCES = \
 	../../pdns/logger.cc \
 	../../pdns/misc.cc \
 	../../pdns/nameserver.cc \
-	../../pdns/nsecrecords.cc \
+	../../pdns/nsecrecords.cc ../../pdns/nsecrecords.hh \
 	../../pdns/packetcache.hh \
 	../../pdns/qtype.cc \
 	../../pdns/rcpgenerator.cc \

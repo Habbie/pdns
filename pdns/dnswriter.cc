@@ -388,6 +388,58 @@ template <typename Container> void GenericDNSPacketWriter<Container>::xfrHexBlob
   xfrBlob(blob);
 }
 
+template <typename Container> void GenericDNSPacketWriter<Container>::xfrNSECBitmap(const NSECBitmap& bitmap)
+{
+  uint8_t res[34];
+  int oldWindow{-1};
+  int len{0};
+  string tmp;
+
+  memset(res, 0, sizeof(res));
+
+  auto set = [&](uint16_t type) {
+    uint16_t bit = type % 256;
+    int window = static_cast<int>(type / 256);
+
+    if (window != oldWindow) {
+      if (oldWindow > -1) {
+        res[0] = static_cast<unsigned char>(oldWindow);
+        res[1] = static_cast<unsigned char>(len);
+        tmp.assign(res, res+len+2);
+        xfrBlob(tmp);
+      }
+      memset(res, 0, sizeof(res));
+      oldWindow = window;
+    }
+    res[2+bit/8] |= 1 << (7-(bit%8));
+    len=1+bit/8;
+  };
+
+  if (bitmap.d_bitset) {
+    size_t found = 0;
+    size_t l_count = bitmap.d_bitset->count();
+    for(size_t idx = 0; idx < NSECBitmap::nbTypes && found < l_count; ++idx){
+      if (!bitmap.d_bitset->test(idx)) {
+        continue;
+      }
+      found++;
+      set(idx);
+    }
+  }
+  else {
+    for (const auto& type : bitmap.d_set) {
+      set(type);
+    }
+  }
+
+  res[0] = static_cast<unsigned char>(oldWindow);
+  res[1] = static_cast<unsigned char>(len);
+  if (len) {
+    tmp.assign(res, res+len+2);
+    xfrBlob(tmp);
+  }
+}
+
 template <typename Container> void GenericDNSPacketWriter<Container>::xfrSvcParamKeyVals(const std::set<SvcParam> &kvs)
 {
   for (auto const &param : kvs) {

@@ -28,6 +28,7 @@
 #include "dnsname.hh"
 #include "iputils.hh"
 #include "svc-records.hh"
+#include "nsecrecords.hh"
 
 class RecordTextException : public runtime_error
 {
@@ -64,6 +65,8 @@ public:
 
   void xfrSvcParamKeyVals(set<SvcParam>& val);
   void xfrRFC1035CharString(string &val);
+
+  void xfrNSECBitmap(NSECBitmap& bitmap);
 
   const string getRemaining() const {
     return d_string.substr(d_pos);
@@ -102,6 +105,8 @@ public:
   void xfrBlob(const string& val, int len=-1);
   void xfrHexBlob(const string& val, bool keepReading=false);
   void xfrSvcParamKeyVals(const set<SvcParam>& val);
+
+  void xfrNSECBitmap(const NSECBitmap& bitmap);
   bool eof() { return true; };
 
   const string getRemaining() const {

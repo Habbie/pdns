@@ -410,6 +410,15 @@ void RecordTextReader::xfrSvcParamKeyVals(set<SvcParam>& val)
   }
 }
 
+void RecordTextReader::xfrNSECBitmap(NSECBitmap& bitmap)
+{
+  while(!eof()) {
+    uint16_t type;
+    xfrType(type);
+    bitmap.set(type);
+  }
+}
+
 static inline uint8_t hextodec(uint8_t val)
 {
   if(val >= '0' && val<='9')
@@ -797,6 +806,11 @@ void RecordTextWriter::xfrSvcParamKeyVals(const set<SvcParam>& val) {
       break;
     }
   }
+}
+
+void RecordTextWriter::xfrNSECBitmap(const NSECBitmap& bitmap)
+{
+  d_string.append(bitmap.getZoneRepresentation());
 }
 
 void RecordTextWriter::xfrText(const string& val, bool multi, bool lenField)

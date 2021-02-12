@@ -28,6 +28,7 @@
 #include "namespaces.hh"
 #include "iputils.hh"
 #include "svc-records.hh"
+#include "nsecrecords.hh"
 #include <arpa/inet.h>
 
 
@@ -133,6 +134,8 @@ public:
   void xfrSvcParamKeyVals(const set<SvcParam>& kvs);
   void xfrBlobNoSpaces(const string& blob, int len=-1);
   void xfrHexBlob(const string& blob, bool keepReading=false);
+
+  void xfrNSECBitmap(const NSECBitmap& bitmap);
 
   dnsheader* getHeader();
   void getRecordPayload(string& records); // call __before commit__

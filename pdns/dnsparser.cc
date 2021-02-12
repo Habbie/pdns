@@ -557,6 +557,47 @@ void PacketReader::xfrBlob(string& blob, int length)
   }
 }
 
+void PacketReader::xfrNSECBitmap(NSECBitmap& nsecbitmap) {
+  string bitmap;
+  xfrBlob(bitmap);
+
+  // 00 06 20 00 00 00 00 03  -> NS RRSIG NSEC  ( 2, 46, 47 ) counts from left
+  if(bitmap.empty()) {
+    return;
+  }
+
+  if(bitmap.size() < 2) {
+    throw MOADNSException("NSEC record with impossibly small bitmap");
+  }
+
+  for(unsigned int n = 0; n+1 < bitmap.size();) {
+    uint8_t window=static_cast<uint8_t>(bitmap[n++]);
+    uint8_t blen=static_cast<uint8_t>(bitmap[n++]);
+
+    // end if zero padding and ensure packet length
+    if (window == 0 && blen == 0) {
+      break;
+    }
+
+    if (blen > 32) {
+      throw MOADNSException("NSEC record with invalid bitmap length");
+    }
+
+    if (n + blen > bitmap.size()) {
+      throw MOADNSException("NSEC record with bitmap length > packet length");
+    }
+
+    for(unsigned int k=0; k < blen; k++) {
+      uint8_t val=bitmap[n++];
+      for(int bit = 0; bit < 8 ; ++bit , val>>=1) {
+        if(val & 1) {
+          nsecbitmap.set((7-bit) + 8*(k) + 256*window);
+        }
+      }
+    }
+  }
+}
+
 void PacketReader::xfrSvcParamKeyVals(set<SvcParam> &kvs) {
   while (d_pos < (d_startrecordpos + d_recordlen)) {
     if (d_pos + 2 > (d_startrecordpos + d_recordlen)) {

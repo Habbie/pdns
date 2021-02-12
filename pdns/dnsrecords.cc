@@ -379,6 +379,12 @@ boilerplate_conv(SSHFP,
                  conv.xfrHexBlob(d_fingerprint, true);
                  )
 
+boilerplate_conv(CSYNC,
+                 conv.xfr32BitInt(d_serial);
+                 conv.xfr16BitInt(d_flags);
+                 conv.xfrNSECBitmap(d_bitmap);
+                 )
+
 boilerplate_conv(RRSIG,
                  conv.xfrType(d_type); 
                    conv.xfr8BitInt(d_algorithm); 

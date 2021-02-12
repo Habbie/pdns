@@ -232,7 +232,7 @@ pdns_server_SOURCES = \
 	nameserver.cc nameserver.hh \
 	namespaces.hh \
 	noinitvector.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	packetcache.hh \
 	packethandler.cc packethandler.hh \
@@ -352,7 +352,7 @@ pdnsutil_SOURCES = \
 	lua-auth4.cc lua-auth4.hh \
 	lua-base4.cc lua-base4.hh \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	pdnsutil.cc \
 	qtype.cc \
@@ -430,7 +430,7 @@ zone2sql_SOURCES = \
 	json.cc json.hh \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -458,7 +458,7 @@ zone2json_SOURCES = \
 	dnswriter.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -495,7 +495,7 @@ zone2ldap_SOURCES = \
 	dnswriter.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -522,7 +522,7 @@ sdig_SOURCES = \
 	libssl.cc libssl.hh \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	proxy-protocol.cc proxy-protocol.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -577,7 +577,7 @@ calidns_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -624,7 +624,7 @@ stubquery_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -650,7 +650,7 @@ saxfr_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	saxfr.cc \
@@ -690,7 +690,7 @@ ixfrdist_SOURCES = \
 	logger.cc logger.hh\
 	misc.cc misc.hh \
 	mplexer.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	pollmplexer.cc \
 	qtype.cc \
 	query-local-address.hh query-local-address.cc \
@@ -744,7 +744,7 @@ ixplore_SOURCES = \
 	ixplore.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	query-local-address.hh query-local-address.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -776,7 +776,7 @@ dnstcpbench_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -808,7 +808,7 @@ nsec3dig_SOURCES = \
 	logger.cc \
 	misc.cc misc.hh \
 	nsec3dig.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -840,7 +840,7 @@ toysdig_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -884,7 +884,7 @@ tsig_tests_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	query-local-address.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -916,7 +916,7 @@ speedtest_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc misc.hh \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -961,7 +961,7 @@ dnsbulktest_SOURCES = \
 	dnswriter.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -990,7 +990,7 @@ comfun_SOURCES = \
 	dnswriter.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc \
 	sillyrecords.cc \
@@ -1022,7 +1022,7 @@ dnsscan_SOURCES = \
 	dnswriter.cc dnswriter.hh \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1053,7 +1053,7 @@ dnsreplay_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1083,7 +1083,7 @@ nproxy_SOURCES = \
 	misc.cc \
 	mplexer.hh \
 	nproxy.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	pollmplexer.cc \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -1115,7 +1115,7 @@ pdns_notify_SOURCES = \
 	logger.cc \
 	misc.cc \
 	notify.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	pollmplexer.cc \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -1153,7 +1153,7 @@ dnsscope_SOURCES = \
 	histog.hh \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1184,7 +1184,7 @@ dnsgram_SOURCES = \
 	dnswriter.cc dnswriter.hh \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1212,7 +1212,7 @@ dnsdemog_SOURCES = \
 	dnswriter.cc dnswriter.hh \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1243,7 +1243,7 @@ dnspcap2calidns_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1275,7 +1275,7 @@ dnspcap2protobuf_SOURCES = \
 	iputils.cc \
 	logger.cc \
 	misc.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	protozero.cc protozero.hh \
 	qtype.cc \
 	rcpgenerator.cc rcpgenerator.hh \
@@ -1333,7 +1333,7 @@ testrunner_SOURCES = \
 	lua-base4.hh lua-base4.cc \
 	misc.cc \
 	nameserver.cc \
-	nsecrecords.cc \
+	nsecrecords.cc nsecrecords.hh \
 	opensslsigners.cc opensslsigners.hh \
 	pollmplexer.cc \
 	proxy-protocol.cc proxy-protocol.hh \
@@ -1505,7 +1505,7 @@ fuzz_target_moadnsparser_SOURCES = \
 	fuzz_moadnsparser.cc \
 	logger.cc logger.hh \
 	misc.cc misc.hh \
-	nsecrecords.cc  \
+	nsecrecords.cc nsecrecords.hh  \
 	qtype.cc qtype.hh \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
@@ -1576,7 +1576,7 @@ fuzz_target_zoneparsertng_SOURCES = \
 	fuzz_zoneparsertng.cc \
 	logger.cc logger.hh \
 	misc.cc misc.hh \
-	nsecrecords.cc  \
+	nsecrecords.cc nsecrecords.hh  \
 	qtype.cc qtype.hh \
 	rcpgenerator.cc rcpgenerator.hh \
 	sillyrecords.cc \
