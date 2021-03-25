@@ -19,8 +19,8 @@ jobs:
         with:
           fetch-depth: 5
           submodules: recursive
-      - name: dpkg -l
-        run: dpkg -l
+      - name: pwd
+        run: pwd
       - name: install clang
         run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11
       - name: install auth build deps
