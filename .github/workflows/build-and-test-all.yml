@@ -80,5 +80,8 @@ jobs:
               --enable-ixfrdist \
               --enable-asan \
               --enable-ubsan
+      - name: show config.log
+        if: ${{ failure() }}
+        run: cat config.log
       - name: build
         run: make -j3 -k
