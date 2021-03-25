@@ -21,6 +21,8 @@ jobs:
           submodules: recursive
       - name: pwd
         run: pwd
+      - name: env
+        run: env
       - name: install clang
         run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11 llvm-11
       - name: install auth build deps
