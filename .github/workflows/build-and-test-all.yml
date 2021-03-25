@@ -1,0 +1,85 @@
+---
+name: 'Build and test everything'
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 22 * * 3'
+
+jobs:
+  build-auth:
+    name: build auth
+    runs-on: ubuntu-20.04
+    environment:
+      UBSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1'
+      ASAN_OPTIONS: detect_leaks=0
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 5
+          submodules: recursive
+      - name: install auth build deps
+        run: |
+          sudo apt-getupdate && sudo apt-get install -qq -y --no-install-recommends \
+            autoconf \
+            automake \
+            bison \
+            bzip2 \
+            curl \
+            default-libmysqlclient-dev \
+            flex \
+            g++ \
+            git \
+            libboost-all-dev \
+            libcdb-dev \
+            libcurl4-openssl-dev \
+            libgeoip-dev \
+            libkrb5-dev \
+            libldap2-dev \
+            liblmdb-dev \
+            libluajit-5.1-dev \
+            libmaxminddb-dev \
+            libp11-kit-dev \
+            libpq-dev \
+            libsodium-dev \
+            libsqlite3-dev \
+            libssl-dev \
+            libsystemd-dev \
+            libtool \
+            libyaml-cpp-dev \
+            libzmq3-dev \
+            make \
+            pkg-config \
+            python3-venv \
+            ragel \
+            ruby-bundler \
+            ruby2.5-dev \
+            sqlite3 \
+            systemd \
+            unixodbc-dev \
+            wget
+      - name: autoconf
+        run: BUILDER_VERSION=0.0.0-git1 autoreconf -vfi
+      - name: configure
+        run: |
+            CFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int" \
+            CXXFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int -Wp,-D_GLIBCXX_ASSERTIONS" \
+            ./configure \
+              --enable-option-checking=fatal \
+              --with-modules='bind geoip gmysql godbc gpgsql gsqlite3 ldap lmdb lua2 pipe random remote tinydns' \
+              --enable-systemd \
+              --enable-tools \
+              --enable-unit-tests \
+              --enable-backend-unit-tests \
+              --enable-fuzz-targets \
+              --enable-experimental-pkcs11 \
+              --enable-remotebackend-zeromq \
+              --with-lmdb=/usr \
+              --with-libsodium \
+              --prefix=/opt/pdns-auth \
+              --enable-ixfrdist \
+              --enable-asan \
+              --enable-ubsan
+      - name: build
+        run: make -j3 -k
