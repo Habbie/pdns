@@ -54,7 +54,6 @@ jobs:
             python3-venv \
             ragel \
             ruby-bundler \
-            ruby2.5-dev \
             sqlite3 \
             systemd \
             unixodbc-dev \
