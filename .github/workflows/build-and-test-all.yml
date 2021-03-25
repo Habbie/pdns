@@ -21,7 +21,7 @@ jobs:
           submodules: recursive
       - name: install auth build deps
         run: |
-          sudo apt-getupdate && sudo apt-get install -qq -y --no-install-recommends \
+          sudo apt-get update && sudo apt-get install -qq -y --no-install-recommends \
             autoconf \
             automake \
             bison \
