@@ -90,4 +90,4 @@ jobs:
         if: ${{ failure() }}
         run: cat config.log
       - name: build
-        run: make -j3 -k
+        run: make -j3 -k V=1
