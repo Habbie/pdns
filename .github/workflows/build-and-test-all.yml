@@ -22,7 +22,7 @@ jobs:
       - name: pwd
         run: pwd
       - name: install clang
-        run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11
+        run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11 llvm-11
       - name: install auth build deps
         run: |
           sudo apt-get update && sudo apt-get install -qq -y --no-install-recommends \
