@@ -168,6 +168,7 @@ dnsdist_SOURCES = \
 	dnsdist-tcp-downstream.cc dnsdist-tcp-downstream.hh \
 	dnsdist-tcp-upstream.hh \
 	dnsdist-tcp.cc \
+	dnsdist-ubus.cc dnsdist-ubus.hh \
 	dnsdist-web.cc dnsdist-web.hh \
 	dnsdist-xpf.cc dnsdist-xpf.hh \
 	dnsdist.cc dnsdist.hh \

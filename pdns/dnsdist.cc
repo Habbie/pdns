@@ -54,6 +54,7 @@
 #include "dnsdist-proxy-protocol.hh"
 #include "dnsdist-rings.hh"
 #include "dnsdist-secpoll.hh"
+#include "dnsdist-ubus.hh"
 #include "dnsdist-web.hh"
 #include "dnsdist-xpf.hh"
 
@@ -1977,6 +1978,7 @@ struct
   string config;
   string uid;
   string gid;
+  string ubusSocket;
 } g_cmdLine;
 
 std::atomic<bool> g_configurationDone{false};
@@ -2057,6 +2059,7 @@ int main(int argc, char** argv)
       {"local", required_argument, 0, 'l'},
       {"setkey", required_argument, 0, 'k'},
       {"supervised", no_argument, 0, 3},
+      {"ubus", required_argument, 0, 'U'},
       {"uid", required_argument, 0, 'u'},
       {"verbose", no_argument, 0, 'v'},
       {"version", no_argument, 0, 'V'},
@@ -2065,7 +2068,7 @@ int main(int argc, char** argv)
     int longindex=0;
     string optstring;
     for(;;) {
-      int c=getopt_long(argc, argv, "a:cC:e:g:hk:l:u:vV", longopts, &longindex);
+      int c=getopt_long(argc, argv, "a:cC:e:g:hk:l:U:u:vV", longopts, &longindex);
       if(c==-1)
         break;
       switch(c) {
@@ -2116,6 +2119,9 @@ int main(int argc, char** argv)
         break;
       case 'u':
         g_cmdLine.uid=optarg;
+        break;
+      case 'U':
+        g_cmdLine.ubusSocket=optarg;
         break;
       case 'v':
         g_verbose=true;
@@ -2231,6 +2237,10 @@ int main(int argc, char** argv)
       infolog("Configuration '%s' OK!", g_cmdLine.config);
       _exit(EXIT_SUCCESS);
     }
+
+    // FIXME: if this thread dies (which it does cleanly) and dnsdist also dies because
+    // it can't bine the default 0.0.0.0:53, we dump core
+    std::thread ubus(ubusThread, g_cmdLine.ubusSocket);
 
     auto todo = setupLua(g_lua, false, false, g_cmdLine.config);
 
