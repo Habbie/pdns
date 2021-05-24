@@ -560,6 +560,13 @@ void PacketHandler::doAdditionalProcessing(DNSPacket& p, std::unique_ptr<DNSPack
         r->addRecord(std::move(dzr));
       }
     }
+    B.lookup(QType(QType::ANY), DNSName("_dns")+name, d_sd.domain_id, &p);
+    while(B.get(dzr)) {
+      if(dzr.dr.d_type == QType::SVCB) {
+        dzr.dr.d_place=DNSResourceRecord::ADDITIONAL;
+        r->addRecord(std::move(dzr));
+      }
+    }
   }
 }
 
