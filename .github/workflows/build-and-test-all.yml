@@ -95,3 +95,8 @@ jobs:
         run: cat config.log
       - name: build
         run: make -j3 -k V=1
+      # FIXME: save ccache here?
+      - name: Install Ruby deps for remotebackend unit tests
+        run: cd modules/remotebackend && ruby -S bundle install --path vendor/bundle
+      - name: Run unit tests
+        run: make check || (cat pdns/test-suite.log; false)
