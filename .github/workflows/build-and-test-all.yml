@@ -251,8 +251,7 @@ jobs:
       # FIXME: save ccache here?
       - name: Run unit tests
         run: make check || (cat test-suite.log; false)
-  test-auth:
-    name: test auth
+  test-auth-api-gsqlite3:
     needs: build-auth
     runs-on: ubuntu-20.04
     env:
@@ -263,12 +262,15 @@ jobs:
         with:
           fetch-depth: 5
           submodules: recursive
-      - name: check /opt
-        run: mkdir -p /opt; find /opt
       - name: Fetch the binaries
         uses: actions/download-artifact@v2
         with:
           name: pdns-auth
           path: /opt/pdns-auth
-      - name: check /opt again
-        run: mkdir -p /opt; find /opt/pdns-auth
+      - run: apt-get -y -qq install python3-venv python3-dev default-libmysqlclient-dev libpq-dev
+      - run: |
+            PDNSSERVER="/opt/pdns-auth/sbin/pdns_server" \
+            PDNSUTIL="/opt/pdns-auth/bin/pdnsutil" \
+            SDIG="/opt/pdns-auth/bin/sdig" \
+            ./runtests authoritative gsqlite3
+        working-directory: ./regression-tests.api/
