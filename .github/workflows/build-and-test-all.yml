@@ -267,6 +267,7 @@ jobs:
         with:
           name: pdns-auth
           path: /opt/pdns-auth
+      - run: sudo chmod +x /opt/pdns-auth/bin/*
       - run: sudo apt-get -y -qq install python3-venv python3-dev default-libmysqlclient-dev libpq-dev
       - run: |
             PDNSSERVER="/opt/pdns-auth/sbin/pdns_server" \
