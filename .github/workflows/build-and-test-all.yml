@@ -220,6 +220,8 @@ jobs:
             CFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int" \
             CXXFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int -Wp,-D_GLIBCXX_ASSERTIONS" \
             ./configure \
+              CC='clang-11' \
+              CXX='clang++-11' \
               --enable-option-checking=fatal \
               --enable-unit-tests \
               --enable-dnstap \
