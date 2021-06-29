@@ -267,6 +267,26 @@ jobs:
         with:
           name: pdns-auth
           path: /opt/pdns-auth
+      - name: install clang
+        run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11
+      - name: Install test dependencies
+        run: |
+          apt-get -y -qq install \
+            authbind \
+            bc \
+            bind9utils \
+            build-essential libsqlite3-dev libzmq3-dev \
+            curl \
+            default-jre-headless \
+            dnsutils \
+            gawk \
+            git \
+            ldnsutils \
+            libnet-dns-perl \
+            pdns-recursor \
+            socat \
+            sqlite3 \
+            unbound-host
       - run: sudo chmod +x /opt/pdns-auth/bin/*
       - run: sudo apt-get -y -qq install python3-venv python3-dev default-libmysqlclient-dev libpq-dev
       - run: |
