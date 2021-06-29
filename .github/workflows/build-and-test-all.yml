@@ -100,3 +100,70 @@ jobs:
         run: cd modules/remotebackend && ruby -S bundle install --path vendor/bundle
       - name: Run unit tests
         run: make check || (cat pdns/test-suite.log; false)
+  build-recursor:
+    name: build recursor
+    runs-on: ubuntu-20.04
+    env:
+      UBSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1:suppressions=/home/runner/work/pdns/pdns/build-scripts/UBSan.supp'
+      ASAN_OPTIONS: detect_leaks=0
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 5
+          submodules: recursive
+      - name: install clang
+        run: sudo apt-get update && sudo apt-get --no-install-recommends install clang-11 llvm-11
+      - name: install rec build deps
+        run: |
+          sudo apt-get update && sudo apt-get install -qq -y --no-install-recommends \
+            autoconf \
+            automake \
+            ca-certificates \
+            curl \
+            bison \
+            flex \
+            g++ \
+            git \
+            libboost-all-dev \
+            libcap-dev \
+            libluajit-5.1-dev \
+            libfstrm-dev \
+            libsnmp-dev \
+            libsodium-dev \
+            libssl-dev \
+            libsystemd-dev \
+            libtool \
+            make \
+            pkg-config \
+            ragel \
+            systemd \
+            python3-venv
+      - name: autoconf
+        run: BUILDER_VERSION=0.0.0-git1 autoreconf -vfi
+      - name: configure
+        run: |
+            CFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int" \
+            CXXFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int -Wp,-D_GLIBCXX_ASSERTIONS" \
+            ./configure \
+              CC='clang-11' \
+              CXX='clang++-11' \
+              --enable-option-checking=fatal \
+              --enable-unit-tests \
+              --enable-nod \
+              --enable-systemd \
+              --prefix=/opt/pdns-recursor \
+              --with-libsodium \
+              --with-lua=luajit \
+              --with-libcap \
+              --with-net-snmp \
+              --enable-dns-over-tls \
+              --enable-asan \
+              --enable-ubsan
+      - name: show config.log
+        if: ${{ failure() }}
+        run: cat config.log
+      - name: build
+        run: make -j3 -k V=1
+      # FIXME: save ccache here?
+      - name: Run unit tests
+        run: make check || (cat pdns/test-suite.log; false)
