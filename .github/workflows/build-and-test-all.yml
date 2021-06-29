@@ -269,5 +269,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: pdns-auth
+          path: /opt/pdns-auth
       - name: check /opt again
-        run: mkdir -p /opt; find /opt
+        run: mkdir -p /opt; find /opt/pdns-auth
