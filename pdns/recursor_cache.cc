@@ -308,16 +308,13 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
         if (state && cachedState) {
           *state = *cachedState;
         }
-
         return fakeTTD(entry, qname, qtype, ret, now, origTTL, refresh);
       }
-
       return -1;
     }
   }
 
   if (routingTag) {
-
     auto entries = getEntries(map, qname, qt, routingTag);
     bool found = false;
     time_t ttd;
@@ -355,10 +352,7 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
   // Try (again) without tag
   auto entries = getEntries(map, qname, qt, boost::none);
 
-
-
   if (entries.first != entries.second) {
-
     OrderedTagIterator_t firstIndexIterator;
     bool found = false;
     time_t ttd;
