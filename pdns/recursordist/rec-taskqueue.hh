@@ -24,7 +24,7 @@
 #include "dnsname.hh"
 
 void runTaskOnce(bool logErrors);
-void pushTask(const DNSName& qname, uint16_t qtype, time_t deadline);
+void pushTask(const DNSName& qname, uint16_t qtype, time_t deadline, bool refreshMode=true);
 uint64_t getTaskPushes();
 uint64_t getTaskExpired();
 uint64_t getTaskSize();

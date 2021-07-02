@@ -30,9 +30,9 @@ void runTaskOnce(bool logErrors)
   t_taskQueue.runOnce(logErrors);
 }
 
-void pushTask(const DNSName& qname, uint16_t qtype, time_t deadline)
+void pushTask(const DNSName& qname, uint16_t qtype, time_t deadline, bool refreshMode)
 {
-  t_taskQueue.push({qname, qtype, deadline, true});
+  t_taskQueue.push({qname, qtype, deadline, refreshMode});
 }
 
 uint64_t getTaskPushes()
