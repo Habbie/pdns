@@ -275,10 +275,14 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
   auto& map = getMap(qname);
   const lock l(map);
 
+  cerr<<1<<qname<<qt<<endl;
+
   /* If we don't have any netmask-specific entries at all, let's just skip this
      to be able to use the nice d_cachecache hack. */
   if (qtype != QType::ANY && !map.d_ecsIndex.empty() && !routingTag) {
+    cerr<<2<<endl;
     if (qtype == QType::ADDR) {
+      cerr<<3<<endl;
       time_t ret = -1;
 
       auto entryA = getEntryUsingECSIndex(map, now, qname, QType::A, requireAuth, who);
@@ -299,22 +303,31 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
         *state = *cachedState;
       }
 
+      cerr<<4<<endl;
       return ret > 0 ? (ret - now) : ret;
     }
     else {
+      cerr<<5<<endl;
       auto entry = getEntryUsingECSIndex(map, now, qname, qtype, requireAuth, who);
       if (entry != map.d_map.end()) {
+      cerr<<6<<endl;
         time_t ret = handleHit(map, entry, qname, origTTL, res, signatures, authorityRecs, variable, cachedState, wasAuth, fromAuthZone);
         if (state && cachedState) {
           *state = *cachedState;
         }
+
         return fakeTTD(entry, qname, qtype, ret, now, origTTL, refresh);
       }
+            cerr<<7<<endl;
+
       return -1;
     }
   }
 
+cerr<<8<<endl;
   if (routingTag) {
+cerr<<9<<endl;
+
     auto entries = getEntries(map, qname, qt, routingTag);
     bool found = false;
     time_t ttd;
@@ -352,7 +365,12 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
   // Try (again) without tag
   auto entries = getEntries(map, qname, qt, boost::none);
 
+
+cerr<<10<<endl;
+
   if (entries.first != entries.second) {
+    cerr<<11<<endl;
+
     OrderedTagIterator_t firstIndexIterator;
     bool found = false;
     time_t ttd;
@@ -383,6 +401,7 @@ time_t MemRecursorCache::get(time_t now, const DNSName &qname, const QType qt, b
       return fakeTTD(firstIndexIterator, qname, qtype, ttd, now, origTTL, refresh);
     }
   }
+  cerr<<12<<endl;
   return -1;
 }
 

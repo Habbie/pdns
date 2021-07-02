@@ -4130,7 +4130,17 @@ bool SyncRes::processAnswer(unsigned int depth, LWResult& lwr, const DNSName& qn
 
 bool SyncRes::doDoTtoAuth(const DNSName& ns) const
 {
-  return g_DoTToAuthNames.getLocal()->check(ns);
+  cerr<<"doDoTtoAuth ns="<<ns<<"? ";
+  auto ret=g_DoTToAuthNames.getLocal()->check(ns);
+  cerr<<(ret ? "yes" : "no")<<endl;
+  auto svcbname = DNSName("_dns")+ns;
+  cerr<<"svcbname="<<svcbname<<endl;
+  vector<DNSRecord> res;
+  auto getret=g_recCache->get(d_now.tv_sec, svcbname, QType::SVCB, false, &res, ComboAddress());
+  cerr<<"getret="<<getret<<endl;
+  cerr<<"res.size()="<<res.size()<<endl;
+
+  return ret;
 }
 
 /** returns:
