@@ -36,6 +36,8 @@
 #include "syncres.hh"
 #include "dnsseckeeper.hh"
 #include "validate-recursor.hh"
+#include "negcache.hh"
+#include "rec-taskqueue.hh"
 
 thread_local SyncRes::ThreadLocalStorage SyncRes::t_sstorage;
 thread_local std::unique_ptr<addrringbuf_t> t_timeouts;
@@ -4133,12 +4135,32 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
   cerr<<"doDoTtoAuth ns="<<ns<<"? ";
   auto ret=g_DoTToAuthNames.getLocal()->check(ns);
   cerr<<(ret ? "yes" : "no")<<endl;
+
+  if (ret) {
+    // name is marked for DoT in the config, no need to check SVCB
+    return ret;
+  }
+
   auto svcbname = DNSName("_dns")+ns;
   cerr<<"svcbname="<<svcbname<<endl;
-  vector<DNSRecord> res;
-  auto getret=g_recCache->get(d_now.tv_sec, svcbname, QType::SVCB, false, &res, ComboAddress());
-  cerr<<"getret="<<getret<<endl;
-  cerr<<"res.size()="<<res.size()<<endl;
+
+  NegCache::NegCacheEntry ne;
+  auto negret=g_negCache->get(svcbname, QType::SVCB, getNow(), ne, false);
+  if (negret){
+    cerr<<"negative SVBC entry, returning false"<<endl;
+    return false;
+  }
+
+  vector<DNSRecord> recs;
+  auto recret=g_recCache->get(d_now.tv_sec, svcbname, QType::SVCB, false, &recs, ComboAddress());
+  if (recret < 0) {
+    cerr<<"no positive SVCB entry, queueing lookup and returning false"<<endl;
+    pushTask(svcbname, QType::SVCB, d_now.tv_sec);
+    return false;
+
+  }
+  cerr<<"recret="<<recret<<endl;
+  cerr<<"recs.size()="<<recs.size()<<endl;
 
   return ret;
 }
