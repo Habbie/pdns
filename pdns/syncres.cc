@@ -4147,7 +4147,7 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
   NegCache::NegCacheEntry ne;
   auto negret=g_negCache->get(svcbname, QType::SVCB, getNow(), ne, false);
   if (negret){
-    cerr<<"negative SVBC entry, returning false"<<endl;
+    cerr<<"negative SVCB entry, returning false"<<endl;
     return false;
   }
 
@@ -4161,8 +4161,28 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
   }
   cerr<<"recret="<<recret<<endl;
   cerr<<"recs.size()="<<recs.size()<<endl;
-
-  return ret;
+  for (const auto &rec : recs) {
+    cerr<<rec.d_content->getZoneRepresentation()<<endl;
+    auto svcb = std::dynamic_pointer_cast<SVCBRecordContent>(rec.d_content);
+    cerr<<"priority="<<svcb->getPriority()<<endl;
+    cerr<<"target="<<svcb->getTarget()<<endl;
+    if (svcb->hasParam(SvcParam::SvcParamKey::port)) {
+      auto port = svcb->getParam(SvcParam::SvcParamKey::port).getPort();
+      cerr<<"port="<<port<<endl;
+      if (port != 853) {
+        continue;
+      }
+    }
+    auto alpns=svcb->getParam(SvcParam::SvcParamKey::alpn).getALPN();
+    cerr<<"getParam(alpn)="<<boost::join(alpns, ",")<<endl;
+    if (std::find(alpns.begin(), alpns.end(), "dot") != alpns.end()) {
+      cerr<<"found DoT alpn and port was correct, returning true"<<endl;
+      return true;
+    } else {
+      continue;
+    }
+  }
+  return false;
 }
 
 /** returns:
