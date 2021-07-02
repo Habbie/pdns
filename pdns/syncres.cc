@@ -4154,7 +4154,7 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
   vector<DNSRecord> recs;
   auto recret=g_recCache->get(d_now.tv_sec, svcbname, QType::SVCB, false, &recs, ComboAddress());
   if (recret < 0) {
-    cerr<<"no positive SVCB entry, queueing lookup and returning false"<<endl;
+    cerr<<"no positive or negative SVCB entry, queueing lookup and returning false"<<endl;
     pushTask(svcbname, QType::SVCB, d_now.tv_sec+60, false); // FIXME: +60 is arbitrary
     return false;
 
