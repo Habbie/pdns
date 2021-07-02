@@ -4151,6 +4151,8 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
     return false;
   }
 
+  // FIXME: check aggressive NSEC cache here
+
   vector<DNSRecord> recs;
   auto recret=g_recCache->get(d_now.tv_sec, svcbname, QType::SVCB, false, &recs, ComboAddress());
   if (recret < 0) {
@@ -4177,7 +4179,7 @@ bool SyncRes::doDoTtoAuth(const DNSName& ns) const
     cerr<<"getParam(alpn)="<<boost::join(alpns, ",")<<endl;
     if (std::find(alpns.begin(), alpns.end(), "dot") != alpns.end()) {
       cerr<<"found DoT alpn and port was correct, returning true"<<endl;
-      return true;
+      return true; // FIXME: there is no fallback when port 853 does not cooperate
     } else {
       continue;
     }
