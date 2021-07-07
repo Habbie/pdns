@@ -91,8 +91,8 @@ jobs:
       - name: Store the binaries
         uses: actions/upload-artifact@v2 # this takes 30 seconds, maybe we want to tar
         with:
-          name: pdns-dnsdist
-          path: /opt/pdns-dnsdist
+          name: dnsdist
+          path: /opt/dnsdist
 
   test-auth-api-gsqlite3:
     needs: build-auth
@@ -158,8 +158,8 @@ jobs:
       - name: Fetch the binaries
         uses: actions/download-artifact@v2
         with:
-          name: pdns-dnsdist
-          path: /opt/pdns-dnsdist
+          name: dnsdist
+          path: /opt/dnsdist
       - run: inv install-clang-runtime
       - run: inv install-dnsdist-test-deps
       - run: inv test-dnsdist
