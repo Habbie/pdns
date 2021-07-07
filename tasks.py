@@ -13,6 +13,11 @@ def install_clang(c):
     c.sudo('apt-get -qq -y --no-install-recommends install clang-11 llvm-11')
 
 @task
+def install_clang_runtime(c):
+    # this gives us the symbolizer, for symbols in asan/ubsan traces
+    c.sudo('apt-get -qq -y --no-install-recommends install clang-11')
+
+@task
 def install_auth_build_deps(c):
     c.sudo('apt-get install -qq -y --no-install-recommends \
                 autoconf \
@@ -54,8 +59,27 @@ def install_auth_build_deps(c):
                 wget')
 
 @task
+def install_auth_test_deps(c):
+    c.sudo('apt-get -y -qq install \
+            authbind \
+            bc \
+            bind9utils \
+            build-essential libsqlite3-dev libzmq3-dev \
+            curl \
+            default-jre-headless \
+            dnsutils \
+            gawk \
+            git \
+            ldnsutils \
+            libnet-dns-perl \
+            pdns-recursor \
+            socat \
+            sqlite3 \
+            unbound-host')
+
+@task
 def install_rec_build_deps(c):
-    c.sudo('apt-get update && sudo apt-get install -qq -y --no-install-recommends \
+    c.sudo('apt-get install -qq -y --no-install-recommends \
                 autoconf \
                 automake \
                 ca-certificates \
@@ -68,6 +92,33 @@ def install_rec_build_deps(c):
                 libcap-dev \
                 libluajit-5.1-dev \
                 libfstrm-dev \
+                libsnmp-dev \
+                libsodium-dev \
+                libssl-dev \
+                libsystemd-dev \
+                libtool \
+                make \
+                pkg-config \
+                ragel \
+                systemd \
+                python3-venv')
+
+@task
+def install_dnsdist_build_deps(c):
+    c.sudo('apt-get install -qq -y --no-install-recommends \
+                autoconf \
+                automake \
+                g++ \
+                git \
+                libboost-all-dev \
+                libcap-dev \
+                libcdb-dev \
+                libedit-dev \
+                libfstrm-dev \
+                libh2o-evloop-dev \
+                liblmdb-dev \
+                libluajit-5.1-dev \
+                libre2-dev \
                 libsnmp-dev \
                 libsodium-dev \
                 libssl-dev \
@@ -132,12 +183,41 @@ def ci_rec_configure(c):
         raise UnexpectedExit(res)
 
 @task
+def ci_dnsdist_configure(c):
+    res = c.run('''CFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int" \
+                   CXXFLAGS="-O1 -Werror=vla -Werror=shadow -Wformat=2 -Werror=format-security -Werror=string-plus-int -Wp,-D_GLIBCXX_ASSERTIONS" \
+                   ./configure \
+                     CC='clang-11' \
+                     CXX='clang++-11' \
+                     --enable-option-checking=fatal \
+                     --enable-unit-tests \
+                     --enable-dnstap \
+                     --enable-dnscrypt \
+                     --enable-dns-over-tls \
+                     --enable-dns-over-https \
+                     --enable-systemd \
+                     --prefix=/opt/dnsdist \
+                     --with-libsodium \
+                     --with-lua=luajit \
+                     --with-libcap \
+                     --with-re2 \
+                     --enable-asan \
+                     --enable-ubsan''', warn=True)
+    if res.exited != 0:
+        c.run('cat config.log')
+        raise UnexpectedExit(res)
+
+@task
 def ci_auth_make(c):
     c.run('make -j8 -k V=1')
 
 @task
 def ci_rec_make(c):
     c.run('make -j8 -k V=1')
+
+@task
+def ci_dnsdist_make(c):
+    c.run('make -j4 -k V=1')
 
 @task
 def ci_auth_install_remotebackend_ruby_deps(c):
@@ -154,6 +234,13 @@ def ci_auth_run_unit_tests(c):
 
 @task
 def ci_rec_run_unit_tests(c):
+    res = c.run('make check', warn=True)
+    if res.exited != 0:
+      c.run('cat test-suite.log')
+      raise UnexpectedExit(res)
+
+@task
+def ci_dnsdist_run_unit_tests(c):
     res = c.run('make check', warn=True)
     if res.exited != 0:
       c.run('cat test-suite.log')
