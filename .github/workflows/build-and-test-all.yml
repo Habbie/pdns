@@ -139,6 +139,7 @@ jobs:
         with:
           name: pdns-recursor
           path: /opt/pdns-recursor
+      - run: build-scripts/gh-actions-setup-inv  # this runs apt update+upgrade
       - run: inv add-auth-repo  # FIXME: do we need this for rec API testing?
       - run: inv install-clang-runtime
       - run: inv install-rec-test-deps

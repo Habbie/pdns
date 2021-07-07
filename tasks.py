@@ -61,15 +61,15 @@ def install_auth_build_deps(c):
                 unixodbc-dev \
                 wget')
 
+def setup_authbind():
+    c.sudo('touch /etc/authbind/byport/53')
+    c.sudo('chmod 755 /etc/authbind/byport/53')
+
 auth_backend_test_deps = dict(
     gsqlite3=['sqlite3'],
     gmysql=['default-libmysqlclient-dev'],
     gpgsql=['libpq-dev'],
 )
-
-def setup_authbind(c):
-    c.sudo('touch /etc/authbind/byport/53')
-    c.sudo('chmod 755 /etc/authbind/byport/53')
 
 @task(help={'backend': 'Backend to install test deps for, e.g. gsqlite3; can be repeated'}, iterable=['backend'], optional=['backend'])
 def install_auth_test_deps(c, backend): # FIXME: rename this, we do way more than apt-get
