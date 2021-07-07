@@ -58,6 +58,10 @@ jobs:
       - run: inv ci-rec-make
       # FIXME: save ccache here?
       - run: inv ci-rec-run-unit-tests
+        uses: actions/upload-artifact@v2 # this takes 30 seconds, maybe we want to tar
+        with:
+          name: pdns-recursor
+          path: /opt/pdns-recursor
   build-dnsdist:
     name: build dnsdist
     runs-on: ubuntu-20.04
@@ -81,6 +85,10 @@ jobs:
       - run: inv ci-dnsdist-make          
       # FIXME: save ccache here?
       - run: inv ci-dnsdist-run-unit-tests
+        uses: actions/upload-artifact@v2 # this takes 30 seconds, maybe we want to tar
+        with:
+          name: pdns-dnsdist
+          path: /opt/pdns-dnsdist
 
   test-auth-api-gsqlite3:
     needs: build-auth
@@ -104,10 +112,30 @@ jobs:
       - run: build-scripts/gh-actions-setup-inv  # this runs apt update+upgrade
       - run: inv install-clang-runtime
       - run: inv install-auth-test-deps -b ${{ matrix.backend }}
-      - run: sudo chmod +x /opt/pdns-auth/bin/*
       - run: |
             PDNSSERVER="/opt/pdns-auth/sbin/pdns_server" \
             PDNSUTIL="/opt/pdns-auth/bin/pdnsutil" \
             SDIG="/opt/pdns-auth/bin/sdig" \
             ./runtests authoritative ${{ matrix.backend }}
         working-directory: ./regression-tests.api/
+
+  test-recursor-api:
+    needs: build-recursor
+    runs-on: ubuntu-20.04
+    env:
+      UBSAN_OPTIONS: 'print_stacktrace=1:halt_on_error=1:suppressions=/home/runner/work/pdns/pdns/build-scripts/UBSan.supp'
+      ASAN_OPTIONS: detect_leaks=0
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 5
+          submodules: recursive
+      - name: Fetch the binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: pdns-recursor
+          path: /opt/pdns-recursor
+      - run: inv add-auth-repo  # FIXME: do we need this for rec API testing?
+      - run: inv install-clang-runtime
+      - run: inv install-rec-test-deps
+      - run: inv test-api recursor

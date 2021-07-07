@@ -67,8 +67,12 @@ auth_backend_test_deps = dict(
     gpgsql=['libpq-dev'],
 )
 
+def setup_authbind(c):
+    c.sudo('touch /etc/authbind/byport/53')
+    c.sudo('chmod 755 /etc/authbind/byport/53')
+
 @task(help={'backend': 'Backend to install test deps for, e.g. gsqlite3; can be repeated'}, iterable=['backend'], optional=['backend'])
-def install_auth_test_deps(c, backend):
+def install_auth_test_deps(c, backend): # FIXME: rename this, we do way more than apt-get
     extra=[]
     for b in backend:
         extra.extend(auth_backend_test_deps[b])
@@ -86,7 +90,49 @@ def install_auth_test_deps(c, backend):
                 libnet-dns-perl \
                 pdns-recursor \
                 socat \
-                unbound-host ' + ' '.join(extra))
+                unbound-host \
+                            default-libmysqlclient-dev \
+            libboost-all-dev \
+            libcdb1 \
+            libcurl4 \
+            libgeoip1 \
+            libkrb5-3 \
+            libldap-2.4-2 \
+            liblmdb0 \
+            libluajit-5.1-2 \
+            libmaxminddb0 \
+            libp11-kit0 \
+            libpq5 \
+            libsodium23 \
+            libssl1.1 \
+            libsystemd0 \
+            libyaml-cpp0.6 \
+            softhsm2 \
+            unixodbc wget ' + ' '.join(extra))
+
+    c.run('chmod +x /opt/pdns-auth/bin/*')
+    c.run('''if [ ! -e $HOME/bin/jdnssec-verifyzone ]; then
+                  wget https://github.com/dblacka/jdnssec-tools/releases/download/0.14/jdnssec-tools-0.14.tar.gz
+                  tar xfz jdnssec-tools-0.14.tar.gz -C $HOME
+                  rm jdnssec-tools-0.14.tar.gz
+             fi
+             echo 'export PATH=$HOME/jdnssec-tools-0.14/bin:$PATH' >> $BASH_ENV''')
+    c.run('touch regression-tests/tests/verify-dnssec-zone/allow-missing') # FIXME: can this go?
+    # FIXME we need to start a background recursor here for some tests
+    setup_authbind()
+
+@task
+def install_rec_test_deps(c): # FIXME: rename this, we do way more than apt-get
+    c.sudo('apt-get --no-install-recommends install -qq -y python3-venv python3-dev default-libmysqlclient-dev libpq-dev pdns-tools libluajit-5.1-2 \
+              libboost-all-dev \
+              libcap2 \
+              libssl1.1 \
+              libsystemd0 \
+              libsodium23 \
+              libfstrm0 \
+              libsnmp30')
+    setup_authbind()
+
 
 @task
 def install_rec_build_deps(c):
@@ -262,7 +308,23 @@ def ci_make_install(c):
     res = c.run('make install')
 
 @task
-def nothing(c):
-    c.run('echo nothing ever happens')
-    c.run('echo ever.')
-    pass
+def add_auth_repo(c):
+    dist = 'ubuntu' # FIXME take these from the caller?
+    release = 'focal'
+    version = '44'
+
+    c.sudo('apt-get install -qq -y curl gnupg2')
+    if version == 'master':
+        c.sudo('curl https://repo.powerdns.com/CBC8B383-pub.asc | apt-key add -')
+    else:
+        c.sudo('curl https://repo.powerdns.com/FD380FBB-pub.asc | apt-key add -')
+    c.sudo(f"echo 'deb [arch=amd64] http://repo.powerdns.com/{dist} {release}-auth-{version} main' >> /etc/apt/sources.list.d/pdns.list")
+    c.sudo("echo 'Package: pdns-*' > /etc/apt/preferences.d/pdns") # FIXME three subprocess calls?
+    c.sudo("echo 'Pin: origin repo.powerdns.com' >> /etc/apt/preferences.d/pdns")
+    c.sudo("echo 'Pin-Priority: 600' >> /etc/apt/preferences.d/pdns")
+    c.sudo('apt-get update')
+
+@task
+def test_api(c, product, backend=''):
+    with c.cd('regression-tests.api'):
+        c.run(f'PDNSRECURSOR=/opt/pdns-recursor/sbin/pdns_recursor ./runtests {product} {backend}')
