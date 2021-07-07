@@ -61,24 +61,32 @@ def install_auth_build_deps(c):
                 unixodbc-dev \
                 wget')
 
-@task
-def install_auth_test_deps(c):
+auth_backend_test_deps = dict(
+    gsqlite3=['sqlite3'],
+    gmysql=['default-libmysqlclient-dev'],
+    gpgsql=['libpq-dev'],
+)
+
+@task(help={'backend': 'Backend to install test deps for, e.g. gsqlite3; can be repeated'}, iterable=['backend'], optional=['backend'])
+def install_auth_test_deps(c, backend):
+    extra=[]
+    for b in backend:
+        extra.extend(auth_backend_test_deps[b])
     c.sudo('apt-get -y -qq install \
-            authbind \
-            bc \
-            bind9utils \
-            build-essential libsqlite3-dev libzmq3-dev \
-            curl \
-            default-jre-headless \
-            dnsutils \
-            gawk \
-            git \
-            ldnsutils \
-            libnet-dns-perl \
-            pdns-recursor \
-            socat \
-            sqlite3 \
-            unbound-host')
+                authbind \
+                bc \
+                bind9utils \
+                build-essential libsqlite3-dev libzmq3-dev \
+                curl \
+                default-jre-headless \
+                dnsutils \
+                gawk \
+                git \
+                ldnsutils \
+                libnet-dns-perl \
+                pdns-recursor \
+                socat \
+                unbound-host ' + ' '.join(extra))
 
 @task
 def install_rec_build_deps(c):
