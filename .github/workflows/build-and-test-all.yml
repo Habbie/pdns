@@ -27,7 +27,7 @@ jobs:
       - run: inv ci-auth-make
       # FIXME: save ccache here?
       - run: inv ci-auth-install-remotebackend-ruby-deps
-      - run: inv ci-auth-run-unit-test
+      - run: inv ci-auth-run-unit-tests
       - run: inv make-install
       - name: Store the binaries
         uses: actions/upload-artifact@v2
