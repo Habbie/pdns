@@ -1,0 +1,4 @@
+#!/bin/bash -x
+apt-get update
+apt-get -qq -y dist-upgrade
+apt-get -qq -y --no-install-recommends install python3-pip
