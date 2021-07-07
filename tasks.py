@@ -81,7 +81,7 @@ def install_rec_build_deps(c):
 
 @task
 def ci_autoconf(c):
-    c.sudo('BUILDER_VERSION=0.0.0-git1 autoreconf -vfi')
+    c.run('BUILDER_VERSION=0.0.0-git1 autoreconf -vfi')
 
 @task
 def ci_auth_configure(c):
