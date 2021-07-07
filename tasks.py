@@ -127,7 +127,7 @@ def ci_rec_configure(c):
               --enable-dns-over-tls \
               --enable-asan \
               --enable-ubsan''', warn=True)
-        if res.exited != 0:
+    if res.exited != 0:
         c.run('cat config.log')
         raise UnexpectedExit(res)
 
