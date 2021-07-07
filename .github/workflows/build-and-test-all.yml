@@ -58,6 +58,7 @@ jobs:
       - run: inv ci-rec-make
       # FIXME: save ccache here?
       - run: inv ci-rec-run-unit-tests
+      - name: Store the binaries
         uses: actions/upload-artifact@v2 # this takes 30 seconds, maybe we want to tar
         with:
           name: pdns-recursor
@@ -85,6 +86,7 @@ jobs:
       - run: inv ci-dnsdist-make          
       # FIXME: save ccache here?
       - run: inv ci-dnsdist-run-unit-tests
+      - name: Store the binaries
         uses: actions/upload-artifact@v2 # this takes 30 seconds, maybe we want to tar
         with:
           name: pdns-dnsdist
