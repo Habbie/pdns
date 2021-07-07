@@ -10,6 +10,9 @@ def apt_fresh(c):
 
 @task
 def install_clang(c):
+    """
+    install clang-11 and llvm-11
+    """
     c.sudo('apt-get -qq -y --no-install-recommends install clang-11 llvm-11')
 
 @task
@@ -249,3 +252,9 @@ def ci_dnsdist_run_unit_tests(c):
 @task
 def ci_make_install(c):
     res = c.run('make install')
+
+@task
+def nothing(c):
+    c.run('echo nothing ever happens')
+    c.run('echo ever.')
+    pass
