@@ -111,12 +111,12 @@ def install_auth_test_deps(c, backend): # FIXME: rename this, we do way more tha
             unixodbc wget ' + ' '.join(extra))
 
     c.run('chmod +x /opt/pdns-auth/bin/*')
-    c.run('''if [ ! -e $HOME/bin/jdnssec-verifyzone ]; then
-                  wget https://github.com/dblacka/jdnssec-tools/releases/download/0.14/jdnssec-tools-0.14.tar.gz
-                  tar xfz jdnssec-tools-0.14.tar.gz -C $HOME
-                  rm jdnssec-tools-0.14.tar.gz
-             fi
-             echo 'export PATH=$HOME/jdnssec-tools-0.14/bin:$PATH' >> $BASH_ENV''')
+    # c.run('''if [ ! -e $HOME/bin/jdnssec-verifyzone ]; then
+    #               wget https://github.com/dblacka/jdnssec-tools/releases/download/0.14/jdnssec-tools-0.14.tar.gz
+    #               tar xfz jdnssec-tools-0.14.tar.gz -C $HOME
+    #               rm jdnssec-tools-0.14.tar.gz
+    #          fi
+    #          echo 'export PATH=$HOME/jdnssec-tools-0.14/bin:$PATH' >> $BASH_ENV''')  # FIXME: why did this fail with no error?
     c.run('touch regression-tests/tests/verify-dnssec-zone/allow-missing') # FIXME: can this go?
     # FIXME we need to start a background recursor here for some tests
     setup_authbind()
@@ -133,6 +133,26 @@ def install_rec_test_deps(c): # FIXME: rename this, we do way more than apt-get
               libsnmp30')
     setup_authbind()
 
+@task
+def install_dnsdist_test_deps(c): # FIXME: rename this, we do way more than apt-get
+    c.sudo('apt-get install -qq -y \
+              libluajit-5.1-2 \
+              libboost-all-dev \
+              libcap2 \
+              libcdb1 \
+              libcurl4-openssl-dev \
+              libfstrm0 \
+              libh2o-evloop0.13 \
+              liblmdb0 \
+              libre2-5 \
+              libssl-dev \
+              libsystemd0 \
+              libsodium23 \
+              patch \
+              protobuf-compiler \
+              python3-venv snmpd prometheus')
+    c.sudo('sed "s/agentxperms 0700 0755 dnsdist/agentxperms 0700 0755/g" regression-tests.dnsdist/snmpd.conf > /etc/snmp/snmpd.conf')
+    c.sudo('systemctl start snmpd')
 
 @task
 def install_rec_build_deps(c):
@@ -328,3 +348,8 @@ def add_auth_repo(c):
 def test_api(c, product, backend=''):
     with c.cd('regression-tests.api'):
         c.run(f'PDNSRECURSOR=/opt/pdns-recursor/sbin/pdns_recursor ./runtests {product} {backend}')
+
+@task
+def test_dnsdist(c):
+    with c.cd('regression-tests.dnsdist'):
+        c.run('DNSDISTBIN=/opt/dnsdist/bin/dnsdist ./runtests')
