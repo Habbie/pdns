@@ -338,6 +338,32 @@ def test_api(c, product, backend=''):
     else:
         raise Failure('unknown product')
 
+backend_regress_tests = dict(
+    remote = ['pipe', 'unix', 'http', 'zeromq', 'pipe-dnssec', 'unix-dnssec', 'http-dnssec', 'zeromq-dnssec']
+)
+
+@task
+def test_auth_backend(c, backend):
+    if backend == 'remote':
+        ci_auth_install_remotebackend_ruby_deps(c)
+
+    with c.cd('regression-tests'):
+        for t in backend_regress_tests[backend]:
+            c.run(f'PDNSSERVER=/opt/pdns-auth/sbin/pdns_server PDNSUTIL=/opt/pdns-auth/bin/pdnsutil SDIG=/opt/pdns-auth/bin/sdig MYSQL_HOST="127.0.0.1" PGHOST="127.0.0.1" PGPORT="5432" ./start-test-stop 5300 {t}')
+# FIXME: we might need all of the items from this list in the command above. Should centralise that.
+            # PDNS=<< parameters.prefix >>sbin/pdns_server \
+            # PDNS2=<< parameters.prefix >>sbin/pdns_server \
+            # SDIG=<< parameters.prefix >>bin/sdig \
+            # NOTIFY=<< parameters.prefix >>bin/pdns_notify \
+            # NSEC3DIG=<< parameters.prefix >>bin/nsec3dig \
+            # SAXFR=<< parameters.prefix >>bin/saxfr \
+            # ZONE2SQL=<< parameters.prefix >>bin/zone2sql \
+            # ZONE2LDAP=<< parameters.prefix >>bin/zone2ldap \
+            # PDNSUTIL=<< parameters.prefix >>bin/pdnsutil \
+            # PDNSCONTROL=<< parameters.prefix >>bin/pdns_control \
+            # RESOLVERIP=127.0.0.1 \
+
+
 @task
 def test_dnsdist(c):
     c.run('chmod +x /opt/dnsdist/bin/*')
