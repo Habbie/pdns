@@ -285,8 +285,8 @@ def ci_dnsdist_make(c):
 @task
 def ci_auth_install_remotebackend_ruby_deps(c):
     with c.cd('modules/remotebackend'):
-      c.run('bundle config set path vendor/bundle')
-      c.run('ruby -S bundle install')
+      # c.run('bundle config set path vendor/bundle')
+      c.sudo('ruby -S bundle install')
 
 @task
 def ci_auth_run_unit_tests(c):
