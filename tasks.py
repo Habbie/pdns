@@ -87,6 +87,8 @@ auth_test_deps = [   # FIXME: we should be generating some of these from shlibde
     'libyaml-cpp0.6',
     'libzmq3-dev',
     'pdns-recursor',
+    'ruby-bundler',
+    'ruby-dev',
     'socat',
     'softhsm2',
     'unbound-host',
