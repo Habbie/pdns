@@ -123,7 +123,8 @@ auth_backend_test_deps = dict(
     gsqlite3=['sqlite3'],
     gmysql=['default-libmysqlclient-dev'],
     gpgsql=['libpq-dev'],
-    lmdb=[]
+    lmdb=[],
+    remote=[]
 )
 
 @task(help={'backend': 'Backend to install test deps for, e.g. gsqlite3; can be repeated'}, iterable=['backend'], optional=['backend'])
