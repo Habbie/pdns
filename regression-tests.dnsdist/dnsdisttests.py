@@ -49,6 +49,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     """
     _dnsDistPort = 5340
     _dnsDistListeningAddr = "0.0.0.0"
+    _testServerIP = '192.168.1.49'
     _testServerPort = 5350
     _toResponderQueue = Queue()
     _fromResponderQueue = Queue()
@@ -58,7 +59,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     _responsesCounter = {}
     _config_template = """
     """
-    _config_params = ['_testServerPort']
+    _config_params = ['_testServerIP', '_testServerPort']
     _acl = ['127.0.0.1/32', '192.168.1.0/24']
     _consolePort = 5199
     _consoleKey = None
@@ -73,10 +74,10 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     def startResponders(cls):
         print("Launching responders..")
 
-        cls._UDPResponder = threading.Thread(name='UDP Responder', target=cls.UDPResponder, args=[cls._testServerPort, cls._toResponderQueue, cls._fromResponderQueue])
+        cls._UDPResponder = threading.Thread(name='UDP Responder', target=cls.UDPResponder, args=[cls._testServerIP, cls._testServerPort, cls._toResponderQueue, cls._fromResponderQueue])
         cls._UDPResponder.setDaemon(True)
         cls._UDPResponder.start()
-        cls._TCPResponder = threading.Thread(name='TCP Responder', target=cls.TCPResponder, args=[cls._testServerPort, cls._toResponderQueue, cls._fromResponderQueue])
+        cls._TCPResponder = threading.Thread(name='TCP Responder', target=cls.TCPResponder, args=[cls._testServerIP, cls._testServerPort, cls._toResponderQueue, cls._fromResponderQueue])
         cls._TCPResponder.setDaemon(True)
         cls._TCPResponder.start()
 
@@ -203,7 +204,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         return response
 
     @classmethod
-    def UDPResponder(cls, port, fromQueue, toQueue, trailingDataResponse=False, callback=None):
+    def UDPResponder(cls, ip, port, fromQueue, toQueue, trailingDataResponse=False, callback=None):
         # trailingDataResponse=True means "ignore trailing data".
         # Other values are either False (meaning "raise an exception")
         # or are interpreted as a response RCODE for queries with trailing data.
@@ -212,7 +213,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        sock.bind(("192.168.1.49", port))
+        sock.bind((ip, port))
         while True:
             data, addr = sock.recvfrom(4096)
             forceRcode = None
@@ -300,7 +301,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
       conn.close()
 
     @classmethod
-    def TCPResponder(cls, port, fromQueue, toQueue, trailingDataResponse=False, multipleResponses=False, callback=None, tlsContext=None, multipleConnections=False):
+    def TCPResponder(cls, ip, port, fromQueue, toQueue, trailingDataResponse=False, multipleResponses=False, callback=None, tlsContext=None, multipleConnections=False):
         # trailingDataResponse=True means "ignore trailing data".
         # Other values are either False (meaning "raise an exception")
         # or are interpreted as a response RCODE for queries with trailing data.
@@ -310,7 +311,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         try:
-            sock.bind(("192.168.1.49", port))
+            sock.bind((ip, port))
         except socket.error as e:
             print("Error binding in the TCP responder: %s" % str(e))
             sys.exit(1)
