@@ -48,25 +48,25 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     that the queries sent from dnsdist were as expected.
     """
     _dnsDistPort = 5340
-    _dnsDistListeningAddr = "127.0.0.1"
+    _dnsDistListeningAddr = "0.0.0.0"
     _testServerPort = 5350
     _toResponderQueue = Queue()
     _fromResponderQueue = Queue()
     _queueTimeout = 1
-    _dnsdistStartupDelay = 2.0
+    _dnsdistStartupDelay = 15
     _dnsdist = None
     _responsesCounter = {}
     _config_template = """
     """
     _config_params = ['_testServerPort']
-    _acl = ['127.0.0.1/32']
+    _acl = ['127.0.0.1/32', '192.168.1.0/24']
     _consolePort = 5199
     _consoleKey = None
     _healthCheckName = 'a.root-servers.net.'
     _healthCheckCounter = 0
     _answerUnexpected = True
     _checkConfigExpectedOutput = None
-    _verboseMode = False
+    _verboseMode = True
     _skipListeningOnCL = False
 
     @classmethod
@@ -137,7 +137,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         print("Setting up UDP socket..")
         cls._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cls._sock.settimeout(2.0)
-        cls._sock.connect(("127.0.0.1", cls._dnsDistPort))
+        cls._sock.connect(("192.168.1.52", cls._dnsDistPort))
 
     @classmethod
     def setUpClass(cls):
@@ -209,7 +209,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        sock.bind(("127.0.0.1", port))
+        sock.bind(("192.168.1.49", port))
         while True:
             data, addr = sock.recvfrom(4096)
             forceRcode = None
@@ -307,7 +307,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         try:
-            sock.bind(("127.0.0.1", port))
+            sock.bind(("192.168.1.49", port))
         except socket.error as e:
             print("Error binding in the TCP responder: %s" % str(e))
             sys.exit(1)
@@ -437,7 +437,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         try:
-            sock.bind(("127.0.0.1", port))
+            sock.bind(("192.168.1.49", port))
         except socket.error as e:
             print("Error binding in the TCP responder: %s" % str(e))
             sys.exit(1)
@@ -502,7 +502,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         if not port:
           port = cls._dnsDistPort
 
-        sock.connect(("127.0.0.1", port))
+        sock.connect(("192.168.1.52", port))
         return sock
 
     @classmethod
@@ -519,7 +519,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         else:
             sslsock = ssl.wrap_socket(sock, ca_certs=caCert, cert_reqs=ssl.CERT_REQUIRED)
 
-        sslsock.connect(("127.0.0.1", port))
+        sslsock.connect(("192.168.1.52", port))
         return sslsock
 
     @classmethod
@@ -597,7 +597,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         if timeout:
             sock.settimeout(timeout)
 
-        sock.connect(("127.0.0.1", cls._dnsDistPort))
+        sock.connect(("192.168.1.52", cls._dnsDistPort))
         messages = []
 
         try:
@@ -685,7 +685,7 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
         if timeout:
             sock.settimeout(timeout)
 
-        sock.connect(("127.0.0.1", cls._consolePort))
+        sock.connect(("192.168.1.52", cls._consolePort))
         sock.send(ourNonce)
         theirNonce = sock.recv(len(ourNonce))
         if len(theirNonce) != len(ourNonce):

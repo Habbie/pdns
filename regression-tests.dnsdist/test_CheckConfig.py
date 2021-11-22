@@ -17,6 +17,8 @@ class TestCheckConfig(unittest.TestCase):
         with open(os.devnull, 'w') as fdDevNull:
             dnsdist = subprocess.Popen(dnsdistcmd, close_fds=True, stdout=fdDevNull)
 
+        time.sleep(5)
+
         if dnsdist.poll() is None:
             time.sleep(delay)
             self.assertNotEqual(dnsdist.poll(), None)

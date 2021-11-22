@@ -1,0 +1,4 @@
+#!/bin/sh
+scp dnsdist_test.conf root@192.168.1.52: || true
+ssh root@192.168.1.52 /usr/bin/dnsdist "$@"
+
