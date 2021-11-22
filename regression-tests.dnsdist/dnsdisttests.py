@@ -92,10 +92,13 @@ class DNSDistTest(AssertEqualDNSMessageMixin, unittest.TestCase):
             conf.write("setSecurityPollSuffix('')")
 
         if cls._skipListeningOnCL:
-          dnsdistcmd = [os.environ['DNSDISTBIN'], '--supervised', '-C', confFile ]
+          # removed --supervised here so killing ssh kills dnsdist
+          dnsdistcmd = [os.environ['DNSDISTBIN'], '-C', confFile ]
         else:
-          dnsdistcmd = [os.environ['DNSDISTBIN'], '--supervised', '-C', confFile,
+          dnsdistcmd = [os.environ['DNSDISTBIN'], '-C', confFile,
                         '-l', '%s:%d' % (cls._dnsDistListeningAddr, cls._dnsDistPort) ]
+
+        dnsdistcmd = ['ssh','root@192.168.1.52'] + dnsdistcmd
 
         if cls._verboseMode:
             dnsdistcmd.append('-v')
