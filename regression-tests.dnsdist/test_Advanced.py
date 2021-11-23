@@ -1188,7 +1188,7 @@ class TestStatNodeRespRingSince(DNSDistTest):
     _config_template = """
     setKey("%s")
     controlSocket("%s:%s")
-    setConsoleACL('127.0.0.1/32', '192.168.1.0/24')
+    setConsoleACL{'127.0.0.1/32', '192.168.1.0/24'}
     s1 = newServer{address="%s:%s"}
     s1:setUp()
     function visitor(node, self, childstat)
@@ -1635,7 +1635,7 @@ class TestSetRules(DNSDistTest):
     _config_template = """
     setKey("%s")
     controlSocket("%s:%s")
-    setConsoleACL('127.0.0.1/32', '192.168.1.0/24')
+    setConsoleACL{'127.0.0.1/32', '192.168.1.0/24'}
     newServer{address="%s:%s"}
     addAction(AllRule(), SpoofAction("192.0.2.1"))
     """
