@@ -843,7 +843,7 @@ class TestAdvancedNMGRule(DNSDistTest):
 
 class TestDSTPortRule(DNSDistTest):
 
-    _config_params = ['_dnsDistPort', '_testServerPort']
+    _config_params = ['_dnsDistPort', 'testServerIP', '_testServerPort']
     _config_template = """
     addAction(DSTPortRule(%d), RCodeAction(DNSRCode.REFUSED))
     newServer{address="%s:%s"}
@@ -1270,7 +1270,7 @@ class TestAdvancedRD(DNSDistTest):
 
     _config_template = """
     addAction(RDRule(), RCodeAction(DNSRCode.REFUSED))
-    newServer(address="%s:%s"}
+    newServer{address="%s:%s"}
     """
 
     def testAdvancedRDRefused(self):
@@ -1400,7 +1400,7 @@ class TestAdvancedGetLocalAddressOnAnyBind(DNSDistTest):
                                     60,
                                     dns.rdataclass.IN,
                                     dns.rdatatype.CNAME,
-                                    'address-was-127-0-0-1.local-address-any.advanced.tests.powerdns.com.')
+                                    'address-was-127-0-0-1.local-address-any.advanced.tests.powerdns.com.') # FIXME
         response.answer.append(rrset)
 
         for method in ("sendUDPQuery", "sendTCPQuery"):
@@ -1753,7 +1753,7 @@ class TestAdvancedNegativeAndSOA(DNSDistTest):
     setPayloadSizeOnSelfGeneratedAnswers(%d)
     newServer{address="%s:%s"}
     """
-    _config_params = ['_selfGeneratedPayloadSize', '_testServerPort']
+    _config_params = ['_selfGeneratedPayloadSize', '_testServerIP', '_testServerPort']
 
 
     def testAdvancedNegativeAndSOANXD(self):
