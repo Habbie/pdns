@@ -180,6 +180,7 @@ protected:
     d_DeleteCommentsQuery_stmt.reset();
     d_SearchRecordsQuery_stmt.reset();
     d_SearchCommentsQuery_stmt.reset();
+    d_storeDeltaQuery_stmt.reset();
   }
 
 public:
