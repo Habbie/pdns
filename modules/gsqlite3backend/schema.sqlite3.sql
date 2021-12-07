@@ -88,3 +88,15 @@ CREATE TABLE tsigkeys (
 );
 
 CREATE UNIQUE INDEX namealgoindex ON tsigkeys(name, algorithm);
+
+CREATE TABLE deltas (
+ id                     INTEGER PRIMARY KEY,
+ domain_id              INTEGER NOT NULL,
+ fromserial             INTEGER NOT NULL,
+ toserial               INTEGER NOT NULL,
+ name                   VARCHAR(255) NOT NULL,
+ type                   VARCHAR(10) NOT NULL,
+ content                VARCHAR(65535) DEFAULT NULL,
+ ttl                    INTEGER DEFAULT NULL,
+ added                  BOOLEAN NOT NULL
+)

@@ -115,6 +115,7 @@ protected:
       d_DeleteCommentsQuery_stmt = d_db->prepare(d_DeleteCommentsQuery, 1);
       d_SearchRecordsQuery_stmt = d_db->prepare(d_SearchRecordsQuery, 3);
       d_SearchCommentsQuery_stmt = d_db->prepare(d_SearchCommentsQuery, 3);
+      d_storeDeltaQuery_stmt = d_db->prepare(d_storeDeltaQuery, 8);
     }
   }
 
@@ -213,6 +214,8 @@ public:
 
   bool updateEmptyNonTerminals(uint32_t domain_id, set<DNSName>& insert ,set<DNSName>& erase, bool remove) override;
   bool doesDNSSEC() override;
+
+  bool storeDelta(uint32_t domain_id, const vector<DNSRecord>& remove, const vector<DNSRecord>& add) override;
 
   bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset) override;
   bool listSubZone(const DNSName &zone, int domain_id) override;
@@ -340,6 +343,8 @@ private:
 
   string d_getAllDomainsQuery;
 
+  string d_storeDeltaQuery;
+
   string d_ListCommentsQuery;
   string d_InsertCommentQuery;
   string d_DeleteCommentRRsetQuery;
@@ -388,6 +393,7 @@ private:
   unique_ptr<SSqlStatement> d_GetLastInsertedKeyIdQuery_stmt;
   unique_ptr<SSqlStatement> d_ListDomainKeysQuery_stmt;
   unique_ptr<SSqlStatement> d_GetAllDomainMetadataQuery_stmt;
+  unique_ptr<SSqlStatement> d_storeDeltaQuery_stmt;
   unique_ptr<SSqlStatement> d_GetDomainMetadataQuery_stmt;
   unique_ptr<SSqlStatement> d_ClearDomainMetadataQuery_stmt;
   unique_ptr<SSqlStatement> d_ClearDomainAllMetadataQuery_stmt;

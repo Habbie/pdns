@@ -85,6 +85,8 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_DeleteNamesQuery=getArg("delete-names-query");
   d_getAllDomainsQuery=getArg("get-all-domains-query");
 
+  d_storeDeltaQuery=getArg("store-delta-query");
+
   d_InsertEmptyNonTerminalOrderQuery=getArg("insert-empty-non-terminal-order-query");
   d_DeleteEmptyNonTerminalQuery = getArg("delete-empty-non-terminal-query");
   d_RemoveEmptyNonTerminalsFromZoneQuery = getArg("remove-empty-non-terminals-from-zone-query");
@@ -168,6 +170,7 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_GetLastInsertedKeyIdQuery_stmt = nullptr;
   d_ListDomainKeysQuery_stmt = nullptr;
   d_GetAllDomainMetadataQuery_stmt = nullptr;
+  d_storeDeltaQuery_stmt = nullptr;
   d_GetDomainMetadataQuery_stmt = nullptr;
   d_ClearDomainMetadataQuery_stmt = nullptr;
   d_ClearDomainAllMetadataQuery_stmt = nullptr;
@@ -1474,6 +1477,64 @@ void GSQLBackend::getAllDomains(vector<DomainInfo>* domains, bool getSerial, boo
   }
 }
 
+bool GSQLBackend::storeDelta(uint32_t domain_id, const vector<DNSRecord>& remove, const vector<DNSRecord>& add)
+{
+  cerr<<"in gsql, domain_id="<<domain_id<<endl;
+
+  for(const auto& x: remove) {
+    cout<<"remove: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+  }
+
+  for(const auto& x: add) {
+    cout<<"add: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+  }
+  
+  try {
+    reconnectIfNeeded();
+
+    if (!d_inTransaction) {
+      throw PDNSException("storeDelta called outside of transaction");
+    }
+
+    if (!remove.size()) {
+      throw PDNSException("in storeDelta, list of removals was empty");
+    }
+
+    if (!add.size()) {
+      throw PDNSException("in storeDelta, list of additions was empty");
+    }
+
+    auto source = remove;
+    bool added = false;
+    uint32_t fromserial = getRR<SOARecordContent>(remove[0])->d_st.serial;
+    uint32_t toserial = getRR<SOARecordContent>(add[0])->d_st.serial;
+
+    for(int i=0; i<2; i++) {
+      for(const auto& x: source) {
+        d_storeDeltaQuery_stmt->
+          bind("domain_id", domain_id)->
+          bind("fromserial", fromserial)->
+          bind("toserial", toserial)->
+          bind("name", x.d_name)->
+          bind("type", DNSRecordContent::NumberToType(x.d_type))->
+          bind("content", x.d_content->getZoneRepresentation())->
+          bind("ttl", x.d_ttl)->
+          bind("added", added)->
+          execute()->
+          reset();
+      }
+
+      source = add;
+      added = true;
+    }
+  }
+  catch (SSqlException &e) {
+    throw PDNSException("GSQLBackend unable to store delta for domain_id " + std::to_string(domain_id) + ": "+e.txtReason());
+  }
+
+  return true;
+}
+
 bool GSQLBackend::replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset)
 {
   try {
@@ -1667,6 +1728,7 @@ bool GSQLBackend::commitTransaction()
     d_inTransaction = false;
     throw PDNSException("Database failed to commit transaction: "+e.txtReason());
   }
+  cerr<<"COMMIT"<<endl;
   return true;
 }
 

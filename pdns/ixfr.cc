@@ -208,7 +208,7 @@ vector<pair<vector<DNSRecord>, vector<DNSRecord> > > getIXFRDeltas(const ComboAd
     }
 
     for(auto& r: mdp.d_answers) {
-      //      cout<<r.first.d_name<< " " <<r.first.d_content->getZoneRepresentation()<<endl;
+           cout<<r.first.d_name<< " " <<r.first.d_content->getZoneRepresentation()<<endl;
       if(!primarySOA) {
         // we have not seen the first SOA record yet
         if (r.first.d_type != QType::SOA) {

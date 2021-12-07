@@ -123,13 +123,20 @@ void CommunicatorClass::ixfrSuck(const DNSName &domain, const TSIGTriplet& tt, c
     for(const auto& d : deltas) {
       const auto& remove = d.first;
       const auto& add = d.second;
-      //      cout<<"Delta sizes: "<<remove.size()<<", "<<add.size()<<endl;
+           cout<<"Delta sizes: "<<remove.size()<<", "<<add.size()<<endl;
       
       if(remove.empty()) { // we got passed an AXFR!
         *axfr = add;
         return;
       }
-        
+      
+      // for(const auto& x: remove) {
+      //   cout<<"remove: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+      // }
+
+      // for(const auto& x: add) {
+      //   cout<<"add: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+      // }
 
       // our hammer is 'replaceRRSet(domain_id, qname, qt, vector<DNSResourceRecord>& rrset)
       // which thinks in terms of RRSETs
@@ -184,6 +191,7 @@ void CommunicatorClass::ixfrSuck(const DNSName &domain, const TSIGTriplet& tt, c
 
         di.backend->replaceRRSet(di.id, g.first.first+domain, QType(g.first.second), replacement);
       }
+      di.backend->storeDelta(di.id, remove, add);
       di.backend->commitTransaction();
     }
   }

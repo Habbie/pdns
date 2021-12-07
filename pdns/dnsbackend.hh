@@ -138,11 +138,26 @@ public:
   //! fills the soadata struct with the SOA details. Returns false if there is no SOA.
   virtual bool getSOA(const DNSName &name, SOAData &soadata);
 
+  virtual bool storeDelta(uint32_t domain_id, const vector<DNSRecord>& remove, const vector<DNSRecord>& add)
+  {
+    cerr<<"domain_id="<<domain_id<<endl;
+
+    for(const auto& x: remove) {
+      cout<<"remove: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+    }
+
+    for(const auto& x: add) {
+      cout<<"add: "<<x.d_name<<" "<<x.d_type<<" "<<x.d_content->getZoneRepresentation()<<endl;
+    }
+    return false;
+  }
+
   virtual bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset)
   {
     return false;
   }
 
+  // virtual bool storeDelta(uint32_t domain_id, const DNSName& qname, const QType& qt)
   virtual bool listSubZone(const DNSName &zone, int domain_id)
   {
     return false;

@@ -67,6 +67,7 @@ slave
 slave-cycle-interval=1
 query-cache-ttl=20
 negquery-cache-ttl=60
+query-logging
 """
 
     _zones = {}
