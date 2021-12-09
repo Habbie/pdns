@@ -152,6 +152,10 @@ public:
     return false;
   }
 
+  virtual bool getDeltasForDomain(uint32_t domain_id, vector<DNSDelta>& ret) {
+    return false;
+  }
+
   virtual bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset)
   {
     return false;

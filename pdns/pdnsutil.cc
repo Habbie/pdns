@@ -3517,6 +3517,34 @@ try
     }
     return 0;
   }
+  else if (cmds.at(0) == "get-deltas") {
+    UeberBackend B("default");
+    if (cmds.size() < 2) {
+      cerr << "Syntax: " << cmds.at(0) << " zone" << endl;
+      return 1;
+    }
+    DNSName zone(cmds.at(1));
+    vector<DNSDelta> deltas;
+
+    DomainInfo di;
+    if (!B.getDomainInfo(zone, di)) {
+       cerr << "Invalid zone '" << zone << "'" << endl;
+       return 1;
+    }
+    di.backend->getDeltasForDomain(di.id, deltas);
+    cout<<deltas.size()<<endl;
+    for(const auto& delta: deltas) {
+      cout<<(delta.added ? "added  " : "removed")<< " ";
+      cout<<"domain_id="<<delta.domain_id<<" ";
+      cout<<"fromserial="<<delta.fromserial<<" ";
+      cout<<"toserial="<<delta.toserial<<" ";
+      cout<<"name="<<delta.name<<" ";
+      cout<<"type="<<delta.type<<" ";
+      cout<<"content="<<delta.content<<" ";
+      cout<<"ttl="<<delta.ttl<<" ";
+      cout<<endl;
+    }    
+  }
   else if (cmds.at(0) == "get-meta") {
     UeberBackend B("default");
     if (cmds.size() < 2) {

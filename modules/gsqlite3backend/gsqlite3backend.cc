@@ -156,6 +156,7 @@ public:
     declare(suffix, "search-comments-query", "", "SELECT domain_id,name,type,modified_at,account,comment FROM comments WHERE name LIKE :value ESCAPE '\\' OR comment LIKE :value2 ESCAPE '\\' LIMIT :limit");
 
     declare(suffix, "store-delta-query", "", "INSERT INTO deltas (domain_id, fromserial, toserial, name, type, content, ttl, added) VALUES (:domain_id, :fromserial, :toserial, :name, :type, :content, :ttl, :added)");
+    declare(suffix, "get-deltas-for-domain-query", "", "SELECT domain_id, fromserial, toserial, name, type, content, ttl, added FROM deltas WHERE domain_id=:domain_id");
   }
 
   //! Constructs a new gSQLite3Backend object.

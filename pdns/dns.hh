@@ -243,3 +243,15 @@ struct TSIGTriplet
   DNSName name, algo;
   string secret;
 };
+
+struct DNSDelta
+{
+  uint32_t domain_id;
+  uint32_t fromserial;
+  uint32_t toserial;
+  DNSName name;
+  QType type;
+  string content;
+  uint32_t ttl;
+  bool added;
+};

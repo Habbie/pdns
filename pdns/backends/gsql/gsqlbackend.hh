@@ -116,6 +116,7 @@ protected:
       d_SearchRecordsQuery_stmt = d_db->prepare(d_SearchRecordsQuery, 3);
       d_SearchCommentsQuery_stmt = d_db->prepare(d_SearchCommentsQuery, 3);
       d_storeDeltaQuery_stmt = d_db->prepare(d_storeDeltaQuery, 8);
+      d_getDeltasForDomainQuery_stmt = d_db->prepare(d_getDeltasForDomainQuery, 1);
     }
   }
 
@@ -181,6 +182,7 @@ protected:
     d_SearchRecordsQuery_stmt.reset();
     d_SearchCommentsQuery_stmt.reset();
     d_storeDeltaQuery_stmt.reset();
+    d_getDeltasForDomainQuery_stmt.reset();
   }
 
 public:
@@ -217,6 +219,7 @@ public:
   bool doesDNSSEC() override;
 
   bool storeDelta(uint32_t domain_id, const vector<DNSRecord>& remove, const vector<DNSRecord>& add) override;
+  bool getDeltasForDomain(uint32_t domain_id, vector<DNSDelta>& ret);
 
   bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset) override;
   bool listSubZone(const DNSName &zone, int domain_id) override;
@@ -345,6 +348,7 @@ private:
   string d_getAllDomainsQuery;
 
   string d_storeDeltaQuery;
+  string d_getDeltasForDomainQuery;
 
   string d_ListCommentsQuery;
   string d_InsertCommentQuery;
@@ -395,6 +399,7 @@ private:
   unique_ptr<SSqlStatement> d_ListDomainKeysQuery_stmt;
   unique_ptr<SSqlStatement> d_GetAllDomainMetadataQuery_stmt;
   unique_ptr<SSqlStatement> d_storeDeltaQuery_stmt;
+  unique_ptr<SSqlStatement> d_getDeltasForDomainQuery_stmt;
   unique_ptr<SSqlStatement> d_GetDomainMetadataQuery_stmt;
   unique_ptr<SSqlStatement> d_ClearDomainMetadataQuery_stmt;
   unique_ptr<SSqlStatement> d_ClearDomainAllMetadataQuery_stmt;

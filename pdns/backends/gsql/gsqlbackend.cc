@@ -86,6 +86,7 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_getAllDomainsQuery=getArg("get-all-domains-query");
 
   d_storeDeltaQuery=getArg("store-delta-query");
+  d_getDeltasForDomainQuery=getArg("get-deltas-for-domain-query");
 
   d_InsertEmptyNonTerminalOrderQuery=getArg("insert-empty-non-terminal-order-query");
   d_DeleteEmptyNonTerminalQuery = getArg("delete-empty-non-terminal-query");
@@ -171,6 +172,7 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_ListDomainKeysQuery_stmt = nullptr;
   d_GetAllDomainMetadataQuery_stmt = nullptr;
   d_storeDeltaQuery_stmt = nullptr;
+  d_getDeltasForDomainQuery_stmt = nullptr;
   d_GetDomainMetadataQuery_stmt = nullptr;
   d_ClearDomainMetadataQuery_stmt = nullptr;
   d_ClearDomainAllMetadataQuery_stmt = nullptr;
@@ -1475,6 +1477,42 @@ void GSQLBackend::getAllDomains(vector<DomainInfo>* domains, bool getSerial, boo
   catch (SSqlException &e) {
     throw PDNSException("Database error trying to retrieve all domains:" + e.txtReason());
   }
+}
+
+bool GSQLBackend::getDeltasForDomain(uint32_t domain_id, vector<DNSDelta>& ret)
+{
+  try {
+    reconnectIfNeeded();
+
+    d_getDeltasForDomainQuery_stmt->
+      bind("domain_id", domain_id)->
+      execute();
+  
+    SSqlStatement::row_t row;
+    
+    while(d_getDeltasForDomainQuery_stmt->hasNextRow()) {
+      d_getDeltasForDomainQuery_stmt->nextRow(row);
+      ASSERT_ROW_COLUMNS("get-deltas-for-domain-query", row, 8);
+      DNSDelta dt;
+      dt.domain_id = pdns_stou(row[0]);
+      dt.fromserial = pdns_stou(row[1]);
+      dt.toserial = pdns_stou(row[2]);
+      dt.name = DNSName(row[3]);
+      dt.type = row[4];
+      dt.content = row[5];
+      dt.ttl = pdns_stou(row[6]);
+      dt.added = !row[7].empty() && row[7][0]=='1';
+      ret.push_back(dt);
+    }
+
+    d_getDeltasForDomainQuery_stmt->reset();
+  }
+  catch (SSqlException &e) {
+    throw PDNSException("GSQLBackend unable to get deltas for domain '" + std::to_string(domain_id) + "': "+e.txtReason());
+  }
+
+  return true;
+
 }
 
 bool GSQLBackend::storeDelta(uint32_t domain_id, const vector<DNSRecord>& remove, const vector<DNSRecord>& add)
