@@ -22,7 +22,6 @@ $ORIGIN example.""","""
 @        4242    NS     ns2.example.
 ns1.example.    4242    A       192.0.2.1
 ns2.example.    4242    A       192.0.2.2
-newrecord.example.        8484    A       192.0.2.42
 """],
     3: ["""
 $ORIGIN example.""","""
@@ -30,6 +29,7 @@ $ORIGIN example.""","""
 @        86400   SOA    foo bar 2 2 3 4 5""","""
 @        86400   SOA    foo bar 3 2 3 4 5""","""
 @        4242    NS     ns3.example.
+newrecord.example.        8484    A       192.0.2.42
 """],
     5: ["""
 $ORIGIN example.""","""
