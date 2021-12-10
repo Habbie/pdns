@@ -1204,6 +1204,20 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
   vector<DNSDelta> deltas;
   sd.db->getDeltasForDomain(sd.domain_id, deltas);
   cout<<deltas.size()<<endl;
+
+  DNSRecord soadr;
+  soadr.d_name = sd.qname;
+  soadr.d_ttl = sd.ttl;
+  soadr.d_type = QType::SOA;
+  sd.serial = serial+1; // FIXME: this is fromserial+1, should be toserial
+  soadr.d_content = makeSOAContent(sd); // ->getZoneRepresentation(true); // FIXME: this (and a bunch of other new code) totally ignores the impact of SOA-EDIT
+  
+  DNSZoneRecord soazr;
+  soazr.dr = soadr;
+
+  // this sends the -latest- serial, which may not match todelta in the delta we emit
+  outpacket->addRecord(DNSZoneRecord(soazr));
+
   for(const auto& delta: deltas) {
     cout<<(delta.added ? "added  " : "removed")<< " ";
     cout<<"domain_id="<<delta.domain_id<<" ";
@@ -1214,6 +1228,9 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
     cout<<"content="<<delta.content<<" ";
     cout<<"ttl="<<delta.ttl<<" ";
     cout<<endl;
+    if (serial != delta.fromserial) {
+      continue;
+    }
     DNSRecord dr;
     dr.d_name = delta.name + sd.qname;
     dr.d_ttl = delta.ttl;
@@ -1224,6 +1241,8 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
     zr.dr = dr;
     outpacket->addRecord(std::move(zr));
   }
+
+  outpacket->addRecord(std::move(soazr));
 
   sendPacket(outpacket, outsock);
   return 1;
