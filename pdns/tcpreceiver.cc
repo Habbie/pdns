@@ -1199,8 +1199,37 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
     return 1;
   }
 
-  g_log<<Logger::Notice<<logPrefix<<"IXFR fallback to AXFR"<<endl;
-  return doAXFR(q->qdomain, q, outsock);
+  g_log<<Logger::Notice<<logPrefix<<"Looking for deltas"<<endl;
+
+  vector<DNSDelta> deltas;
+  sd.db->getDeltasForDomain(sd.domain_id, deltas);
+  cout<<deltas.size()<<endl;
+  for(const auto& delta: deltas) {
+    cout<<(delta.added ? "added  " : "removed")<< " ";
+    cout<<"domain_id="<<delta.domain_id<<" ";
+    cout<<"fromserial="<<delta.fromserial<<" ";
+    cout<<"toserial="<<delta.toserial<<" ";
+    cout<<"name="<<delta.name<<" ";
+    cout<<"type="<<delta.type<<" ";
+    cout<<"content="<<delta.content<<" ";
+    cout<<"ttl="<<delta.ttl<<" ";
+    cout<<endl;
+    DNSRecord dr;
+    dr.d_name = delta.name + sd.qname;
+    dr.d_ttl = delta.ttl;
+    dr.d_type = delta.type;
+    dr.d_place = DNSResourceRecord::ANSWER;
+    dr.d_content = DNSRecordContent::mastermake(delta.type, QClass::IN, delta.content);
+    DNSZoneRecord zr;
+    zr.dr = dr;
+    outpacket->addRecord(std::move(zr));
+  }
+
+  sendPacket(outpacket, outsock);
+  return 1;
+
+  // g_log<<Logger::Notice<<logPrefix<<"IXFR fallback to AXFR"<<endl;
+  // return doAXFR(q->qdomain, q, outsock);
 }
 
 TCPNameserver::~TCPNameserver()
