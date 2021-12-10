@@ -3539,7 +3539,7 @@ try
       cout<<"fromserial="<<delta.fromserial<<" ";
       cout<<"toserial="<<delta.toserial<<" ";
       cout<<"name="<<delta.name<<" ";
-      cout<<"type="<<delta.type<<" ";
+      cout<<"type="<<QType(delta.type).toString()<<" ";
       cout<<"content="<<delta.content<<" ";
       cout<<"ttl="<<delta.ttl<<" ";
       cout<<endl;
