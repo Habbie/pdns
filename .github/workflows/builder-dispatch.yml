@@ -14,6 +14,16 @@ on:
       os:
         description: OS to build for
         type: string
+      ref:
+        description: git ref to checkout
+        type: string
+        default: master
+      is_release:
+        description: is this a release build?
+        type: choice
+        options:
+        - YES
+        - NO
 
 jobs:
   build:
@@ -25,8 +35,9 @@ jobs:
         with:
           fetch-depth: 0 # for correct version numbers
           submodules: recursive
+          ref: ${{ github.event.inputs.ref }}
       # this builds packages and runs our unit tests (make check)
-      - run: builder/build.sh -v -m ${{ github.event.inputs.product }} ${{ github.event.inputs.os }}
+      - run: IS_RELEASE=${{ github.event.inputs.is_release}} builder/build.sh -v -m ${{ github.event.inputs.product }} ${{ github.event.inputs.os }}
       - name: Get version number
         run: 'echo ::set-output name=version::$(readlink builder/tmp/latest)'
         id: getversion
