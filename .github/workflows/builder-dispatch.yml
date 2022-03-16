@@ -39,7 +39,7 @@ jobs:
           - debian-bullseye
           - ubuntu-bionic
           - ubuntu-focal
-        fail-fast: false
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2.3.4
         with:
