@@ -22,8 +22,8 @@ on:
         description: is this a release build?
         type: choice
         options:
-        - YES
-        - NO
+        - 'NO'
+        - 'YES'
 
 jobs:
   build:
