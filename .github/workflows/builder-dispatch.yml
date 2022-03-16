@@ -12,7 +12,7 @@ on:
         - recursor
         - dnsdist
       os:
-        description: OS to build for
+        description: OSes to build for, space separated, substring matched
         type: string
       ref:
         description: git ref to checkout
@@ -30,20 +30,33 @@ jobs:
     name: build ${{ github.event.inputs.product }} for ${{ github.event.inputs.os }}
     # on a ubuntu-20.04 VM
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        os:
+          - el-7
+          - el-8
+          - debian-buster
+          - debian-bullseye
+          - ubuntu-bionic
+          - ubuntu-focal
     steps:
       - uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0 # for correct version numbers
           submodules: recursive
           ref: ${{ github.event.inputs.ref }}
+        if: contains(${{ github.events.input.os }}, ${{ matrix.os }})
       # this builds packages and runs our unit tests (make check)
       - run: IS_RELEASE=${{ github.event.inputs.is_release}} builder/build.sh -v -m ${{ github.event.inputs.product }} ${{ github.event.inputs.os }}
+        if: contains(${{ github.events.input.os }}, ${{ matrix.os }})
       - name: Get version number
         run: 'echo ::set-output name=version::$(readlink builder/tmp/latest)'
         id: getversion
+        if: contains(${{ github.events.input.os }}, ${{ matrix.os }})
       - name: Upload packages
         uses: actions/upload-artifact@v2
         with:
           name: ${{ github.event.inputs.product }}-${{ github.event.inputs.os }}-${{ steps.getversion.outputs.version }}
           path: built_pkgs/
           retention-days: 7
+        if: contains(${{ github.events.input.os }}, ${{ matrix.os }})
