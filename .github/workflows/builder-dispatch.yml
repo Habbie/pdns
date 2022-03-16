@@ -27,7 +27,7 @@ on:
 
 jobs:
   build:
-    name: build ${{ github.event.inputs.product }} (${{ github.events.inputs.ref}}) for ${{ matrix.os }}
+    name: build ${{ github.event.inputs.product }} (${{ github.event.inputs.ref }}) for ${{ matrix.os }}
     # on a ubuntu-20.04 VM
     runs-on: ubuntu-20.04
     strategy:
