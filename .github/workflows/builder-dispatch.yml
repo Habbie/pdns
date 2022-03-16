@@ -11,9 +11,9 @@ on:
         - authoritative
         - recursor
         - dnsdist
-      os:
-        description: OSes to build for, space separated, substring matched
-        type: string
+      # os:
+      #   description: OSes to build for, space separated, substring matched
+      #   type: string
       ref:
         description: git ref to checkout
         type: string
@@ -46,18 +46,18 @@ jobs:
           fetch-depth: 0 # for correct version numbers
           submodules: recursive
           ref: ${{ github.event.inputs.ref }}
-        if: ${{ contains(github.events.input.os, matrix.os) }}
+        # if: ${{ contains(github.events.input.os, matrix.os) }}
       # this builds packages and runs our unit tests (make check)
       - run: IS_RELEASE=${{ github.event.inputs.is_release}} builder/build.sh -v -m ${{ github.event.inputs.product }} ${{ matrix.os }}
-        if: ${{ contains(github.events.input.os, matrix.os) }}
+        # if: ${{ contains(github.events.input.os, matrix.os) }}
       - name: Get version number
         run: 'echo ::set-output name=version::$(readlink builder/tmp/latest)'
         id: getversion
-        if: ${{ contains(github.events.input.os, matrix.os) }}
+        # if: ${{ contains(github.events.input.os, matrix.os) }}
       - name: Upload packages
         uses: actions/upload-artifact@v2
         with:
           name: ${{ github.event.inputs.product }}-${{ matrix.os }}-${{ steps.getversion.outputs.version }}
           path: built_pkgs/
           retention-days: 7
-        if: ${{ contains(github.events.input.os, matrix.os) }}
+        # if: ${{ contains(github.events.input.os, matrix.os) }}
