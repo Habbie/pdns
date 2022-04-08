@@ -131,20 +131,6 @@ BuildRequires: unixODBC-devel
 %description backend-odbc
 This package contains the godbc backend for %{name}
 
-%package backend-geoip
-Summary: Geo backend for %{name}
-Group: System Environment/Daemons
-Requires: %{name}%{?_isa} = %{version}-%{release}
-BuildRequires: yaml-cpp-devel
-BuildRequires: geoip-devel
-BuildRequires: libmaxminddb-devel
-%global backends %{backends} geoip
-
-%description backend-geoip
-This package contains the geoip backend for %{name}
-It allows different answers to DNS queries coming from different
-IP address ranges or based on the geoipgraphic location
-
 %package backend-lmdb
 Summary: LMDB backend for %{name}
 Group: System Environment/Daemons
@@ -372,9 +358,6 @@ systemctl daemon-reload ||:
 %doc modules/godbcbackend/4.0.0_to_4.2.0_schema.mssql.sql
 %doc modules/godbcbackend/4.2.0_to_4.3.0_schema.mssql.sql
 %{_libdir}/%{name}/libgodbcbackend.so
-
-%files backend-geoip
-%{_libdir}/%{name}/libgeoipbackend.so
 
 %files backend-lmdb
 %{_libdir}/%{name}/liblmdbbackend.so
