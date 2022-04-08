@@ -31,13 +31,8 @@ BuildRequires: openssl-devel
 
 Requires(pre): shadow-utils
 
-%ifarch aarch64
 BuildRequires: lua-devel
 %define lua_implementation lua
-%else
-BuildRequires: luajit-devel
-%define lua_implementation luajit
-%endif
 
 Provides: powerdns = %{version}-%{release}
 %global backends %{backends} bind
