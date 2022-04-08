@@ -11,11 +11,9 @@ ARG BUILDER_CACHE_BUSTER=
 RUN touch /var/lib/rpm/* && dnf swap -y centos-linux-repos centos-stream-repos && dnf -y distro-sync
 @ENDIF
 
-RUN touch /var/lib/rpm/* && dnf install -y epel-release
-
-# && \
-#    dnf install -y 'dnf-command(config-manager)' && \
-#    dnf config-manager --set-enabled powertools
+RUN touch /var/lib/rpm/* && dnf install -y epel-release && \
+    dnf install -y 'dnf-command(config-manager)' && \
+    dnf config-manager --set-enabled crb
 
 # Do the actual rpm build
 @INCLUDE Dockerfile.rpmbuild
