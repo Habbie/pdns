@@ -761,7 +761,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
@@ -774,7 +774,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
@@ -789,7 +789,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
@@ -802,7 +802,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
@@ -817,7 +817,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
@@ -830,7 +830,7 @@ jobs:
     resource_class: small
 
     docker:
-      - image: texlive/texlive
+      - image: debian:bullseye
         auth:
           username: powerdnsreadonly
           password: $DOCKERHUB_PASSWORD
