@@ -18,6 +18,7 @@ BuildRequires: systemd
 BuildRequires: systemd-units
 BuildRequires: systemd-devel
 
+BuildRequires: krb5-devel
 BuildRequires: p11-kit-devel
 BuildRequires: libcurl-devel
 %if 0%{?rhel} < 8
