@@ -326,7 +326,7 @@ void DNSPacket::wrapup(bool throwsOnTruncation)
 
   if (d_haveednssubnet)
   {
-        DLOG(g_log<<"adding edns options"<<endl);
+    DLOG(g_log<<"adding edns options"<<endl);
 
     // this is an upper bound
     optsize += EDNS_OPTION_CODE_SIZE + EDNS_OPTION_LENGTH_SIZE + 2 + 1 + 1; // code+len+family+src len+scope len
