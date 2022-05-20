@@ -326,8 +326,6 @@ void DNSPacket::wrapup(bool throwsOnTruncation)
 
   if (d_haveednssubnet)
   {
-    DLOG(g_log<<"adding edns options"<<endl);
-
     // this is an upper bound
     optsize += EDNS_OPTION_CODE_SIZE + EDNS_OPTION_LENGTH_SIZE + 2 + 1 + 1; // code+len+family+src len+scope len
     optsize += d_eso.source.isIPv4() ? 4 : 16;
@@ -379,8 +377,6 @@ void DNSPacket::wrapup(bool throwsOnTruncation)
         eso.scope = Netmask(eso.source.getNetwork(), maxScopeMask);
     
         string opt = makeEDNSSubnetOptsString(eso);
-        DLOG(g_log<<"edns option string: "<<opt<<" "<<endl);
-
         opts.emplace_back(8, opt); // 'EDNS SUBNET'
       }
 
