@@ -42,8 +42,6 @@ If you have not upgraded to 4.3, please use `the 4.2 schema <https://github.com/
 This schema contains all elements needed for master, slave and
 superslave operation.
 
-If you have an existing database with an older schema, please use ``sqlite3 -bail`` when updating the schema.
-
 .. warning::
   It is not possible to replace the sqlite3 database file while PowerDNS is
   running. Specifically, using ``rsync`` to distribute sqlite3 databases
