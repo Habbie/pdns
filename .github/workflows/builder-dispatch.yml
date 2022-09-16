@@ -61,7 +61,7 @@ jobs:
     steps:
       # FIXME: start of terrible hack
       - uses: actions/checkout@v2.3.4
-      - run: cp build-scripts/docker-imgae-build.sh /tmp
+      - run: cp build-scripts/docker-image-build.sh /tmp
       - run: rm -rf $GITHUB_WORKSPACE && mkdir -p $GITHUB_WORKSPACE
       # FIXME: end of hack
       - uses: actions/checkout@v2.3.4
