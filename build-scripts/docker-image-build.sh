@@ -40,11 +40,16 @@ if [ "$module" = "authoritative" ]; then
     module=auth
 fi
 
+modulewithprefix=$module
+
 case $module in
-    auth)           ;;
-    rec)            ;;
+    auth)           modulewithprefix='pdns-auth'
+                    ;;
+    recursor)       modulewithprefix='pdns-recursor'
+                    ;;
     dnsdist)        ;;
     authoritative)  module=auth
+                    modulewithprefix='pdns-auth'
                     ;;
     *)              echo "invalid module: $module"
                     echo
@@ -68,6 +73,12 @@ else
     reposuffix=unknown
 fi
 
-imagename=powerdns/pdns-${module}-${reposuffix}:${version}
+imagename=powerdns/${modulewithprefix}-${reposuffix}:${version}
 
 docker build --no-cache --pull $buildarg -t $imagename -f Dockerfile-${module} .
+
+mkdir -p built_pkgs
+docker save -o built_pkgs/${modulewithprefix}-${version}.tar $imagename
+
+mkdir -p builder/tmp
+ln -s ${version} builder/tmp/latest
