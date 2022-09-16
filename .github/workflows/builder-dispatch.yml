@@ -70,7 +70,7 @@ jobs:
         if: ${{ matrix.os != 'docker' }}
       # perhaps we can get rid of this step after this script makes it to the relevant branches
       - name: Get Docker build wrapper
-        run: '[ -e build-scripts/docker-image-build.sh ] || git show builder-dispatch-release-docker:build-scripts/docker-image-build.sh >> build-scripts/docker-image-build.sh'
+        run: '[ -e build-scripts/docker-image-build.sh ] || ( git fetch --all && git show builder-dispatch-release-docker:build-scripts/docker-image-build.sh >> build-scripts/docker-image-build.sh' )
         if: ${{ matrix.os == 'docker' }}
       - name: Build Docker image
         run: IS_RELEASE=${{ github.event.inputs.is_release}} build-scripts/docker-image-build.sh -m ${{ github.event.inputs.product }} ${{ matrix.os }}
