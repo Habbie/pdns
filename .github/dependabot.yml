@@ -20,9 +20,3 @@ updates:
     interval: weekly
     timezone: Europe/Amsterdam
   open-pull-requests-limit: 0
-- package-ecosystem: pip
-  directory: "/"
-  schedule:
-    interval: weekly
-    timezone: Europe/Amsterdam
-  open-pull-requests-limit: 0
