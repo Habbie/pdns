@@ -20,7 +20,7 @@ updates:
     interval: weekly
     timezone: Europe/Amsterdam
   open-pull-requests-limit: 0
-- package-ecosystem: pipenv
+- package-ecosystem: pip
   directory: "/"
   schedule:
     interval: weekly
