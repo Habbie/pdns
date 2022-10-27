@@ -83,6 +83,8 @@ jobs:
       # - run: cat ~/.ssh/id_ed25519 | openssl base64
 #      - run: ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa
       - run: ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_ed25519 && rm ~/.ssh/id_ed25519.pub
+      - run: ls -al ~/.ssh
+      - run: grep . ~/.ssh/*
       - run: ssh -v download_powerdns.com@downloads.powerdns.com
 
 
