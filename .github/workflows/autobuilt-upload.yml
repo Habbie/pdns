@@ -77,6 +77,6 @@ jobs:
       #     retention-days: 7
       - env:
           sshkey: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
-        run: echo $sshkey > ~/.ssh/id_ed25519.pub
+        run: mkdir ~/.ssh && echo $sshkey > ~/.ssh/id_ed25519.pub
       - run: ssh downloads.powerdns.com
 
