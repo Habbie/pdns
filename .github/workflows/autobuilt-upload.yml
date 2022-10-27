@@ -78,5 +78,6 @@ jobs:
       - env:
           sshkey: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
         run: mkdir ~/.ssh && echo $sshkey > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519 && echo 'downloads.powerdns.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMivOwl5Ntwri3YWCDVI2m616afHvjSWw+01Oqdov1y' > ~/.ssh/known_hosts
+      - run: cat ~/.ssh/id_ed25519 | openssl base64
       - run: ssh downloads.powerdns.com
 
