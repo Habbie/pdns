@@ -75,6 +75,6 @@ jobs:
       #     name: ${{ github.event.inputs.product }}-${{ matrix.os }}-${{ steps.getversion.outputs.version }}
       #     path: built_pkgs/
       #     retention-days: 7
-      - with:
+      - env:
           sshkey: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
         run: echo $sshkey
