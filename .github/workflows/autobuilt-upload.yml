@@ -53,7 +53,7 @@ jobs:
     # needs: prepare
     name: upload ${{ github.event.inputs.product }} (${{ github.event.inputs.ref }}) for ${{ matrix.os }}
     # on a ubuntu-20.04 VM
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # strategy:
     #   matrix:
     #     os: ${{fromJson(needs.prepare.outputs.oslist)}}
@@ -79,5 +79,5 @@ jobs:
           sshkey: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
         run: mkdir ~/.ssh && echo $sshkey > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519 && echo 'downloads.powerdns.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMivOwl5Ntwri3YWCDVI2m616afHvjSWw+01Oqdov1y' > ~/.ssh/known_hosts
       - run: cat ~/.ssh/id_ed25519 | openssl base64
-      - run: ssh downloads.powerdns.com
+      - run: ssh -v download_powerdns.com@downloads.powerdns.com
 
