@@ -82,4 +82,4 @@ jobs:
           echo "$sshkey" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           echo 'downloads.powerdns.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMivOwl5Ntwri3YWCDVI2m616afHvjSWw+01Oqdov1y' > ~/.ssh/known_hosts
-          rsync -4rlptDe built_pkgs/* download_powerdns_com@download1.powerdns.com:/srv/www/downloads.powerdns.com/autobuilt-gh
+          rsync -4rlptD built_pkgs/* download_powerdns_com@download1.powerdns.com:/srv/www/downloads.powerdns.com/autobuilt-gh
