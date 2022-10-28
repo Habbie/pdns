@@ -76,10 +76,12 @@ jobs:
           retention-days: 7
       - name: Upload packages to downloads.powerdns.com
         env:
-          sshkey: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
+          SSHKEY: ${{ secrets.DOWNLOADS_AUTOBUILT_SECRET_FAKE }}
+        if:
+          "${{ env.SSHKEY != '' }}"          
         run: |
           mkdir -p ~/.ssh
-          echo "$sshkey" > ~/.ssh/id_ed25519
+          echo "$SSHKEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           echo 'download1.powerdns.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKMivOwl5Ntwri3YWCDVI2m616afHvjSWw+01Oqdov1y' > ~/.ssh/known_hosts
-          rsync -4rlptD built_pkgs/* download_powerdns_com@download1.powerdns.com:/srv/www/downloads.powerdns.com/autobuilt-gh
+          rsync -4rlptD built_pkgs/* download_powerdns_com@download1.powerdns.com:/srv/www/downloads.powerdns.com/github-autobuilt
