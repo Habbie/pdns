@@ -17,18 +17,16 @@ BuildRequires: systemd-units
 BuildRequires: systemd-devel
 %endif
 
-%if 0%{?rhel} < 8
+%if 0%{?rhel} == 7
 BuildRequires: boost169-devel
 %else
 BuildRequires: boost-devel
 %endif
 
-%if 0%{?rhel} >= 7
 BuildRequires: gnutls-devel
 BuildRequires: libcap-devel
 BuildRequires: libnghttp2-devel
 BuildRequires: lmdb-devel
-BuildRequires: libsodium-devel
 %ifarch aarch64
 BuildRequires: lua-devel
 %define lua_implementation lua
@@ -36,13 +34,11 @@ BuildRequires: lua-devel
 BuildRequires: luajit-devel
 %define lua_implementation luajit
 %endif
-BuildRequires: net-snmp-devel
 BuildRequires: re2-devel
 BuildRequires: systemd
 BuildRequires: systemd-devel
 BuildRequires: systemd-units
 BuildRequires: tinycdb-devel
-%endif
 
 %if 0%{?suse_version}
 Requires(pre): shadow
@@ -64,7 +60,7 @@ dnsdist is a high-performance DNS loadbalancer that is scriptable in Lua.
 sed -i '/^ExecStart/ s/dnsdist/dnsdist -u dnsdist -g dnsdist/' dnsdist.service.in
 
 %build
-%if 0%{?rhel} < 8
+%if 0%{?rhel} == 7
 export CPPFLAGS=-I/usr/include/boost169
 export LDFLAGS=-L/usr/lib64/boost169
 %endif
