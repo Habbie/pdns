@@ -175,6 +175,7 @@ authconfdir
 authdir
 authdirs
 authdomain
+authip
 authlog
 authname
 authoritatives
@@ -415,6 +416,7 @@ cfile
 cft
 cgit
 CHACHA
+charset
 chartocode
 checkbox
 checkfunc
@@ -426,8 +428,11 @@ checkzone
 chgrp
 childstat
 chkconfig
+chmod
+chown
 chr
 chrono
+cidr
 cin
 cinttypes
 ciphersuites
@@ -750,6 +755,8 @@ dnsdistrules
 dnsdisttcp
 dnsdisttests
 dnserrors
+DNSHEADER
+dnsheader
 DNSID
 DNSIP
 dnskeyr
@@ -2305,6 +2312,8 @@ Nro
 nrr
 nsa
 nscount
+NSD
+nsd
 nsdname
 nsdomain
 nseconds
@@ -2656,6 +2665,8 @@ posix
 postdata
 POSTFIELDS
 POSTFIELDSIZE
+postgre
+Postgre
 postoutquery
 postpol
 postprepare
@@ -2663,7 +2674,7 @@ postqueries
 postun
 postvars
 potentialsupermasters
-powerdn
+powerdns
 poweroften
 powertools
 pparent
@@ -2879,6 +2890,7 @@ realpath
 realqps
 realreferral
 realrr
+realtime
 realzone
 RECCONTROL
 reccount
@@ -3015,6 +3027,7 @@ rmdir
 rmtree
 RMz
 rnameservers
+rng
 rnow
 rollbackmarker
 romap
@@ -3290,6 +3303,7 @@ smokeyjoe
 smp
 smt
 smtarg
+smtp
 SMTs
 smvmlo
 SMy
@@ -3380,6 +3394,7 @@ sscanf
 SSetsockopt
 ssh
 ssize
+ssl
 sslctx
 SSLECDSADNS
 SSLEDDSADNS
@@ -3387,7 +3402,6 @@ SSLRSADNS
 sslsock
 SSLTLS
 SSLTLSIO
-SSLv
 SSocket
 ssql
 ssqlite
@@ -3648,6 +3662,8 @@ timersonly
 Timespan
 timespec
 timespent
+timezone
+timezones
 tinfo
 tini
 TINYDNSDATA
@@ -3845,6 +3861,9 @@ UNDOC
 unescape
 unhexlify
 uninstall
+unicode
+Unicode
+UNICODE
 uniq
 uniquw
 UNIREGISTRYMARKET
@@ -3872,6 +3891,7 @@ uppercasing
 upq
 upto
 urc
+url
 urljoin
 urllib
 urlmap
@@ -3881,8 +3901,10 @@ uroot
 useconds
 uselessdrc
 useradd
+useragent
 userdata
 userfriendly
+username
 usermsec
 userperc
 USHRT
@@ -3992,6 +4014,8 @@ WEBPORT
 webrick
 webserv
 webserveropts
+website
+websites
 wednserrors
 weekno
 weirdtxt
@@ -4041,6 +4065,7 @@ wshash
 WSIZE
 WTERMSIG
 wtest
+www
 wwwds
 wwwezdnsit
 wwwpowerdnscom
@@ -4061,10 +4086,14 @@ xffverylongstring
 XFRd
 XFRM
 xfrserver
+xhtml
+XHTML
 xhr
 xit
 xlabel
 xluajit
+xml
+XML
 XMy
 xno
 Xof

@@ -76,10 +76,9 @@ Atlassian
 atoi
 Atomia
 aton
-attr
 atype
 authanswers
-AUTHIP
+authip
 Authoritativedoc
 auths
 authzone
@@ -107,6 +106,7 @@ Baan
 backend
 backgrounding
 backport
+backported
 Backtick
 backtraces
 BADALG
@@ -188,6 +188,7 @@ bufsize
 bugfix
 bugfixes
 bugzilla
+builddeb
 bulc
 bulletinc
 burstable
@@ -223,18 +224,15 @@ changelog
 changeme
 changeset
 changetype
-charset
 chashed
 chbruyand
 chdir
 Chiavacci
-chmod
 chopoff
-chown
 Christof
 chroot
+chrooted
 chrooting
-CIDR
 classmethod
 clientanswers
 Cloos
@@ -293,12 +291,12 @@ cron
 crowley
 crv
 cryptokey
+cryptokeys
 Cryptoki
 cryptopp
 cryptoshop
 css
 csum
-csv
 csync
 ctime
 ctor
@@ -398,7 +396,6 @@ dnsdistdoc
 dnsdomain
 dnsext
 dnsgram
-dnsheader
 dnskey
 dnsmessage
 dnsname
@@ -571,6 +568,7 @@ freetds
 freshports
 Froemel
 frontend
+frontends
 fstrm
 fullname
 fulltoc
@@ -637,7 +635,6 @@ godbcbackend
 Godwottery
 goodmatch
 google
-googleapis
 goracle
 goraclebackend
 gouv
@@ -703,6 +700,7 @@ homepage
 Hooimeijer
 hostmaster
 hostname
+hostnames
 Hotmail
 howto
 hpecorp
@@ -867,6 +865,7 @@ LCUP
 LDA
 ldap
 ldapbackend
+ldaps
 ldflags
 ldif
 ldns
@@ -932,6 +931,7 @@ locaweb
 lochiiconnectivity
 logfile
 loglevel
+loglevels
 logmessage
 logrotate
 lon
@@ -944,6 +944,7 @@ lowerroman
 Lrhazi
 lsock
 lte
+lto
 lua
 luaaction
 luabackend
@@ -964,10 +965,12 @@ Majer
 Makefiles
 malcrafted
 malloc
+mallocs
 malware
 Mamane
 Mandriva
 manpage
+manpages
 mapasync
 Mapbox
 mariadb
@@ -992,6 +995,7 @@ Memusage
 menuselection
 metadata
 metadatabase
+metadatas
 metainformation
 metricnames
 metricscarbon
@@ -1084,6 +1088,7 @@ netherlabs
 netinet
 netmask
 netmaskgroup
+netmasks
 netsnmp
 NETWORKMASK
 Neue
@@ -1130,7 +1135,6 @@ NOTZONE
 Novell
 nproxy
 NPTL
-nsd
 NSes
 nsid
 nsis
@@ -1173,6 +1177,7 @@ OIDs
 Olafur
 Omroep
 openapi
+openapis
 openbsd
 opendbx
 openpgpkey
@@ -1258,7 +1263,6 @@ pickwrandom
 pid
 piddir
 pidfile
-pieter
 pilindex
 Pinski
 pipebackend
@@ -1285,7 +1289,8 @@ poolers
 poolname
 portnum
 portnumber
-postgre
+Postgre
+postgres
 postgresql
 postinst
 postresolve
@@ -1324,6 +1329,7 @@ psql
 pthread
 ptr
 ptrrecord
+ptrs
 Publieke
 publishdomainkey
 pullreq
@@ -1373,7 +1379,6 @@ rdynamic
 readline
 README
 readonly
-realtime
 reconnections
 recursor
 recursordist
@@ -1426,6 +1431,7 @@ reuseds
 reuseport
 Reuwiei
 rfc
+RFCs
 rhel
 Rietz
 rightsidebar
@@ -1434,7 +1440,6 @@ ringbuffer
 rkey
 rmem
 rname
-rng
 rocommunity
 Roel
 Rosmalen
@@ -1453,6 +1458,7 @@ rrs
 rrset
 rrsig
 rrtype
+RRtypes
 rsa
 rsasha
 RSP
@@ -1556,7 +1562,6 @@ smartcard
 smellyspice
 smimea
 smn
-smtp
 Smurthwaite
 Snarked
 sndbuf
@@ -1584,6 +1589,7 @@ sourceware
 Spaans
 Spackages
 spam
+spams
 spf
 SPHINXBUILD
 sphinxcontrib
@@ -1598,6 +1604,7 @@ Spruyt
 SQk
 sql
 sqlite
+SQLs
 srandom
 src
 srcname
@@ -1606,7 +1613,6 @@ Srule
 srv
 sshfp
 ssi
-ssl
 SSLKEYLOGFILE
 sslmode
 sslrootcert
@@ -1669,6 +1675,7 @@ syncres
 sys
 sysadmin
 syscall
+syscalls
 sysctl
 Sysdream
 syslog
@@ -1677,6 +1684,7 @@ systemctl
 systemd
 sysv
 tarball
+tarballs
 Tarjei
 Tarnell
 taskqueue
@@ -1714,7 +1722,7 @@ timeline
 timesource
 timestamped
 timeval
-timezone
+timezones
 tinycdb
 tinydns
 tinydnsbackend
@@ -1727,6 +1735,7 @@ tobool
 toc
 toctree
 todo
+todos
 toint
 tokenuser
 tolower
@@ -1750,6 +1759,7 @@ tsigsecret
 tstamp
 TSU
 ttl
+ttls
 Tuinder
 tunables
 Tuomi
@@ -1767,6 +1777,7 @@ udr
 Ueber
 Ueli
 uid
+UIDs
 uint
 Uisms
 ulimit
@@ -1776,7 +1787,6 @@ uncached
 unescaping
 unfresh
 unhash
-unicode
 uninett
 uninitialised
 Uninstaller
@@ -1799,18 +1809,17 @@ upperalpha
 upperroman
 urandom
 uri
-url
 urlencoded
+urls
 usec
 usecase
-useragent
 userbase
-username
 userspace
 usr
 utf
 UUHJWZg
 uuid
+UUIDs
 uwaterloo
 Valentei
 Valentini
@@ -1855,10 +1864,9 @@ webdocs
 webhandler
 webpassword
 webserver
-website
+websites
 Webspider
 Wegener
-weightparams
 Weimer
 Welzel
 Wessels
@@ -1898,7 +1906,6 @@ Wredundant
 writev
 Wshadow
 wuh
-www
 Wzs
 Xander
 xchacha
@@ -1908,8 +1915,6 @@ Xek
 Xeon
 XForwarded
 xfr
-xhtml
-xml
 xorbooter
 xpf
 XRecord
