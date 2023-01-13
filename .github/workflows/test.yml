@@ -6,7 +6,9 @@ jobs:
     name: A job to say hello
     steps:
       - uses: actions/checkout@v3
+      - run: cat /etc/apt/sources.list
       - id: foo
-        uses: Habbie/pdns@meta/config
-      - run: set
-        shell: bash
+        uses: Habbie/pdns/set-ubuntu-mirror@meta
+      - run: cat /etc/apt/sources.list
+      - run: sudo apt-get update
+      - run: sudo apt-get -yy upgrade
