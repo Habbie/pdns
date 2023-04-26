@@ -207,3 +207,9 @@ private:
   bool d_haveednssection{false};
   bool d_isQuery;
 };
+
+class OversizedChunkException : public PDNSException
+{
+public:
+  OversizedChunkException(const string &reason_) : PDNSException(reason_){}
+};

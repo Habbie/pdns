@@ -1022,7 +1022,14 @@ send:
         if(!outpacket->getRRS().empty()) {
           if(haveTSIGDetails && !tsigkeyname.empty())
             outpacket->setTSIGDetails(trc, tsigkeyname, tsigsecret, trc.d_mac, true);
-          sendPacket(outpacket, outsock, false);
+          try {
+            sendPacket(outpacket, outsock, false);
+          }
+          catch(OversizedChunkException& oce)
+          {
+            throw PDNSException("got OCE: " + oce.reason);
+          }
+
           trc.d_mac=outpacket->d_trc.d_mac;
           outpacket=getFreshAXFRPacket(q);
         }
@@ -1132,6 +1139,11 @@ send:
         outpacket->setTSIGDetails(trc, tsigkeyname, tsigsecret, trc.d_mac, true); // first answer is 'normal'
       try {
         sendPacket(outpacket, outsock, false);
+      }
+      catch(OversizedChunkException& oce)
+      {
+        // now, we need to split RRs (in half? just go one by one immediately?)
+        throw PDNSException("got OCE (during flush): " + oce.reason);
       }
       catch (PDNSException& pe) {
         throw PDNSException("during axfr-out of "+target.toString()+", this happened: "+pe.reason);
