@@ -3,6 +3,7 @@ name: "Various daily checks"
 on:
   schedule:
     - cron: '34 4 * * *'
+  push:
 
 permissions: # least privileges, see https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
   contents: read
@@ -41,7 +42,7 @@ jobs:
 
   coverity-auth:
     name: coverity scan of the auth
-    if: ${{ vars.SCHEDULED_MISC_DAILIES }}
+    # if: ${{ vars.SCHEDULED_MISC_DAILIES }}
     runs-on: ubuntu-20.04
     env:
       COVERITY_TOKEN: ${{ secrets.coverity_auth_token }}
