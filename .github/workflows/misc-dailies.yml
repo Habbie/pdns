@@ -43,7 +43,7 @@ jobs:
   coverity-auth:
     name: coverity scan of the auth
     # if: ${{ vars.SCHEDULED_MISC_DAILIES }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERITY_TOKEN: ${{ secrets.coverity_auth_token }}
       FUZZING_TARGETS: no
