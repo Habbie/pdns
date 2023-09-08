@@ -637,7 +637,7 @@ static vector<DNSResourceRecord> doAxfr(const ComboAddress& raddr, const DNSName
 }
 
 
-void CommunicatorClass::suck(const DNSName &domain, const ComboAddress& remote, bool force)
+void CommunicatorClass::suck(const DNSName &domain, const ComboAddress& remote, bool force) // NOLINT(readability-function-cognitive-complexity)
 {
   {
     auto data = d_data.lock();
