@@ -23,6 +23,7 @@
 #include "ext/lmdb-safe/lmdb-safe.hh"
 #include <lmdb.h>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -677,6 +678,14 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     throw std::runtime_error(std::string("Unable to parse the 'map-size' LMDB value: ") + e.what());
   }
 
+  unsigned int maxReaders = 126;
+  try {
+    maxReaders = std::stoi(getArg("max-readers"));
+  }
+  catch (const std::exception& e) {
+    throw std::runtime_error(std::string("Unable to parse the 'max-readers' LMDB value: ") + e.what());
+  }
+
   LMDBLS::s_flag_deleted = mustDo("flag-deleted");
   d_handle_dups = false;
 
@@ -725,7 +734,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
         throw std::runtime_error("Somehow, we are not at schema version 5. Giving up");
       }
 
-      d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | d_asyncFlag, 0600, mapSize), "domains_v5");
+      d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | d_asyncFlag, 0600, mapSize, maxReaders), "domains_v5");
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
@@ -772,7 +781,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
   }
 
   if (!opened) {
-    d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | d_asyncFlag, 0600, mapSize), "domains_v5");
+    d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | d_asyncFlag, 0600, mapSize, maxReaders), "domains_v5");
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");

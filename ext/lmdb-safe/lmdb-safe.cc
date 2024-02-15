@@ -89,7 +89,7 @@ MDBDbi::MDBDbi(MDB_env* /* env */, MDB_txn* txn, const string_view dbname, int f
   // Database names are keys in the unnamed database, and may be read but not written.
 }
 
-MDBEnv::MDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB)
+MDBEnv::MDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB, unsigned int maxReaders)
 {
   mdb_env_create(&d_env);
   if(mdb_env_set_mapsize(d_env, mapsizeMB * 1048576))
@@ -99,6 +99,7 @@ Various other options may also need to be set before opening the handle, e.g. md
     */
 
   mdb_env_set_maxdbs(d_env, 128);
+  mdb_env_set_maxreaders(d_env, maxReaders);
 
   // we need MDB_NOTLS since we rely on its semantics
   if(int rc=mdb_env_open(d_env, fname, flags | MDB_NOTLS, mode)) {
@@ -150,7 +151,7 @@ int MDBEnv::getROTX()
 }
 
 
-std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB)
+std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB, unsigned int maxReaders)
 {
   struct Value
   {
@@ -167,7 +168,7 @@ std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64
       throw std::runtime_error("Unable to stat prospective mdb database: "+string(strerror(errno)));
     else {
       std::lock_guard<std::mutex> l(mut);
-      auto fresh = std::make_shared<MDBEnv>(fname, flags, mode, mapsizeMB);
+      auto fresh = std::make_shared<MDBEnv>(fname, flags, mode, mapsizeMB, maxReaders);
       if(stat(fname, &statbuf))
         throw std::runtime_error("Unable to stat prospective mdb database: "+string(strerror(errno)));
       auto key = std::tie(statbuf.st_dev, statbuf.st_ino);
@@ -192,7 +193,7 @@ std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64
     }
   }
 
-  auto fresh = std::make_shared<MDBEnv>(fname, flags, mode, mapsizeMB);
+  auto fresh = std::make_shared<MDBEnv>(fname, flags, mode, mapsizeMB, maxReaders);
   s_envs[key] = {fresh, flags};
 
   return fresh;

@@ -65,7 +65,7 @@ using MDBRWTransaction = std::unique_ptr<MDBRWTransactionImpl>;
 class MDBEnv
 {
 public:
-  MDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB);
+  MDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB, unsigned int maxReaders);
 
   ~MDBEnv()
   {
@@ -98,7 +98,7 @@ private:
   std::map<std::thread::id, int> d_ROtransactionsOut;
 };
 
-std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB=(sizeof(void *)==4) ? 100 : 16000);
+std::shared_ptr<MDBEnv> getMDBEnv(const char* fname, int flags, int mode, uint64_t mapsizeMB=(sizeof(void *)==4) ? 100 : 16000, unsigned int maxReaders=126);
 
 #ifndef DNSDIST
 
