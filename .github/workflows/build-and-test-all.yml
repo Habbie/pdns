@@ -624,7 +624,7 @@ jobs:
           sudo sysctl -a | grep vm.mmap.rnd
           sudo sysctl -w vm.mmap_rnd_bits=28
         working-directory: .
-      # - uses: PowerDNS/pdns/set-ubuntu-mirror@meta
+      # - uses: Habbie/pdns/set-ubuntu-mirror@meta
       - uses: actions/checkout@v4
         with:
           fetch-depth: 5
@@ -771,7 +771,7 @@ jobs:
     #   image: ghcr.io/powerdns/base-pdns-ci-image/debian-11-pdns-base:master
     #   options: --sysctl net.ipv6.conf.all.disable_ipv6=0
     steps:
-      - uses: PowerDNS/pdns/set-ubuntu-mirror@meta
+      - uses: Habbie/pdns/set-ubuntu-mirror@meta
       - uses: actions/checkout@v4
         with:
           fetch-depth: 5

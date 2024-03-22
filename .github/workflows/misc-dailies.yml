@@ -49,7 +49,7 @@ jobs:
       SANITIZERS:
       UNIT_TESTS: no
     steps:
-      - uses: PowerDNS/pdns/set-ubuntu-mirror@meta
+      - uses: Habbie/pdns/set-ubuntu-mirror@meta
       - uses: actions/checkout@v4
         with:
           fetch-depth: 5
@@ -74,7 +74,7 @@ jobs:
       SANITIZERS:
       UNIT_TESTS: no
     steps:
-      - uses: PowerDNS/pdns/set-ubuntu-mirror@meta
+      - uses: Habbie/pdns/set-ubuntu-mirror@meta
       - uses: actions/checkout@v4
         with:
           fetch-depth: 5
@@ -106,7 +106,7 @@ jobs:
       SANITIZERS:
       UNIT_TESTS: no
     steps:
-      - uses: PowerDNS/pdns/set-ubuntu-mirror@meta
+      - uses: Habbie/pdns/set-ubuntu-mirror@meta
       - uses: actions/checkout@v4
         with:
           fetch-depth: 5
