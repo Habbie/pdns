@@ -622,6 +622,7 @@ def ci_dnsdist_make_bear(c):
 
 @task
 def ci_auth_install_remotebackend_test_deps(c):
+    c.sudo('apt-get install -y socat ruby')
     with c.cd('modules/remotebackend'):
       # c.run('bundle config set path vendor/bundle')
       c.run('sudo ruby -S bundle install')
