@@ -1138,8 +1138,10 @@ will generally suffice for most installations.
 -  Integer
 -  Default: 100000
 
-Maximum number of empty non-terminals to add to a zone. This is a
-protection measure to avoid database explosion due to long names.
+Maximum number of empty non-terminals to add to a zone.
+This is a protection measure to avoid database explosion due to long names.
+Please note that hitting this limit will break your zones, so do not set it too low.
+Definitely to not set it to zero.
 
 .. _setting-max-include-depth:
 
