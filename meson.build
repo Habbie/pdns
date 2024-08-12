@@ -1094,6 +1094,27 @@ if get_option('unit-tests-backends')
     endforeach
   endif
 
+  # Safe LMDB Wrapper Tests ##############################################################
+  if get_option('module-lmdb') != 'disabled'
+    test_lmdb_safe_testrunner = executable(
+      'test-lmdb-safe-testrunner',
+      test_lmdb_safe_testrunner_sources,
+      dependencies: [
+        deps,
+        dep_lmdb_safe,
+        dep_boost_test,
+      ],
+    )
+
+    test(
+      'pdns-auth-ext-lmdb-safe',
+      test_lmdb_safe_testrunner,
+      args: ['--log_level=all'],
+      is_parallel: true,
+      depends: [test_lmdb_safe_testrunner],
+    )
+  endif
+
   # Regression Tests #####################################################################
   start_test_stop = files('regression-tests' / 'start-test-stop')[0]
 

@@ -2,6 +2,7 @@
 
 #include "config.h"
 
+#include <ostream>
 #include <stdexcept>
 #include <string_view>
 #include <lmdb.h>
@@ -169,6 +170,51 @@ namespace LMDBLS {
 
 #endif /* ifndef DNSDIST */
 
+/**
+ * 128-bit type.
+ */
+struct uint128_t
+{
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+  uint32_t data[4];
+
+  inline bool operator==(const uint128_t& other) const;
+  inline explicit operator uint32_t() const;
+};
+
+inline auto uint32to128(const uint32_t value) -> uint128_t
+{
+  return uint128_t{
+    .data = {0, 0, 0, value},
+  };
+}
+
+bool uint128_t::operator==(const uint128_t& other) const
+{
+  auto ret = this->data[0] == other.data[0];
+  ret = ret && this->data[1] == other.data[1];
+  ret = ret && this->data[2] == other.data[2];
+  ret = ret && this->data[4] == other.data[4];
+  return ret;
+}
+
+uint128_t::operator uint32_t() const
+{
+  return this->data[3];
+}
+
+namespace std
+{
+inline ostream& operator<<(ostream& stream, const uint128_t val)
+{
+  stream << "3: " << std::to_string(val.data[3]) << "  ";
+  stream << "2: " << std::to_string(val.data[2]) << "  ";
+  stream << "1: " << std::to_string(val.data[1]) << "  ";
+  stream << "0: " << std::to_string(val.data[0]);
+  return stream;
+}
+}
+
 template <class T>
 auto hostToNetworkByteOrder(T value) -> T;
 
@@ -185,6 +231,44 @@ template <>
 inline auto networkToHostByteOrder(uint32_t value) -> uint32_t
 {
   return ntohl(value);
+}
+
+template <>
+inline auto hostToNetworkByteOrder(uint128_t value) -> uint128_t
+{
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+  uint8_t data[16] = {};
+  memcpy(&data, &value, sizeof(data));
+
+  using out = uint32_t;
+  return uint128_t{
+    .data = {
+      // clang-format off
+      ((out)data[3]  << 0) | ((out)data[2]  << 8) | ((out)data[1]  << 16) | ((out)data[0]  << 24),
+      ((out)data[7]  << 0) | ((out)data[6]  << 8) | ((out)data[5]  << 16) | ((out)data[4]  << 24),
+      ((out)data[11] << 0) | ((out)data[10] << 8) | ((out)data[9]  << 16) | ((out)data[8]  << 24),
+      ((out)data[15] << 0) | ((out)data[14] << 8) | ((out)data[13] << 16) | ((out)data[12] << 24),
+      // clang-format on
+    }};
+}
+
+template <>
+inline auto networkToHostByteOrder(uint128_t value) -> uint128_t
+{
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+  uint8_t data[16] = {};
+  memcpy(&data, &value, sizeof(data));
+
+  using out = uint32_t;
+  return uint128_t{
+    .data = {
+      // clang-format off
+      ((out)data[15] << 0) | ((out)data[14] << 8) | ((out)data[13] << 16) | ((out)data[12] << 24),
+      ((out)data[11] << 0) | ((out)data[10] << 8) | ((out)data[9]  << 16) | ((out)data[8]  << 24),
+      ((out)data[7]  << 0) | ((out)data[6]  << 8) | ((out)data[5]  << 16) | ((out)data[4]  << 24),
+      ((out)data[3]  << 0) | ((out)data[2]  << 8) | ((out)data[1]  << 16) | ((out)data[0]  << 24),
+      // clang-format on
+    }};
 }
 
 struct MDBOutVal
