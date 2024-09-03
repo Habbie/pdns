@@ -1,4 +1,5 @@
 #include "lmdb-typed.hh"
+#include "lmdb-safe.hh"
 #include "pdns/dns_random.hh"
 
 LmdbId MDBGetMaxID(MDBRWTransaction& txn, MDBDbi& dbi)
@@ -25,7 +26,7 @@ LmdbId MDBGetRandomID(MDBRWTransaction& txn, MDBDbi& dbi)
     // and allow type_max. 0 is avoided because the put() interface uses it to mean
     // "please allocate a number for me".
     newID = dns_random(std::numeric_limits<signed int>::max()) + 1;
-    if (cursor.find(MDBInVal(newID), key, content) != 0) {
+    if (cursor.find(MDBInVal(uint32to128(newID)), key, content) != 0) {
       return newID;
     }
   }

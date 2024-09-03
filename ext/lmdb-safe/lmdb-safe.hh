@@ -420,7 +420,7 @@ private:
   MDBInVal(){}
 #ifndef DNSDIST
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
-  char d_memory[sizeof(uint64_t)]{};
+  char d_memory[sizeof(uint128_t)]{};
 #endif
 };
 

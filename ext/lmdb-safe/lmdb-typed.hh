@@ -35,7 +35,7 @@
  *
  * See below for the 32-bit interface ID type.
  */
-using LmdbSerializedId = uint32_t;
+using LmdbSerializedId = uint128_t;
 
 /**
  * LMDB ID Interface Type.
@@ -167,7 +167,7 @@ struct LMDBIndexOps
 
   void put(MDBRWTransaction& txn, const Class& type, LmdbId idVal, int flags = 0)
   {
-    auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), idVal);
+    auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), uint32to128(idVal));
     MDBInVal combined(scombined);
 
     // if the entry existed already, this will just update the timestamp/txid in the LS header. This is intentional, so objects and their indexes always get synced together.
@@ -176,7 +176,7 @@ struct LMDBIndexOps
 
   void del(MDBRWTransaction& txn, const Class& type, LmdbId idVal)
   {
-    auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), idVal);
+    auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), uint32to128(idVal));
     MDBInVal combined(scombined);
 
     int errCode = txn->del(d_idx, combined);
