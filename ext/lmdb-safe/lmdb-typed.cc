@@ -1,22 +1,22 @@
 #include "lmdb-typed.hh"
 #include "pdns/dns_random.hh"
 
-uint32_t MDBGetMaxID(MDBRWTransaction& txn, MDBDbi& dbi)
+LmdbId MDBGetMaxID(MDBRWTransaction& txn, MDBDbi& dbi)
 {
   auto cursor = txn->getRWCursor(dbi);
   MDBOutVal maxidval{};
   MDBOutVal maxcontent{};
-  uint32_t maxid{0};
+  LmdbId maxid{0};
   if (cursor.get(maxidval, maxcontent, MDB_LAST) == 0) {
-    maxid = maxidval.getNoStripHeader<uint32_t>();
+    maxid = static_cast<LmdbId>(maxidval.getNoStripHeader<LmdbSerializedId>());
   }
   return maxid;
 }
 
-uint32_t MDBGetRandomID(MDBRWTransaction& txn, MDBDbi& dbi)
+LmdbId MDBGetRandomID(MDBRWTransaction& txn, MDBDbi& dbi)
 {
   auto cursor = txn->getRWCursor(dbi);
-  uint32_t newID = 0;
+  LmdbId newID = 0;
   for (int attempts = 0; attempts < 20; attempts++) {
     MDBOutVal key{};
     MDBOutVal content{};

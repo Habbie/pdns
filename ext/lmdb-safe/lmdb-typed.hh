@@ -27,21 +27,42 @@
  */
 
 /**
+ * LMDB Serialized ID Type. This is the on-disk (i.e. serialized) type format. It's 128
+ * bits wide. The reason we need such a type is to be able to widen the on-disk ID format
+ * without having to adapt all the parts of PowerDNS that use the 32-bit wide IDs. This
+ * also means that PowerDNS does not really use the full range of that type, just the
+ * least significant 32 bits.
+ *
+ * See below for the 32-bit interface ID type.
+ */
+using LmdbSerializedId = uint32_t;
+
+/**
+ * LMDB ID Interface Type.
+ *
+ * This is the interface ID type, the type that is used to represent LMDB IDs in the APIs
+ * that are used by the rest of PowerDNS. See above for the on-disk type.
+ *
+ * Perhaps one day those two can be unified.
+ */
+using LmdbId = uint32_t;
+
+/**
  * LMDB ID Vector Type.
  */
-using LmdbIdVec = std::vector<uint32_t>;
+using LmdbIdVec = std::vector<LmdbId>;
 
 /**
  * Return the highest ID used in a database. Returns 0 for an empty DB. This makes us
  * start everything at ID=1, which might make it possible to treat id 0 as special.
  */
-uint32_t MDBGetMaxID(MDBRWTransaction& txn, MDBDbi& dbi);
+LmdbId MDBGetMaxID(MDBRWTransaction& txn, MDBDbi& dbi);
 
 /**
  * Return a randomly generated ID that is unique and not zero. May throw if the database
  * is very full.
  */
-uint32_t MDBGetRandomID(MDBRWTransaction& txn, MDBDbi& dbi);
+LmdbId MDBGetRandomID(MDBRWTransaction& txn, MDBDbi& dbi);
 
 /**
  * This is our serialization interface. It can be specialized for other types.
@@ -87,25 +108,25 @@ inline std::string keyConv(const T& value)
 
 namespace {
   inline MDBOutVal getKeyFromCombinedKey(MDBInVal combined) {
-    if (combined.d_mdbval.mv_size < sizeof(uint32_t)) {
-      throw std::runtime_error("combined key too short to get ID from");
+    if (combined.d_mdbval.mv_size < sizeof(LmdbSerializedId)) {
+      throw std::runtime_error("combined key is too short to get an ID from");
     }
 
     MDBOutVal ret{};
     ret.d_mdbval.mv_data = combined.d_mdbval.mv_data;
-    ret.d_mdbval.mv_size = combined.d_mdbval.mv_size - sizeof(uint32_t);
+    ret.d_mdbval.mv_size = combined.d_mdbval.mv_size - sizeof(LmdbSerializedId);
     return ret;
   }
 
   inline MDBOutVal getIDFromCombinedKey(MDBInVal combined) {
-    if (combined.d_mdbval.mv_size < sizeof(uint32_t)) {
+    if (combined.d_mdbval.mv_size < sizeof(LmdbSerializedId)) {
       throw std::runtime_error("combined key too short to get ID from");
     }
 
     MDBOutVal ret{};
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    ret.d_mdbval.mv_data = static_cast<char*>(combined.d_mdbval.mv_data) + combined.d_mdbval.mv_size - sizeof(uint32_t);
-    ret.d_mdbval.mv_size = sizeof(uint32_t);
+    ret.d_mdbval.mv_data = static_cast<char*>(combined.d_mdbval.mv_data) + combined.d_mdbval.mv_size - sizeof(LmdbSerializedId);
+    ret.d_mdbval.mv_size = sizeof(LmdbSerializedId);
     return ret;
   }
 
@@ -116,7 +137,7 @@ namespace {
     std::string sval(static_cast<char*>(val.d_mdbval.mv_data), val.d_mdbval.mv_size);
 
     if (val.d_mdbval.mv_size != 0 &&  // empty val case, for range queries
-        val.d_mdbval.mv_size != sizeof(uint32_t)) {
+        val.d_mdbval.mv_size != sizeof(LmdbSerializedId)) {
       throw std::runtime_error("got wrong size value in makeCombinedKey");
     }
 
@@ -144,7 +165,7 @@ struct LMDBIndexOps
 {
   explicit LMDBIndexOps(Parent* parent) : d_parent(parent){}
 
-  void put(MDBRWTransaction& txn, const Class& type, uint32_t idVal, int flags = 0)
+  void put(MDBRWTransaction& txn, const Class& type, LmdbId idVal, int flags = 0)
   {
     auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), idVal);
     MDBInVal combined(scombined);
@@ -153,7 +174,7 @@ struct LMDBIndexOps
     txn->put(d_idx, combined, std::string{}, flags);
   }
 
-  void del(MDBRWTransaction& txn, const Class& type, uint32_t idVal)
+  void del(MDBRWTransaction& txn, const Class& type, LmdbId idVal)
   {
     auto scombined = makeCombinedKey(keyConv(d_parent->getMember(type)), idVal);
     MDBInVal combined(scombined);
@@ -209,17 +230,17 @@ struct index_on_function : LMDBIndexOps<Class, Type, index_on_function<Class, Ty
 struct nullindex_t
 {
   template <typename Class>
-  void put(MDBRWTransaction& /* txn */, const Class& /* t */, uint32_t /* id */, int /* flags */ = 0)
+  void put(MDBRWTransaction& /* txn */, const Class& /* t */, LmdbId /* id */, int /* flags */ = 0)
   {}
   template <typename Class>
-  void del(MDBRWTransaction& /* txn */, const Class& /* t */, uint32_t /* id */)
+  void del(MDBRWTransaction& /* txn */, const Class& /* t */, LmdbId /* id */)
   {}
 
   void openDB(std::shared_ptr<MDBEnv>& /* env */, string_view /* str */, int /* flags */)
   {
   }
 
-  using type = uint32_t; // dummy
+  using type = LmdbId; // dummy
 };
 
 /** The main class. Templatized only on the indexes and typename right now */
@@ -275,7 +296,7 @@ public:
     // }
 
     //! Get item with id, from main table directly
-    bool get(uint32_t itemId, T& value)
+    bool get(LmdbId itemId, T& value)
     {
       MDBOutVal data{};
       if((*d_parent.d_txn)->get(d_parent.d_parent->d_main, itemId, data)) {
@@ -288,7 +309,7 @@ public:
 
     //! Get item through index N, then via the main database
     template<int N>
-    uint32_t get(const typename std::tuple_element<N, tuple_t>::type::type& key, T& out)
+    LmdbId get(const typename std::tuple_element<N, tuple_t>::type::type& key, T& out)
     {
       // MDBOutVal out;
       // uint32_t id;
@@ -490,13 +511,13 @@ public:
       // }
 
       // get ID this iterator points to
-      uint32_t getID()
+      LmdbId getID()
       {
         if (d_on_index) {
           // return d_id.get<uint32_t>();
-          return d_id.getNoStripHeader<uint32_t>();
+          return static_cast<LmdbId>(d_id.getNoStripHeader<LmdbSerializedId>());
         }
-        return d_key.getNoStripHeader<uint32_t>();
+        return static_cast<LmdbId>(d_key.getNoStripHeader<LmdbSerializedId>());
       }
 
       const MDBOutVal& getKey()
@@ -671,7 +692,7 @@ public:
         if (sthiskey == keyString) {
           auto _id = getIDFromCombinedKey(out);
           uint64_t ts = LMDBLS::LSgetTimestamp(id.getNoStripHeader<string_view>());
-          auto itemId = _id.getNoStripHeader<uint32_t>();
+          auto itemId = static_cast<LmdbId>(_id.getNoStripHeader<LmdbSerializedId>());
 
           if (onlyOldest) {
             if (ts < oldestts) {
@@ -754,7 +775,7 @@ public:
     }
 
     // insert something, with possibly a specific id
-    uint32_t put(const T& value, uint32_t itemId, bool random_ids=false)
+    LmdbId put(const T& value, LmdbId itemId, bool random_ids=false)
     {
       int flags = 0;
       if(itemId == 0) {
@@ -778,7 +799,7 @@ public:
     }
 
     // modify an item 'in place', plus update indexes
-    void modify(uint32_t itemId, std::function<void(T&)> func)
+    void modify(LmdbId itemId, std::function<void(T&)> func)
     {
       T value;
       if (!this->get(itemId, value)) {
@@ -791,7 +812,7 @@ public:
     }
 
     //! delete an item, and from indexes
-    void del(uint32_t itemId)
+    void del(LmdbId itemId)
     {
       T value;
       if (!this->get(itemId, value)) {
@@ -813,7 +834,7 @@ public:
         first = false;
         T value;
         deserializeFromBuffer(data.get<std::string>(), value);
-        clearIndex(key.get<uint32_t>(), value);
+        clearIndex(key.get<LmdbId>(), value);
         cursor.del();
       }
     }
@@ -845,7 +866,7 @@ public:
     }
 
     // clear this ID from all indexes
-    void clearIndex(uint32_t itemId, const T& value)
+    void clearIndex(LmdbId itemId, const T& value)
     {
       clear<0>(value, itemId);
       clear<1>(value, itemId);
