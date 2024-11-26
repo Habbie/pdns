@@ -194,7 +194,7 @@ bool uint128_t::operator==(const uint128_t& other) const
   auto ret = this->data[0] == other.data[0];
   ret = ret && this->data[1] == other.data[1];
   ret = ret && this->data[2] == other.data[2];
-  ret = ret && this->data[4] == other.data[4];
+  ret = ret && this->data[3] == other.data[3];
   return ret;
 }
 
