@@ -2,6 +2,7 @@ SUBDIRS = \
 	arc4random \
 	ipcrypt \
 	json11 \
+	lmdb-safe \
 	yahttp
 
 DIST_SUBDIRS = \

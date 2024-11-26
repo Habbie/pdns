@@ -363,6 +363,7 @@ AC_CONFIG_FILES([
   ext/Makefile
   ext/arc4random/Makefile
   ext/ipcrypt/Makefile
+  ext/lmdb-safe/Makefile
   ext/yahttp/Makefile
   ext/yahttp/yahttp/Makefile
   ext/json11/Makefile
