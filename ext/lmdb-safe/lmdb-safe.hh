@@ -236,39 +236,27 @@ inline auto networkToHostByteOrder(uint32_t value) -> uint32_t
 template <>
 inline auto hostToNetworkByteOrder(uint128_t value) -> uint128_t
 {
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
-  uint8_t data[16] = {};
-  memcpy(&data, &value, sizeof(data));
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  return value;
+#else
 
-  using out = uint32_t;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
   return uint128_t{
     .data = {
       // clang-format off
-      ((out)data[3]  << 0) | ((out)data[2]  << 8) | ((out)data[1]  << 16) | ((out)data[0]  << 24),
-      ((out)data[7]  << 0) | ((out)data[6]  << 8) | ((out)data[5]  << 16) | ((out)data[4]  << 24),
-      ((out)data[11] << 0) | ((out)data[10] << 8) | ((out)data[9]  << 16) | ((out)data[8]  << 24),
-      ((out)data[15] << 0) | ((out)data[14] << 8) | ((out)data[13] << 16) | ((out)data[12] << 24),
+      ntohl(value.data[3]),
+      ntohl(value.data[2]),
+      ntohl(value.data[1]),
+      ntohl(value.data[0]),
       // clang-format on
     }};
+#endif
 }
 
 template <>
 inline auto networkToHostByteOrder(uint128_t value) -> uint128_t
 {
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
-  uint8_t data[16] = {};
-  memcpy(&data, &value, sizeof(data));
-
-  using out = uint32_t;
-  return uint128_t{
-    .data = {
-      // clang-format off
-      ((out)data[15] << 0) | ((out)data[14] << 8) | ((out)data[13] << 16) | ((out)data[12] << 24),
-      ((out)data[11] << 0) | ((out)data[10] << 8) | ((out)data[9]  << 16) | ((out)data[8]  << 24),
-      ((out)data[7]  << 0) | ((out)data[6]  << 8) | ((out)data[5]  << 16) | ((out)data[4]  << 24),
-      ((out)data[3]  << 0) | ((out)data[2]  << 8) | ((out)data[1]  << 16) | ((out)data[0]  << 24),
-      // clang-format on
-    }};
+  return hostToNetworkByteOrder(value);
 }
 
 struct MDBOutVal
