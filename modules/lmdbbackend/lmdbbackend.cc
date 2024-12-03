@@ -859,7 +859,6 @@ namespace serialization
     ar& g.last_check;
     ar& g.account;
     ar& g.primaries;
-    ar& g.id;
     ar& g.notified_serial;
     ar& g.kind;
     ar& g.options;
@@ -873,7 +872,6 @@ namespace serialization
     ar& g.last_check;
     ar& g.account;
     ar& g.primaries;
-    ar& g.id;
     ar& g.notified_serial;
     ar& g.kind;
     if (version >= 1) {
