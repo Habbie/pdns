@@ -95,7 +95,7 @@ jobs:
           restore-keys: auth-ccache-${{ matrix.builder }}
       - run: find /__w/pdns/pdns -ls
         working-directory: .
-        - name: set sanitizers
+      - name: set sanitizers
         run: echo "SANITIZERS=${{ matrix.builder == 'meson' && 'address,undefined' || 'asan+ubsan' }}" >> "$GITHUB_ENV"
         working-directory: .
       - run: inv install-auth-build-deps
