@@ -171,12 +171,16 @@ jobs:
         working-directory: .
       - run: mkdir -p ~/.ccache
         working-directory: .
+      - run: find /__w/pdns/pdns -ls
+        working-directory: .
       - name: let GitHub cache our ccache data
         uses: actions/cache@v4
         with:
           path: ~/.ccache
           key: recursor-${{ matrix.features }}-${{ matrix.sanitizers }}-ccache-${{ steps.get-stamp.outputs.stamp }}
           restore-keys: recursor-${{ matrix.features }}-${{ matrix.sanitizers }}-ccache-
+      - run: find /__w/pdns/pdns -ls
+        working-directory: .
       - run: inv ci-install-rust ${{ env.REPO_HOME }}
         working-directory: ./pdns/recursordist/
       - run: inv ci-autoconf
