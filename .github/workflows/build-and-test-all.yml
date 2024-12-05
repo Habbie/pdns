@@ -85,7 +85,7 @@ jobs:
         working-directory: .
       - run: mkdir -p ~/.ccache
         working-directory: .
-      - run: find /__w/pdns/pdns -ls
+      - run: pwd ; echo ~/.ccache ; find /__w/pdns/pdns -ls
       - name: let GitHub cache our ccache data
         uses: actions/cache@v4
         with:
