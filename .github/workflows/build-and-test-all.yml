@@ -85,12 +85,14 @@ jobs:
         working-directory: .
       - run: mkdir -p ~/.ccache
         working-directory: .
+      - run: find /__w/pdns/pdns -ls
       - name: let GitHub cache our ccache data
         uses: actions/cache@v4
         with:
           path: ~/.ccache
           key: auth-ccache-${{ matrix.builder }}-${{ steps.get-stamp.outputs.stamp }}
           restore-keys: auth-ccache-${{ matrix.builder }}
+      - run: find /__w/pdns/pdns -ls
       - name: set sanitizers
         run: echo "SANITIZERS=${{ matrix.builder == 'meson' && 'address,undefined' || 'asan+ubsan' }}" >> "$GITHUB_ENV"
         working-directory: .
