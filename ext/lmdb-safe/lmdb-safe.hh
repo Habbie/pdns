@@ -2,6 +2,8 @@
 
 #include "config.h"
 
+#include <iostream>
+#include <ostream>
 #include <stdexcept>
 #include <string_view>
 #include <lmdb.h>
@@ -221,7 +223,8 @@ template <class T>
 inline T MDBOutVal::getNoStripHeader() const
 {
   T ret{};
-  if (d_mdbval.mv_size != sizeof(ret)) {
+  std::cerr<<"mv_size="<<d_mdbval.mv_size<<", sizeof(ret)="<<sizeof(ret)<<std::endl;
+  if (d_mdbval.mv_size != 16) {
     throw std::runtime_error("MDB data has wrong length for type");
   }
 
@@ -289,10 +292,11 @@ public:
   template <class T>
   MDBInVal(T rhs)
   {
-    auto rhsNetworkOrder = hostToNetworkByteOrder(rhs);
+    auto rhsNetworkOrder = hostToNetworkByteOrder(rhs); // this is only implemented for uint32_t, and thus asserts that T is uint32_t at compile time
     static_assert(sizeof(rhsNetworkOrder) <= sizeof(d_memory));
     memcpy(&d_memory[0], &rhsNetworkOrder, sizeof(rhsNetworkOrder));
-    d_mdbval.mv_size = sizeof(rhs);
+    memset(&d_memory[4], 0, 16-4);
+    d_mdbval.mv_size = 16;
     d_mdbval.mv_data = static_cast<void*>(d_memory);
   }
 #endif
@@ -336,7 +340,7 @@ private:
   MDBInVal(){}
 #ifndef DNSDIST
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
-  char d_memory[sizeof(uint64_t)]{};
+  char d_memory[sizeof(uint64_t)*2]{}; // *2 so we can fit our 128 bit ID
 #endif
 };
 

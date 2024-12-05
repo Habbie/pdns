@@ -26,6 +26,16 @@
  *   - Make it more value-like with unique_ptr.
  */
 
+struct LmdbSerId {
+  uint32_t padding[3]={0,0,0};
+  uint32_t val;
+};
+
+/**
+ * PDNS (outside lmdbbackend) ID type
+ */
+using PdnsId = uint32_t;
+
 /**
  * LMDB ID Vector Type.
  */
@@ -87,25 +97,25 @@ inline std::string keyConv(const T& value)
 
 namespace {
   inline MDBOutVal getKeyFromCombinedKey(MDBInVal combined) {
-    if (combined.d_mdbval.mv_size < sizeof(uint32_t)) {
-      throw std::runtime_error("combined key too short to get ID from");
+    if (combined.d_mdbval.mv_size < 16) {
+      throw std::runtime_error("combined key too short to get key from");
     }
 
     MDBOutVal ret{};
     ret.d_mdbval.mv_data = combined.d_mdbval.mv_data;
-    ret.d_mdbval.mv_size = combined.d_mdbval.mv_size - sizeof(uint32_t);
+    ret.d_mdbval.mv_size = combined.d_mdbval.mv_size - 16;
     return ret;
   }
 
   inline MDBOutVal getIDFromCombinedKey(MDBInVal combined) {
-    if (combined.d_mdbval.mv_size < sizeof(uint32_t)) {
+    if (combined.d_mdbval.mv_size < 16) {
       throw std::runtime_error("combined key too short to get ID from");
     }
 
     MDBOutVal ret{};
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    ret.d_mdbval.mv_data = static_cast<char*>(combined.d_mdbval.mv_data) + combined.d_mdbval.mv_size - sizeof(uint32_t);
-    ret.d_mdbval.mv_size = sizeof(uint32_t);
+    ret.d_mdbval.mv_data = static_cast<char*>(combined.d_mdbval.mv_data) + combined.d_mdbval.mv_size - 16;
+    ret.d_mdbval.mv_size = 16;
     return ret;
   }
 
@@ -116,7 +126,7 @@ namespace {
     std::string sval(static_cast<char*>(val.d_mdbval.mv_data), val.d_mdbval.mv_size);
 
     if (val.d_mdbval.mv_size != 0 &&  // empty val case, for range queries
-        val.d_mdbval.mv_size != sizeof(uint32_t)) {
+        val.d_mdbval.mv_size != 16) {
       throw std::runtime_error("got wrong size value in makeCombinedKey");
     }
 
