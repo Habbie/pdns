@@ -5,6 +5,7 @@
 #include "dnsname.hh"
 #include "dnsparser.hh"
 #include "dnsrecords.hh"
+#include "pdns/iputils.hh"
 #include "qtype.hh"
 #include <boost/smart_ptr/make_shared_array.hpp>
 
@@ -4480,21 +4481,106 @@ static int backendLookup(vector<string>& cmds, const std::string_view synopsis)
   return 0;
 }
 
-enum commandGroup {
-  GROUP_AUTOPRIMARY,
-  GROUP_CATALOG,
-  GROUP_META,
-  GROUP_ZONE,
-  GROUP_RRSET,
-  GROUP_DNSSEC,
-  GROUP_CDNSKEY,
-  GROUP_NSEC3,
-  GROUP_TSIGKEY,
-  GROUP_ZONEKEY,
-  GROUP_OTHER,
-  GROUP_LAST,
-  GROUP_FIRST = GROUP_AUTOPRIMARY,
-};
+static int networkList(vector<string>& cmds)
+{
+  if (cmds.size() < 2) {
+    // FIXME: should there be backend choice here at all?
+    // alternatively, should backend choice be a generic pdnsutil feature?
+    cerr << "Usage: network-list BACKEND" << endl;
+    return 1;
+  }
+
+  // FIXME: how many copies of 'find matching backend' code do we have?
+  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+
+  for (auto& backend : BackendMakers().all()) {
+    if (backend->getPrefix() == cmds.at(1)) {
+      matchingBackend = std::move(backend);
+    }
+  }
+
+  if (matchingBackend == nullptr) {
+    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
+    return 1;
+  }
+
+  vector<pair<Netmask, string> > ret;
+  if (! matchingBackend->networkList(ret)) {
+    cerr<<"networkList returned false"<<endl;
+    return 1;
+ }
+  for (auto &[net, tag] : ret) {
+    cout<<net.toString()<<"\t"<<tag<<endl;
+  }
+  return 0;
+}
+
+
+static int networkLookup(vector<string>& cmds)
+{
+  if (cmds.size() < 3) {
+    // FIXME: should there be backend choice here at all?
+    // alternatively, should backend choice be a generic pdnsutil feature?
+    cerr << "Usage: network-lookup BACKEND NET" << endl;
+    return 1;
+  }
+
+  // FIXME: how many copies of 'find matching backend' code do we have?
+  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+
+  for (auto& backend : BackendMakers().all()) {
+    if (backend->getPrefix() == cmds.at(1)) {
+      matchingBackend = std::move(backend);
+    }
+  }
+
+  if (matchingBackend == nullptr) {
+    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
+    return 1;
+  }
+
+  Netmask net{cmds.at(2)};
+  string ret;
+  if (! matchingBackend->networkLookup(net, ret)) {
+    cerr<<"networkLookup returned false"<<endl;
+    return 1;
+ }
+  cout<<ret<<endl;
+  return 0;
+}
+
+static int networkSet(vector<string>& cmds)
+{
+  if (cmds.size() < 4) {
+    // FIXME: should there be backend choice here at all?
+    // alternatively, should backend choice be a generic pdnsutil feature?
+    cerr << "Usage: network-lookup BACKEND NET TAG" << endl;
+    return 1;
+  }
+
+  // FIXME: how many copies of 'find matching backend' code do we have?
+  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+
+  for (auto& backend : BackendMakers().all()) {
+    if (backend->getPrefix() == cmds.at(1)) {
+      matchingBackend = std::move(backend);
+    }
+  }
+
+  if (matchingBackend == nullptr) {
+    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
+    return 1;
+  }
+
+  Netmask net{cmds.at(2)};
+  string tag = cmds.at(3);
+  if (! matchingBackend->networkSet(net, tag)) {
+    cerr<<"networkSet returned false"<<endl;
+    return 1;
+ }
+  cerr<<"done"<<endl;
+  return 0;
+}
 
 static const std::array<std::string_view, GROUP_LAST> groupNames{
   "Autoprimary",
