@@ -83,7 +83,7 @@ public:
   bool replaceComments(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<Comment>& comments) override;
 
   bool networkSet(const Netmask& net, std::string& tag) override;
-  bool networkList(vector<pair<Netmask, string> >& net) override;
+  bool networkList(vector<pair<Netmask, string> >& ret) override;
   bool networkLookup(const Netmask& net, const std::string& tag) override;
 
   void getAllDomains(vector<DomainInfo>* domains, bool doSerial, bool include_disabled) override;

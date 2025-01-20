@@ -1292,6 +1292,25 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
   return comments.empty();
 }
 
+bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
+{
+  return true;
+}
+
+bool LMDBBackend::networkList(vector<pair<Netmask, string> >& ret)
+{
+  ret.emplace_back(std::make_pair("192.0.2.0/24", "foo"));
+
+  return true;
+}
+
+bool LMDBBackend::networkLookup(const Netmask& net, const std::string& tag)
+{
+  return true;
+}
+
+
+
 // tempting to templatize these two functions but the pain is not worth it
 std::shared_ptr<LMDBBackend::RecordsRWTransaction> LMDBBackend::getRecordsRWTransaction(uint32_t id)
 {
