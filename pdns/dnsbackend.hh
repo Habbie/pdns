@@ -465,6 +465,21 @@ public:
     return false;
   }
 
+  virtual bool networkSet(const Netmask& /* net */, std::string& /* tag */)
+  {
+    return false;
+  }
+
+  virtual bool networkList(vector<pair<Netmask, string> >& /* net */)
+  {
+    return false;
+  }
+
+  virtual bool networkLookup(const Netmask& /* net */, const std::string& /* tag */)
+  {
+    return false;
+  }
+
   //! Returns whether backend operations have caused files to be created.
   virtual bool hasCreatedLocalFiles() const
   {
