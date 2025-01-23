@@ -470,7 +470,7 @@ public:
     return false;
   }
 
-  virtual bool networkList(vector<pair<Netmask, string> >& /* ret */)
+  virtual bool networkList(vector<pair<Netmask, string> >& /* networks */)
   {
     return false;
   }

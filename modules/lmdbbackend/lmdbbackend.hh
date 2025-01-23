@@ -83,7 +83,7 @@ public:
   bool replaceComments(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<Comment>& comments) override;
 
   bool networkSet(const Netmask& net, std::string& tag) override;
-  bool networkList(vector<pair<Netmask, string> >& ret) override;
+  bool networkList(vector<pair<Netmask, string> >& networks) override;
   bool networkLookup(const Netmask& net, const std::string& tag) override;
 
   void getAllDomains(vector<DomainInfo>* domains, bool doSerial, bool include_disabled) override;
@@ -279,6 +279,9 @@ private:
                    index_on<TSIGKey, DNSName, &TSIGKey::name>>
     ttsig_t;
 
+  typedef TypedDBI<Netmask>
+    tnetworks_t;
+
   int d_asyncFlag;
 
   struct RecordsDB
@@ -313,6 +316,7 @@ private:
   shared_ptr<tmeta_t> d_tmeta;
   shared_ptr<tkdb_t> d_tkdb;
   shared_ptr<ttsig_t> d_ttsig;
+  shared_ptr<tnetworks_t> d_tnetworks;
 
   shared_ptr<RecordsROTransaction> d_rotxn; // for lookup and list
   shared_ptr<RecordsRWTransaction> d_rwtxn; // for feedrecord within begin/aborttransaction

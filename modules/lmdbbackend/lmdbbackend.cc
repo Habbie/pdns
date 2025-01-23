@@ -742,6 +742,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
+      d_tnetworks = std::make_shared<tnetworks_t>(d_tdomains->getEnv(), "tnetworks_v5");
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -804,6 +805,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
+    d_tnetworks = std::make_shared<tnetworks_t>(d_tdomains->getEnv(), "tnetworks_v5");
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
@@ -959,6 +961,24 @@ namespace serialization
     ar & g.key;
   }
 
+  template <class Archive>
+  void save(Archive &ar, Netmask& g, const unsigned int /* version */)
+  {
+    ar& g.getNormalized().getNetwork();
+    ar& g.getBits();
+  }
+
+  template <class Archive>
+  void load(Archive &ar, Netmask& g, const unsigned int /* version */)
+  {
+    Netmask tmp;
+    ComboAddress net;
+    uint8_t bits{};
+
+    ar& net;
+    ar& bits;
+    g = Netmask(net, bits);
+  }
 } // namespace serialization
 } // namespace boost
 
@@ -967,6 +987,7 @@ BOOST_SERIALIZATION_SPLIT_FREE(ZoneName);
 BOOST_SERIALIZATION_SPLIT_FREE(QType);
 BOOST_SERIALIZATION_SPLIT_FREE(LMDBBackend::KeyDataDB);
 BOOST_SERIALIZATION_SPLIT_FREE(DomainInfo);
+BOOST_SERIALIZATION_SPLIT_FREE(Netmask);
 BOOST_IS_BITWISE_SERIALIZABLE(ComboAddress);
 
 template <>
@@ -1297,9 +1318,16 @@ bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
   return true;
 }
 
-bool LMDBBackend::networkList(vector<pair<Netmask, string> >& ret)
+bool LMDBBackend::networkList(vector<pair<Netmask, string> >& networks)
 {
-  ret.emplace_back(std::make_pair("192.0.2.0/24", "foo"));
+  networks.clear();
+
+  auto txn = d_tnetworks->getROTransaction();
+
+  for (auto iter = txn.begin(); iter != txn.end(); ++iter) {
+    Netmask mask = *iter;
+    networks.emplace_back(std::make_pair(mask, "nothing"));
+  }
 
   return true;
 }
