@@ -36,7 +36,6 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/serialization/array_wrapper.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -938,6 +937,7 @@ namespace serialization
     ar & g.key;
   }
 
+#if 0
   template <class Archive>
   void save(Archive &ar, Netmask& g, const unsigned int /* version */)
   {
@@ -955,6 +955,7 @@ namespace serialization
     // ar& bits;
     // g = Netmask(net, bits);
   }
+#endif
 } // namespace serialization
 } // namespace boost
 
