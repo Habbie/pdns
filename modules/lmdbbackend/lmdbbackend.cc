@@ -31,6 +31,7 @@
 #include "pdns/dnspacket.hh"
 #include "pdns/dnssecinfra.hh"
 #include "pdns/logger.hh"
+#include "pdns/misc.hh"
 #include "pdns/pdnsexception.hh"
 #include "pdns/uuid-utils.hh"
 #include <boost/archive/binary_iarchive.hpp>
@@ -742,7 +743,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-      d_tnetworks = d_tdomains->getEnv()->openDB("tnetworks_v5", MDB_CREATE);
+      d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -805,7 +806,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-    d_tnetworks = d_tdomains->getEnv()->openDB("tnetworks_v5", MDB_CREATE);
+    d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
@@ -1316,6 +1317,11 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
 
 bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
 {
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
+
+  txn->put(d_tnetworks, net.toByteString(), tag);
+  txn->commit();
+
   return true;
 }
 
@@ -1323,12 +1329,30 @@ bool LMDBBackend::networkList(vector<pair<Netmask, string> >& networks)
 {
   networks.clear();
 
-  // auto txn = d_tnetworks->getROTransaction();
+  auto txn = d_tdomains->getEnv()->getROTransaction();
 
-  // for (auto iter = txn.begin(); iter != txn.end(); ++iter) {
-  //   Netmask mask = *iter;
-  //   networks.emplace_back(std::make_pair(mask, "nothing"));
-  // }
+  auto cursor = txn->getROCursor(d_tnetworks);
+
+  MDBOutVal netval{};
+  MDBOutVal tagval{};
+
+  auto ret = cursor.first(netval, tagval);
+
+  if (ret == MDB_NOTFOUND) {
+    return true;
+  }
+
+  do {
+    try {
+      auto net = Netmask(netval.getNoStripHeader<string>(), Netmask::byteString);
+      auto tag = tagval.get<string>();
+      networks.emplace_back(std::make_pair(net, tag));
+    } catch (std::exception &e) {
+      cerr<<e.what()<<": "<<makeHexDump(netval.getNoStripHeader<string>())<<" / "<<makeHexDump(tagval.get<string>())<<endl;
+    }
+
+    ret = cursor.next(netval, tagval);
+  } while (ret != MDB_NOTFOUND);
 
   return true;
 }

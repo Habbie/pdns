@@ -279,8 +279,6 @@ private:
                    index_on<TSIGKey, DNSName, &TSIGKey::name>>
     ttsig_t;
 
-  MDBDbi d_tnetworks;
-
   int d_asyncFlag;
 
   struct RecordsDB
@@ -315,7 +313,7 @@ private:
   shared_ptr<tmeta_t> d_tmeta;
   shared_ptr<tkdb_t> d_tkdb;
   shared_ptr<ttsig_t> d_ttsig;
-  shared_ptr<tnetworks_t> d_tnetworks;
+  MDBDbi d_tnetworks;
 
   shared_ptr<RecordsROTransaction> d_rotxn; // for lookup and list
   shared_ptr<RecordsRWTransaction> d_rwtxn; // for feedrecord within begin/aborttransaction
