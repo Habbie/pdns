@@ -36,6 +36,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -742,7 +743,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-      d_tnetworks = std::make_shared<tnetworks_t>(d_tdomains->getEnv(), "tnetworks_v5");
+      d_tnetworks = d_tdomains->getEnv()->openDB("tnetworks_v5", MDB_CREATE);
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -805,7 +806,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-    d_tnetworks = std::make_shared<tnetworks_t>(d_tdomains->getEnv(), "tnetworks_v5");
+    d_tnetworks = d_tdomains->getEnv()->openDB("tnetworks_v5", MDB_CREATE);
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
@@ -964,20 +965,19 @@ namespace serialization
   template <class Archive>
   void save(Archive &ar, Netmask& g, const unsigned int /* version */)
   {
-    ar& g.getNormalized().getNetwork();
-    ar& g.getBits();
+    ar& &g.toString();
   }
 
   template <class Archive>
   void load(Archive &ar, Netmask& g, const unsigned int /* version */)
   {
-    Netmask tmp;
-    ComboAddress net;
-    uint8_t bits{};
+    // Netmask tmp;
+    // ComboAddress net;
+    // uint8_t bits{};
 
-    ar& net;
-    ar& bits;
-    g = Netmask(net, bits);
+    // ar& net;
+    // ar& bits;
+    // g = Netmask(net, bits);
   }
 } // namespace serialization
 } // namespace boost
@@ -1322,12 +1322,12 @@ bool LMDBBackend::networkList(vector<pair<Netmask, string> >& networks)
 {
   networks.clear();
 
-  auto txn = d_tnetworks->getROTransaction();
+  // auto txn = d_tnetworks->getROTransaction();
 
-  for (auto iter = txn.begin(); iter != txn.end(); ++iter) {
-    Netmask mask = *iter;
-    networks.emplace_back(std::make_pair(mask, "nothing"));
-  }
+  // for (auto iter = txn.begin(); iter != txn.end(); ++iter) {
+  //   Netmask mask = *iter;
+  //   networks.emplace_back(std::make_pair(mask, "nothing"));
+  // }
 
   return true;
 }

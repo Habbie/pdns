@@ -279,8 +279,7 @@ private:
                    index_on<TSIGKey, DNSName, &TSIGKey::name>>
     ttsig_t;
 
-  typedef TypedDBI<Netmask>
-    tnetworks_t;
+  MDBDbi d_tnetworks;
 
   int d_asyncFlag;
 
