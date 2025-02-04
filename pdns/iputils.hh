@@ -329,6 +329,9 @@ union ComboAddress
         return host.data();
       }
     }
+    else {
+      return "invalid";
+    }
     return "invalid " + stringerror();
   }
 
