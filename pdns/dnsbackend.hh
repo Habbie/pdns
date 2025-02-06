@@ -487,10 +487,9 @@ public:
     string besttag;
 
     for (const auto &[net_, tag_] : networks) {
-      if (net_.match(ip)) {
+      if (net_.match(ip) and net_.getBits() > net.getBits()) {
         net = net_;
         tag = tag_;
-        return true;
       }
     }
 
