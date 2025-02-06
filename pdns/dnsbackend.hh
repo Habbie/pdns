@@ -486,10 +486,10 @@ public:
     Netmask bestmatch;
     string besttag;
 
-    for (const auto & nettag : networks) {
-      if (nettag.first.match(ip)) {
-        net = nettag.first;
-        tag = nettag.second;
+    for (const auto &[net_, tag_] : networks) {
+      if (net_.match(ip)) {
+        net = net_;
+        tag = tag_;
         return true;
       }
     }
