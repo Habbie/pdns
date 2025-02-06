@@ -4539,13 +4539,14 @@ static int networkLookup(vector<string>& cmds)
     return 1;
   }
 
-  Netmask net{cmds.at(2)};
+  ComboAddress ip{cmds.at(2)};
+  Netmask net;
   string ret;
-  if (! matchingBackend->networkLookup(net, ret)) {
+  if (! matchingBackend->networkLookup(ip, net, ret)) {
     cerr<<"networkLookup returned false"<<endl;
     return 1;
  }
-  cout<<ret<<endl;
+  cout<<net.toString()<<" "<<ret<<endl;
   return 0;
 }
 

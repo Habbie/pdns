@@ -1357,10 +1357,10 @@ bool LMDBBackend::networkList(vector<pair<Netmask, string> >& networks)
   return true;
 }
 
-bool LMDBBackend::networkLookup(const Netmask& net, const std::string& tag)
-{
-  return true;
-}
+// bool LMDBBackend::networkLookup(const Netmask& net, const std::string& tag)
+// {
+//   return true;
+// }
 
 
 

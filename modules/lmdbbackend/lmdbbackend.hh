@@ -84,7 +84,7 @@ public:
 
   bool networkSet(const Netmask& net, std::string& tag) override;
   bool networkList(vector<pair<Netmask, string> >& networks) override;
-  bool networkLookup(const Netmask& net, const std::string& tag) override;
+  // bool networkLookup(const Netmask& net, const std::string& tag) override;
 
   void getAllDomains(vector<DomainInfo>* domains, bool doSerial, bool include_disabled) override;
   void lookup(const QType& type, const DNSName& qdomain, int zoneId, DNSPacket* p = nullptr) override;

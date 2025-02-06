@@ -475,9 +475,26 @@ public:
     return false;
   }
 
-  virtual bool networkLookup(const Netmask& /* net */, const std::string& /* tag */)
+  virtual bool networkLookup(const ComboAddress& ip, Netmask& net, string& tag )
   {
-    return false;
+    vector<pair<Netmask, string> > networks;
+
+    if (! networkList(networks)) {
+      return false;
+    }
+
+    Netmask bestmatch;
+    string besttag;
+
+    for (const auto & nettag : networks) {
+      if (nettag.first.match(ip)) {
+        net = nettag.first;
+        tag = nettag.second;
+        return true;
+      }
+    }
+
+    return true;
   }
 
   //! Returns whether backend operations have caused files to be created.
