@@ -1552,7 +1552,7 @@ std::unique_ptr<DNSPacket> PacketHandler::doQuestion(DNSPacket& p)
       goto sendit;  // NOLINT(cppcoreguidelines-avoid-goto)
     }
 
-    if(!B.getAuth(ZoneName(target), p.qtype, &d_sd)) {
+    if(!B.getAuth(ZoneName(target), p.qtype, &d_sd, true, &p)) {
       DLOG(g_log<<Logger::Error<<"We have no authority over zone '"<<target<<"'"<<endl);
       if(!retargetcount) {
         r->setA(false); // drop AA if we never had a SOA in the first place

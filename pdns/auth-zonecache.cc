@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#include "pdns/misc.hh"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -131,6 +132,13 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
     d_statnumentries->store(count);
   }
+}
+
+void AuthZoneCache::replace(NetmaskTree<string> nettree)
+{
+  // FIXME: lock
+
+  d_nets.swap(nettree);
 }
 
 void AuthZoneCache::add(const ZoneName& zone, const int zoneId)
