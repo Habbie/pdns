@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#include "pdns/misc.hh"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -42,8 +43,22 @@ AuthZoneCache::AuthZoneCache(size_t mapsCount) :
   d_statnumentries = S.getPointer("zone-cache-size");
 }
 
-bool AuthZoneCache::getEntry(const DNSName& zone, int& zoneId)
+bool AuthZoneCache::getEntry(const DNSName& zone, int& zoneId, Netmask* net)
 {
+  string tag;
+
+  try {
+    auto *nettag = d_nets.lookup(net->getNetwork());
+    if (nettag != nullptr) {
+      tag = nettag->second;
+    }
+  }
+  catch (...) {
+    // this handles the "empty" case, but might hide other errors
+  }
+
+  cerr<<"tag=["<<tag<<"]"<<endl;
+
   auto& mc = getMap(zone);
   bool found = false;
   {
@@ -131,6 +146,13 @@ void AuthZoneCache::replace(const vector<std::tuple<DNSName, int>>& zone_indices
 
     d_statnumentries->store(count);
   }
+}
+
+void AuthZoneCache::replace(NetmaskTree<string> nettree)
+{
+  // FIXME: lock
+
+  d_nets.swap(nettree);
 }
 
 void AuthZoneCache::add(const DNSName& zone, const int zoneId)

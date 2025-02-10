@@ -100,7 +100,7 @@ public:
   void lookupEnd();
 
   /** Determines if we are authoritative for a zone, and at what level */
-  bool getAuth(const DNSName& target, const QType& qtype, SOAData* soaData, bool cachedOk = true);
+  bool getAuth(const DNSName& target, const QType& qtype, SOAData* soaData, bool cachedOk = true, DNSPacket* pkt_p = nullptr);
   /** Load SOA info from backends, ignoring the cache.*/
   bool getSOAUncached(const DNSName& domain, SOAData& soaData);
   void getAllDomains(vector<DomainInfo>* domains, bool getSerial, bool include_disabled);
