@@ -876,6 +876,7 @@ namespace serialization
   void save(Archive& ar, const DomainInfo& g, const unsigned int /* version */)
   {
     ar & g.zone;
+    ar & g.zone.d_tag; // move to end, with version check in load()
     ar & g.last_check;
     ar & g.account;
     ar & g.primaries;
@@ -890,6 +891,7 @@ namespace serialization
   void load(Archive& ar, DomainInfo& g, const unsigned int version)
   {
     ar & g.zone;
+    ar & g.zone.d_tag;
     ar & g.last_check;
     ar & g.account;
     ar & g.primaries;
