@@ -43,16 +43,38 @@ AuthZoneCache::AuthZoneCache(size_t mapsCount) :
   d_statnumentries = S.getPointer("zone-cache-size");
 }
 
-bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId)
+bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
 {
-  auto& mc = getMap(zone);
+  string tag;
+
+  try {
+    auto *nettag = d_nets.lookup(net->getNetwork());
+    if (nettag != nullptr) {
+      tag = nettag->second;
+    }
+  }
+  catch (...) {
+    // this handles the "empty" case, but might hide other errors
+  }
+
+  cerr<<"tag=["<<tag<<"]"<<endl;
+
+  DNSName tagZone(zone);
+
+  if (! tag.empty()) {
+    tagZone.prependRawLabel(tag);
+  }
+
+  auto& mc = getMap(tagZone);
+  cerr<<"looking for "<<tagZone<<", hash="<<tagZone.hash()<<endl;
   bool found = false;
   {
     auto map = mc.d_map.read_lock();
-    auto iter = map->find(zone);
+    auto iter = map->find(tagZone);
     if (iter != map->end()) {
       found = true;
       zoneId = iter->second.zoneId;
+      cerr<<"found with zoneId="<<zoneId<<endl;
     }
   }
 
@@ -85,6 +107,7 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
   // build new maps
   for (const auto& [zone, id] : zone_indices) {
+    cerr<<"inserting zone="<<zone<<", id="<<id<<endl;
     CacheValue val;
     val.zoneId = id;
     auto& mc = newMaps[getMapIndex(zone)];
