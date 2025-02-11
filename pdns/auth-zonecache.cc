@@ -59,14 +59,22 @@ bool AuthZoneCache::getEntry(const DNSName& zone, int& zoneId, Netmask* net)
 
   cerr<<"tag=["<<tag<<"]"<<endl;
 
-  auto& mc = getMap(zone);
+  DNSName tagZone(zone);
+
+  if (! tag.empty()) {
+    tagZone.prependRawLabel(tag);
+  }
+
+  auto& mc = getMap(tagZone);
+  cerr<<"looking for "<<tagZone<<", hash="<<tagZone.hash()<<endl;
   bool found = false;
   {
     auto map = mc.d_map.read_lock();
-    auto iter = map->find(zone);
+    auto iter = map->find(tagZone);
     if (iter != map->end()) {
       found = true;
       zoneId = iter->second.zoneId;
+      cerr<<"found with zoneId="<<zoneId<<endl;
     }
   }
 
@@ -99,6 +107,7 @@ void AuthZoneCache::replace(const vector<std::tuple<DNSName, int>>& zone_indices
 
   // build new maps
   for (const auto& [zone, id] : zone_indices) {
+    cerr<<"inserting zone="<<zone<<", id="<<id<<endl;
     CacheValue val;
     val.zoneId = id;
     auto& mc = newMaps[getMapIndex(zone)];
