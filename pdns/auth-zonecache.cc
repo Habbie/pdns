@@ -60,10 +60,7 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
   cerr<<"tag=["<<tag<<"]"<<endl;
 
   DNSName tagZone(zone);
-
-  if (! tag.empty()) {
-    tagZone.prependRawLabel(tag);
-  }
+  tagZone.d_tag = tag;
 
   auto& mc = getMap(tagZone);
   cerr<<"looking for "<<tagZone<<", hash="<<tagZone.hash()<<endl;
