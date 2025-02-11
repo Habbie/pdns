@@ -2143,6 +2143,9 @@ static bool showZone(DNSSECKeeper& dnsseckeeper, const ZoneName& zone, bool expo
   }
   if (!exportDS) {
     cout<<"This is a "<<DomainInfo::getKindString(di.kind)<<" zone"<<endl;
+    if (! di.zone.d_tag.empty()) {
+      cout<<"Tag: " << di.zone.d_tag << endl;
+    }
     if (di.isPrimaryType()) {
       cout<<"Last SOA serial number we notified: "<<di.notified_serial<<" ";
       SOAData sd;
@@ -3138,10 +3141,12 @@ static int deleteZone(vector<string>& cmds, const std::string_view synopsis)
 
 static int createZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if(cmds.size() != 2 && cmds.size()!=3 ) {
+  if(cmds.size() != 3 && cmds.size()!=4 ) {
     return usage(synopsis);
   }
-  return createZone(ZoneName(cmds.at(1)), cmds.size() > 2 ? DNSName(cmds.at(2)) : DNSName());
+  DNSName zone(cmds.at(2));
+  zone.d_tag = cmds.at(1);
+  return createZone(ZoneName(zone), cmds.size() > 2 ? DNSName(cmds.at(2)) : DNSName());
 }
 
 static int createSecondaryZone(vector<string>& cmds, const std::string_view synopsis)
