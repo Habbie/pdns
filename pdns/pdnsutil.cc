@@ -4486,7 +4486,7 @@ static int backendLookup(vector<string>& cmds, const std::string_view synopsis)
   return 0;
 }
 
-static int networkList(vector<string>& cmds)
+static int networkList(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 2) {
     // FIXME: should there be backend choice here at all?
@@ -4521,7 +4521,7 @@ static int networkList(vector<string>& cmds)
 }
 
 
-static int networkLookup(vector<string>& cmds)
+static int networkLookup(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 3) {
     // FIXME: should there be backend choice here at all?
@@ -4555,7 +4555,7 @@ static int networkLookup(vector<string>& cmds)
   return 0;
 }
 
-static int networkSet(vector<string>& cmds)
+static int networkSet(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 4) {
     // FIXME: should there be backend choice here at all?
@@ -4599,6 +4599,7 @@ enum commandGroup {
   GROUP_NSEC3,
   GROUP_TSIGKEY,
   GROUP_ZONEKEY,
+  GROUP_VIEWS,
   GROUP_OTHER,
   GROUP_LAST,
   GROUP_FIRST = GROUP_AUTOPRIMARY,
@@ -4615,6 +4616,7 @@ static const std::array<std::string_view, GROUP_LAST> groupNames{
   "NSEC3",
   "TSIG key",
   "Zone key",
+  "Views",
   "Other"
 };
 
@@ -4629,6 +4631,15 @@ struct commandDispatcher {
 
 // clang-format off
 static const std::unordered_map<std::string, commandDispatcher> commands{
+  {"network-list", {true, networkList, GROUP_VIEWS,
+   "network-list BACKEND",
+   "\tFIXME"}},
+  {"network-lookup", {true, networkLookup, GROUP_VIEWS,
+   "network-lookup BACKEND NET",
+   "\tFIXME"}},
+  {"network-set", {true, networkSet, GROUP_VIEWS,
+   "network-set BACKEND NET TAG",
+   "\tFIXME"}},
   {"activate-tsig-key", {true, activateTSIGKey, GROUP_TSIGKEY,
    "activate-tsig-key ZONE NAME {primary|secondary|producer|consumer}",
    "\tEnable TSIG authenticated AXFR using the key NAME for ZONE"}},
