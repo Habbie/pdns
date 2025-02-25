@@ -4588,6 +4588,22 @@ static int networkSet(vector<string>& cmds)
   return 0;
 }
 
+enum commandGroup {
+  GROUP_AUTOPRIMARY,
+  GROUP_CATALOG,
+  GROUP_META,
+  GROUP_ZONE,
+  GROUP_RRSET,
+  GROUP_DNSSEC,
+  GROUP_CDNSKEY,
+  GROUP_NSEC3,
+  GROUP_TSIGKEY,
+  GROUP_ZONEKEY,
+  GROUP_OTHER,
+  GROUP_LAST,
+  GROUP_FIRST = GROUP_AUTOPRIMARY,
+};
+
 static const std::array<std::string_view, GROUP_LAST> groupNames{
   "Autoprimary",
   "Catalog",
