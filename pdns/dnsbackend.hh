@@ -334,6 +334,13 @@ public:
   {
     return false;
   }
+
+  //! if this returns true, DomainInfo di contains information about the domain
+  virtual bool getDomainInfo(uint32_t /* domain_id */, DomainInfo& /* di */, bool /* getSerial */ = true)
+  {
+    return false;
+  }
+
   //! secondary capable backends should return a list of secondaries that should be rechecked for staleness
   virtual void getUnfreshSecondaryInfos(vector<DomainInfo>* /* domains */)
   {

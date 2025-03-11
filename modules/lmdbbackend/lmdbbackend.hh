@@ -65,6 +65,7 @@ public:
   bool list(const DNSName& target, int id, bool include_disabled) override;
 
   bool getDomainInfo(const DNSName& domain, DomainInfo& di, bool getserial = true) override;
+  bool getDomainInfo(uint32_t domain_id, DomainInfo& di, bool getserial = true) override;
   bool createDomain(const DNSName& domain, const DomainInfo::DomainKind kind, const vector<ComboAddress>& primaries, const string& account) override;
 
   bool startTransaction(const DNSName& domain, int domain_id = -1) override;

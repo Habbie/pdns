@@ -344,7 +344,7 @@ static inline string makeBackendRecordContent(const QType& qtype, const string& 
 
 static Json::object getZoneInfo(const DomainInfo& domainInfo, DNSSECKeeper* dnssecKeeper)
 {
-  string zoneId = apiZoneNameToId(domainInfo.zone);
+  string zoneId = apiNumtoZoneId(domainInfo.id);
   vector<string> primaries;
   primaries.reserve(domainInfo.primaries.size());
   for (const auto& primary : domainInfo.primaries) {
@@ -1019,17 +1019,17 @@ class ZoneData
 {
 public:
   ZoneData(HttpRequest* req) :
-    zoneName(apiZoneIdToName((req)->parameters["id"])),
     dnssecKeeper(DNSSECKeeper{&backend})
   {
     try {
-      if (!backend.getDomainInfo(zoneName, domainInfo)) {
+      if (!backend.getDomainInfo(apiZoneIdToNum((req)->parameters["id"]), domainInfo)) {
         throw HttpNotFoundException();
       }
     }
     catch (const PDNSException& e) {
       throw HttpInternalServerErrorException("Could not retrieve Domain Info: " + e.reason);
     }
+    zoneName = domainInfo.zone;
   }
 
   DNSName zoneName;
@@ -2554,7 +2554,7 @@ static void apiServerSearchData(HttpRequest* req, HttpResponse* resp)
     if ((objectType == ObjectType::ALL || objectType == ObjectType::ZONE) && ents < maxEnts && simpleMatch.match(domainInfo.zone)) {
       doc.push_back(Json::object{
         {"object_type", "zone"},
-        {"zone_id", apiZoneNameToId(domainInfo.zone)},
+        {"zone_id", apiNumtoZoneId(domainInfo.id)},
         {"name", domainInfo.zone.toString()}});
       ents++;
     }
@@ -2577,7 +2577,7 @@ static void apiServerSearchData(HttpRequest* req, HttpResponse* resp)
 
       val = zoneIdZone.find(resourceRecord.domain_id);
       if (val != zoneIdZone.end()) {
-        object["zone_id"] = apiZoneNameToId(val->second.zone);
+        object["zone_id"] = apiNumtoZoneId(resourceRecord.domain_id);
         object["zone"] = val->second.zone.toString();
       }
       doc.emplace_back(object);
@@ -2594,7 +2594,7 @@ static void apiServerSearchData(HttpRequest* req, HttpResponse* resp)
 
       val = zoneIdZone.find(comment.domain_id);
       if (val != zoneIdZone.end()) {
-        object["zone_id"] = apiZoneNameToId(val->second.zone);
+        object["zone_id"] = apiNumtoZoneId(comment.domain_id);
         object["zone"] = val->second.zone.toString();
       }
       doc.emplace_back(object);

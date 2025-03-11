@@ -129,6 +129,16 @@ bool UeberBackend::getDomainInfo(const DNSName& domain, DomainInfo& domainInfo, 
   return false;
 }
 
+bool UeberBackend::getDomainInfo(uint32_t domain_id, DomainInfo& domainInfo, bool getSerial)
+{
+  for (auto& backend : backends) {
+    if (backend->getDomainInfo(domain_id, domainInfo, getSerial)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool UeberBackend::createDomain(const DNSName& domain, const DomainInfo::DomainKind kind, const vector<ComboAddress>& primaries, const string& account)
 {
   for (auto& backend : backends) {

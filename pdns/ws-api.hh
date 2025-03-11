@@ -33,7 +33,9 @@ void apiServerStatistics(HttpRequest* req, HttpResponse* resp);
 
 // helpers
 DNSName apiZoneIdToName(const string& identifier);
+uint32_t apiZoneIdToNum(const string& identifier);
 string apiZoneNameToId(const DNSName& name);
+string apiNumtoZoneId(uint32_t domain_id);
 void apiCheckNameAllowedCharacters(const string& name);
 void apiCheckQNameAllowedCharacters(const string& name);
 DNSName apiNameToDNSName(const string& name);

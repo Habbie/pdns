@@ -1655,6 +1655,24 @@ bool LMDBBackend::getSerial(DomainInfo& di)
   return false;
 }
 
+bool LMDBBackend::getDomainInfo(uint32_t domain_id, DomainInfo& di, bool getserial)
+{
+  {
+    auto txn = d_tdomains->getROTransaction();
+    if (!(di.id = txn.get(domain_id, di))) {
+      return false;
+    }
+
+    di.backend = this;
+  }
+
+  if (getserial) {
+    getSerial(di);
+  }
+
+  return true;
+}
+
 bool LMDBBackend::getDomainInfo(const DNSName& domain, DomainInfo& di, bool getserial)
 {
   {

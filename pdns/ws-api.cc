@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+#include "pdns/misc.hh"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -307,17 +308,32 @@ DNSName apiNameToDNSName(const string& name)
   }
 }
 
-DNSName apiZoneIdToName(const string& identifier)
+uint32_t apiZoneIdToNum(const string& identifier)
+{
+  return pdns::checked_stoi<uint32_t>(identifier);
+}
+
+string apiNumtoZoneId(uint32_t domain_id)
+{
+  ostringstream outputStringStream;
+
+  outputStringStream<<domain_id;
+
+  return outputStringStream.str();
+}
+
+DNSName apiZoneIdToName(const string& _identifier)
 {
   string zonename;
   ostringstream outputStringStream;
 
-  if (identifier.empty()) {
+  if (_identifier.empty()) {
     throw HttpBadRequestException();
   }
 
   std::size_t lastpos = 0;
   std::size_t pos = 0;
+  string identifier = _identifier.substr(1);
   while ((pos = identifier.find('=', lastpos)) != string::npos) {
     outputStringStream << identifier.substr(lastpos, pos - lastpos);
     char currentChar{};
@@ -366,6 +382,8 @@ string apiZoneNameToId(const DNSName& dname)
 {
   string name = dname.toString();
   ostringstream outputStringStream;
+
+  outputStringStream << "X";
 
   for (char iter : name) {
     if ((iter >= 'A' && iter <= 'Z') || (iter >= 'a' && iter <= 'z') || (iter >= '0' && iter <= '9') || (iter == '.') || (iter == '-')) {

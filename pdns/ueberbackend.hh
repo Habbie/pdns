@@ -108,6 +108,7 @@ public:
   void getUnfreshSecondaryInfos(vector<DomainInfo>* domains);
   void getUpdatedPrimaries(vector<DomainInfo>& domains, std::unordered_set<DNSName>& catalogs, CatalogHashMap& catalogHashes);
   bool getDomainInfo(const DNSName& domain, DomainInfo& domainInfo, bool getSerial = true);
+  bool getDomainInfo(uint32_t domain_id, DomainInfo& domainInfo, bool getSerial = true);
   bool createDomain(const DNSName& domain, DomainInfo::DomainKind kind, const vector<ComboAddress>& primaries, const string& account);
 
   bool doesDNSSEC();
