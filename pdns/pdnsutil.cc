@@ -2848,11 +2848,13 @@ static int verifyCrypto(vector<string>& cmds, const std::string_view synopsis)
 
 static int showZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if(cmds.size() != 2) {
+  if(cmds.size() != 3) {
     return usage(synopsis);
   }
   DNSSECKeeper dk; //NOLINT(readability-identifier-length)
-  if (!showZone(dk, ZoneName(cmds.at(1)))) {
+  DNSName d(cmds.at(1));
+  d.d_tag = cmds.at(2);
+  if (!showZone(dk, d)) {
     return 1;
   }
   return 0;

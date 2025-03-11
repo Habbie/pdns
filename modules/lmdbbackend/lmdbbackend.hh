@@ -35,13 +35,14 @@ std::string keyConv(const T& t)
     throw std::out_of_range(std::string(__PRETTY_FUNCTION__) + " Attempt to serialize an unset DNSName");
   }
 
+  std::string ret = keyConv(t.d_tag) + std::string(1, (char)0);
+
   if (t.isRoot()) {
-    return std::string(1, (char)0);
+    return ret + std::string(1, (char)0);
   }
 
   std::string in = t.labelReverse().toDNSStringLC(); // www.ds9a.nl is now 2nl4ds9a3www0
-  std::string ret;
-  ret.reserve(in.size());
+  ret.reserve(ret.size() + in.size());
 
   for (auto iter = in.begin(); iter != in.end(); ++iter) {
     uint8_t len = *iter;
@@ -180,7 +181,9 @@ private:
     std::string operator()(uint32_t id, const DNSName& t)
     {
       std::string ret = operator()(id);
-      ret += keyConv(t);
+      DNSName t2 = t;
+      t2.d_tag = ""; // FIXME: HACK
+      ret += keyConv(t2);
       ret.append(1, (char)0); // this means '00' really ends the zone
       return ret;
     }
