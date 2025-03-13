@@ -83,6 +83,11 @@ public:
   bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset) override;
   bool replaceComments(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<Comment>& comments) override;
 
+  bool viewList(vector<string>& /* result */) override;
+  bool viewListZones(const string& /* view */, vector<DNSName>& /* result */) override;
+  bool viewAddZone(const string& /* view */, const DNSName& /* zone */) override;
+  bool viewDelZone(const string& /* view */, const DNSName& /* zone */) override;
+
   bool networkSet(const Netmask& net, std::string& tag) override;
   bool networkList(vector<pair<Netmask, string> >& networks) override;
   // bool networkLookup(const Netmask& net, const std::string& tag) override;
@@ -317,6 +322,7 @@ private:
   shared_ptr<tkdb_t> d_tkdb;
   shared_ptr<ttsig_t> d_ttsig;
   MDBDbi d_tnetworks;
+  MDBDbi d_tviews;
 
   shared_ptr<RecordsROTransaction> d_rotxn; // for lookup and list
   shared_ptr<RecordsRWTransaction> d_rwtxn; // for feedrecord within begin/aborttransaction

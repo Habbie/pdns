@@ -744,6 +744,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
       d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
+      d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -807,6 +808,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
     d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
+    d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
@@ -1314,6 +1316,63 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
   // if it's not, report failure
   return comments.empty();
 }
+
+bool LMDBBackend::viewList(vector<string>& result)
+{
+  result.clear();
+
+  auto txn = d_tdomains->getEnv()->getROTransaction();
+
+  auto cursor = txn->getROCursor(d_tviews);
+
+  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  MDBOutVal val{}; // <discriminator>
+
+  auto ret = cursor.first(key, val);
+
+  if (ret == MDB_NOTFOUND) {
+    return true;
+  }
+
+  do {
+    try {
+      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      auto tag = val.get<string>();
+      cerr<<"in view ["<<view<<"], zone ["<<zone<<"] has tag ["<<tag<<"]"<<endl;
+      result.emplace_back(view);
+    } catch (std::exception &e) {
+      cerr<<e.what()<<": "<<makeHexDump(key.getNoStripHeader<string>())<<" / "<<makeHexDump(val.get<string>())<<endl;
+    }
+
+    ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view
+  } while (ret != MDB_NOTFOUND);
+
+  return true;
+}
+
+bool LMDBBackend::viewListZones(const string& view, vector<DNSName>& result)
+{
+  return false;
+}
+
+bool LMDBBackend::viewAddZone(const string& view, const DNSName& zone)
+{
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
+
+  string key = view + string(1, (char)0) + zone.toString();
+  string val = "foo"; // discriminator goes here
+
+  txn->put(d_tviews, key, val);
+  txn->commit();
+
+  return true;
+}
+
+bool LMDBBackend::viewDelZone(const string& view, const DNSName& zone)
+{
+  return false;
+}
+
 
 bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
 {
