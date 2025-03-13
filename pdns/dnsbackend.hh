@@ -465,6 +465,26 @@ public:
     return false;
   }
 
+  virtual bool viewList(vector<string>& /* result */)
+  {
+    return false;
+  }
+
+  virtual bool viewListZones(const string& /* view */, vector<DNSName>& /* result */)
+  {
+    return false;
+  }
+
+  virtual bool viewAddZone(const string& /* view */, const DNSName& /* zone */)
+  {
+    return false;
+  }
+
+  virtual bool viewDelZone(const string& /* view */, const DNSName& /* zone */)
+  {
+    return false;
+  }
+
   virtual bool networkSet(const Netmask& /* net */, std::string& /* tag */)
   {
     return false;
