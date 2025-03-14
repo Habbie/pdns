@@ -1694,6 +1694,27 @@ static void apiServerTSIGKeysGET(HttpRequest* /* req */, HttpResponse* resp)
   resp->setJsonBody(doc);
 }
 
+static void apiServerNetworksGET(HttpRequest* /* req */, HttpResponse* resp)
+{
+  UeberBackend backend;
+
+  vector<pair<Netmask, string> > ret;
+
+  backend.networkList(ret);
+
+  Json::array doc;
+
+  for (auto& [net, tag] : ret) {
+    // makeJSONNetwork?
+    Json::object obj = {
+      {"network", net.toString()},
+      {"tag", tag}
+    };
+    doc.emplace_back(obj);
+  }
+  resp->setJsonBody(doc);
+}
+
 static void apiServerTSIGKeysPOST(HttpRequest* req, HttpResponse* resp)
 {
   UeberBackend backend;
@@ -2715,6 +2736,10 @@ void AuthWebServer::webThread()
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries/<ip>/<nameserver>", &apiServerAutoprimaryDetailDELETE, "DELETE");
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesGET, "GET");
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesPOST, "POST");
+      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailGET, "GET");
+      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailPUT, "PUT");
+      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailDELETE, "DELETE");
+      d_ws->registerApiHandler("/api/v1/servers/localhost/networks", apiServerNetworksGET, "GET");
       d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailGET, "GET");
       d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailPUT, "PUT");
       d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailDELETE, "DELETE");
