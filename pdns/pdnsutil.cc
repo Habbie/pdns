@@ -4589,6 +4589,7 @@ static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
   return 0;
 }
 
+// FIXME: networkDel is missing
 
 static int networkList(vector<string>& cmds, const std::string_view synopsis)
 {
