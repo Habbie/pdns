@@ -1370,9 +1370,16 @@ bool LMDBBackend::viewAddZone(const string& view, const DNSName& zone)
 
 bool LMDBBackend::viewDelZone(const string& view, const DNSName& zone)
 {
-  return false;
-}
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
 
+  string key = view + string(1, (char)0) + zone.toString();
+  // string val = "foo"; // discriminator goes here
+
+  txn->del(d_tviews, key);
+  txn->commit();
+
+  return true;
+}
 
 bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
 {

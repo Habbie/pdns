@@ -4555,6 +4555,40 @@ static int viewAddZone(vector<string>& cmds, const std::string_view synopsis)
   return 0;
 }
 
+// I bet we could combine Add and Del, here and in lmdbbackend
+static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
+{
+  if (cmds.size() < 4) {
+    // FIXME: should there be backend choice here at all?
+    // alternatively, should backend choice be a generic pdnsutil feature?
+    cerr << "Usage: synopsis goes here" << endl;
+    return 1;
+  }
+
+  // FIXME: how many copies of 'find matching backend' code do we have?
+  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+
+  for (auto& backend : BackendMakers().all()) {
+    if (backend->getPrefix() == cmds.at(1)) {
+      matchingBackend = std::move(backend);
+    }
+  }
+
+  if (matchingBackend == nullptr) {
+    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
+    return 1;
+  }
+
+  string view{cmds.at(2)};
+  DNSName zone{cmds.at(3)}; // should be a DiscName
+  if (! matchingBackend->viewDelZone(view, zone)) {
+    cerr<<"viewDelZone returned false"<<endl;
+    return 1;
+ }
+  cerr<<"done"<<endl;
+  return 0;
+}
+
 
 static int networkList(vector<string>& cmds, const std::string_view synopsis)
 {
@@ -4706,6 +4740,9 @@ static const std::unordered_map<std::string, commandDispatcher> commands{
    "\tFIXME"}},
   {"view-add-zone", {true, viewAddZone, GROUP_VIEWS,
    "view-add-zone BACKEND VIEW ZONE:DISC",
+   "\tFIXME"}},
+  {"view-del-zone", {true, viewDelZone, GROUP_VIEWS,
+   "view-del-zone BACKEND VIEW ZONE:DISC",
    "\tFIXME"}},
   {"network-list", {true, networkList, GROUP_VIEWS,
    "network-list BACKEND",
