@@ -4619,7 +4619,7 @@ static int networkList(vector<string>& cmds, const std::string_view synopsis)
     return 1;
  }
   for (auto &[net, tag] : ret) {
-    cout<<net.toString()<<"\t"<<tag<<endl;
+    cout<<net.toString()<<"\t"<<tag<<endl; // FIXME: this prints "invalid" when there is no match
   }
   return 0;
 }
