@@ -1385,7 +1385,12 @@ bool LMDBBackend::networkSet(const Netmask& net, std::string& tag)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();
 
-  txn->put(d_tnetworks, net.toByteString(), tag);
+  if (tag.empty()) {
+    txn->del(d_tnetworks, net.toByteString());
+  }
+  else {
+    txn->put(d_tnetworks, net.toByteString(), tag);
+  }
   txn->commit();
 
   return true;
