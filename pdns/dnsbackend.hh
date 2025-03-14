@@ -495,26 +495,26 @@ public:
     return false;
   }
 
-  virtual bool networkLookup(const ComboAddress& ip, Netmask& net, string& tag )
-  {
-    vector<pair<Netmask, string> > networks;
+  // virtual bool networkLookup(const ComboAddress& ip, Netmask& net, string& tag )
+  // {
+  //   vector<pair<Netmask, string> > networks;
 
-    if (! networkList(networks)) {
-      return false;
-    }
+  //   if (! networkList(networks)) {
+  //     return false;
+  //   }
 
-    Netmask bestmatch;
-    string besttag;
+  //   Netmask bestmatch;
+  //   string besttag;
 
-    for (const auto &[net_, tag_] : networks) {
-      if (net_.match(ip) and net_.getBits() > net.getBits()) {
-        net = net_;
-        tag = tag_;
-      }
-    }
+  //   for (const auto &[net_, tag_] : networks) {
+  //     if (net_.match(ip) and net_.getBits() > net.getBits()) {
+  //       net = net_;
+  //       tag = tag_;
+  //     }
+  //   }
 
-    return true;
-  }
+  //   return true;
+  // }
 
   //! Returns whether backend operations have caused files to be created.
   virtual bool hasCreatedLocalFiles() const

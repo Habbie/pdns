@@ -4591,32 +4591,17 @@ static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
 
 static int networkList(vector<string>& cmds, const std::string_view synopsis)
 {
-  if (cmds.size() < 2) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: network-list BACKEND" << endl;
+  if (cmds.size() < 1) {
+    cerr << "Usage: network-list" << endl;
     return 1;
   }
 
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
-
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
+  UtilBackend B("default"); //NOLINT(readability-identifier-length)
 
   vector<pair<Netmask, string> > ret;
-  if (! matchingBackend->networkList(ret)) {
-    cerr<<"networkList returned false"<<endl;
-    return 1;
- }
+
+  B.networkList(ret);
+
   for (auto &[net, tag] : ret) {
     cout<<net.toString()<<"\t"<<tag<<endl; // FIXME: this prints "invalid" when there is no match
   }
@@ -4624,66 +4609,54 @@ static int networkList(vector<string>& cmds, const std::string_view synopsis)
 }
 
 
-static int networkLookup(vector<string>& cmds, const std::string_view synopsis)
+// static int networkLookup(vector<string>& cmds, const std::string_view synopsis)
+// {
+//   if (cmds.size() < 3) {
+//     // FIXME: should there be backend choice here at all?
+//     // alternatively, should backend choice be a generic pdnsutil feature?
+//     cerr << "Usage: network-lookup BACKEND NET" << endl;
+//     return 1;
+//   }
+
+//   // FIXME: how many copies of 'find matching backend' code do we have?
+//   std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+
+//   for (auto& backend : BackendMakers().all()) {
+//     if (backend->getPrefix() == cmds.at(1)) {
+//       matchingBackend = std::move(backend);
+//     }
+//   }
+
+//   if (matchingBackend == nullptr) {
+//     cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
+//     return 1;
+//   }
+
+//   ComboAddress ip{cmds.at(2)};
+//   Netmask net;
+//   string ret;
+//   if (! matchingBackend->networkLookup(ip, net, ret)) {
+//     cerr<<"networkLookup returned false"<<endl;
+//     return 1;
+//  }
+//   cout<<net.toString()<<" "<<ret<<endl;
+//   return 0;
+// }
+
+static int networkSet(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 3) {
     // FIXME: should there be backend choice here at all?
     // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: network-lookup BACKEND NET" << endl;
+    cerr << "Usage: network-set NET TAG" << endl;
     return 1;
   }
 
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+  UtilBackend B("default"); //NOLINT(readability-identifier-length)
 
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
-
-  ComboAddress ip{cmds.at(2)};
-  Netmask net;
-  string ret;
-  if (! matchingBackend->networkLookup(ip, net, ret)) {
-    cerr<<"networkLookup returned false"<<endl;
-    return 1;
- }
-  cout<<net.toString()<<" "<<ret<<endl;
-  return 0;
-}
-
-static int networkSet(vector<string>& cmds, const std::string_view synopsis)
-{
-  if (cmds.size() < 4) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: network-lookup BACKEND NET TAG" << endl;
-    return 1;
-  }
-
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
-
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
-
-  Netmask net{cmds.at(2)};
-  string tag = cmds.at(3);
-  if (! matchingBackend->networkSet(net, tag)) {
+  Netmask net{cmds.at(1)};
+  string tag = cmds.at(2);
+  if (! B.networkSet(net, tag)) {
     cerr<<"networkSet returned false"<<endl;
     return 1;
  }
@@ -4746,9 +4719,9 @@ static const std::unordered_map<std::string, commandDispatcher> commands{
   {"network-list", {true, networkList, GROUP_VIEWS,
    "network-list BACKEND",
    "\tFIXME"}},
-  {"network-lookup", {true, networkLookup, GROUP_VIEWS,
-   "network-lookup BACKEND NET",
-   "\tFIXME"}},
+  // {"network-lookup", {true, networkLookup, GROUP_VIEWS,
+  //  "network-lookup BACKEND NET",
+  //  "\tFIXME"}},
   {"network-set", {true, networkSet, GROUP_VIEWS,
    "network-set BACKEND NET TAG",
    "\tFIXME"}},

@@ -877,6 +877,23 @@ bool UeberBackend::deleteTSIGKey(const DNSName& name)
   return false;
 }
 
+bool UeberBackend::networkSet(const Netmask& net, std::string& tag)
+{
+  for (auto& backend : backends) {
+    if (backend->networkSet(net, tag)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void UeberBackend::networkList(vector<pair<Netmask, string> >& networks)
+{
+  for (auto& backend : backends) {
+    backend->networkList(networks);
+  }
+}
+
 // API Search
 //
 bool UeberBackend::searchRecords(const string& pattern, size_t maxResults, vector<DNSResourceRecord>& result)
