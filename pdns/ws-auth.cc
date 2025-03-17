@@ -1694,6 +1694,21 @@ static void apiServerTSIGKeysGET(HttpRequest* /* req */, HttpResponse* resp)
   resp->setJsonBody(doc);
 }
 
+static void apiServerNetworkDetailPUT(HttpRequest* req, HttpResponse* resp)
+{
+  UeberBackend backend;
+
+  Netmask netmask(req->parameters["network"] + "/" + req->parameters["prefixlen"]);
+
+  const auto& document = req->json();
+  auto tag = stringFromJson(document, "tag");
+
+  backend.networkSet(netmask, tag);
+
+  resp->body = "";
+  resp->status = 204;
+}
+
 static void apiServerNetworksGET(HttpRequest* /* req */, HttpResponse* resp)
 {
   UeberBackend backend;
@@ -2736,8 +2751,8 @@ void AuthWebServer::webThread()
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries/<ip>/<nameserver>", &apiServerAutoprimaryDetailDELETE, "DELETE");
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesGET, "GET");
       d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesPOST, "POST");
-      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailGET, "GET");
-      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailPUT, "PUT");
+      // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<network>/<prefixlen>", apiServerNetworkDetailGET, "GET");
+      d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<network>/<prefixlen>", apiServerNetworkDetailPUT, "PUT"); // FIXME: I don't like this abuse of '/'
       // d_ws->registerApiHandler("/api/v1/servers/localhost/networks/<id>", apiServerNetworkDetailDELETE, "DELETE");
       d_ws->registerApiHandler("/api/v1/servers/localhost/networks", apiServerNetworksGET, "GET");
       d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailGET, "GET");
