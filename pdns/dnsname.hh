@@ -20,6 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #pragma once
+#if !defined(VERSION)
+#error dnsname.hh included without config.h first
+#endif
 #include <array>
 #include <cstring>
 #include <optional>
