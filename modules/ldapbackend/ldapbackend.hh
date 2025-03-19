@@ -142,11 +142,11 @@ class LdapBackend : public DNSBackend
   PowerLDAP* d_pldap;
   LdapAuthenticator* d_authenticator;
 
-  bool (LdapBackend::*d_list_fcnt)(const DNSName&, int);
+  bool (LdapBackend::*d_list_fcnt)(const ZoneName&, int);
   void (LdapBackend::*d_lookup_fcnt)(const QType&, const DNSName&, DNSPacket*, int);
 
-  bool list_simple(const DNSName& target, int domain_id);
-  bool list_strict(const DNSName& target, int domain_id);
+  bool list_simple(const ZoneName& target, int domain_id);
+  bool list_strict(const ZoneName& target, int domain_id);
 
   void lookup_simple(const QType& qtype, const DNSName& qdomain, DNSPacket* p, int zoneid);
   void lookup_strict(const QType& qtype, const DNSName& qdomain, DNSPacket* p, int zoneid);
@@ -170,11 +170,11 @@ public:
   ~LdapBackend() override;
 
   // Native backend
-  bool list(const DNSName& target, int domain_id, bool include_disabled = false) override;
+  bool list(const ZoneName& target, int domain_id, bool include_disabled = false) override;
   void lookup(const QType& qtype, const DNSName& qdomain, int zoneid, DNSPacket* p = nullptr) override;
   bool get(DNSResourceRecord& rr) override;
 
-  bool getDomainInfo(const DNSName& domain, DomainInfo& di, bool getSerial = true) override;
+  bool getDomainInfo(const ZoneName& domain, DomainInfo& di, bool getSerial = true) override;
 
   // Primary backend
   void getUpdatedPrimaries(vector<DomainInfo>& domains, std::unordered_set<DNSName>& catalogs, CatalogHashMap& catalogHashes) override;

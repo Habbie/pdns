@@ -55,11 +55,11 @@ public:
 
   struct SimpleDNSZone
   {
-    SimpleDNSZone(const DNSName& name, uint64_t id): d_records(std::make_shared<RecordStorage>()), d_name(name), d_id(id)
+    SimpleDNSZone(const ZoneName& name, uint64_t id): d_records(std::make_shared<RecordStorage>()), d_name(name), d_id(id)
     {
     }
     std::shared_ptr<RecordStorage> d_records;
-    DNSName d_name;
+    ZoneName d_name;
     uint64_t d_id;
   };
 
@@ -70,7 +70,7 @@ public:
     SimpleDNSZone,
     indexed_by <
       ordered_unique<tag<IDTag>, member<SimpleDNSZone, uint64_t, &SimpleDNSZone::d_id> >,
-      hashed_unique<tag<HashedNameTag>, member<SimpleDNSZone, DNSName, &SimpleDNSZone::d_name> >
+      hashed_unique<tag<HashedNameTag>, member<SimpleDNSZone, ZoneName, &SimpleDNSZone::d_name> >
       >
     > ZoneStorage;
 
@@ -107,7 +107,7 @@ public:
   {
   }
 
-  bool findZone(const DNSName& qdomain, int zoneId, std::shared_ptr<RecordStorage>& records, uint64_t& currentZoneId) const
+  bool findZone(const ZoneName& qdomain, int zoneId, std::shared_ptr<RecordStorage>& records, uint64_t& currentZoneId) const
   {
     currentZoneId = -1;
     records.reset();
@@ -137,7 +137,7 @@ public:
   void lookup(const QType& qtype, const DNSName& qdomain, int zoneId = -1, DNSPacket *pkt_p = nullptr) override
   {
     d_currentScopeMask = 0;
-    findZone(qdomain, zoneId, d_records, d_currentZone);
+    findZone(ZoneName(qdomain), zoneId, d_records, d_currentZone);
 
     if (d_records) {
       if (qdomain == DNSName("geo.powerdns.com.") && pkt_p != nullptr) {
@@ -187,7 +187,7 @@ public:
     return true;
   }
 
-  bool list(const DNSName& target, int zoneId, bool /* include_disabled */ = false) override
+  bool list(const ZoneName& target, int zoneId, bool /* include_disabled */ = false) override
   {
     findZone(target, zoneId, d_records, d_currentZone);
 
@@ -200,7 +200,7 @@ public:
     return false;
   }
 
-  bool getDomainMetadata(const DNSName& name, const std::string& kind, std::vector<std::string>& meta) override
+  bool getDomainMetadata(const ZoneName& name, const std::string& kind, std::vector<std::string>& meta) override
   {
     const auto& idx = boost::multi_index::get<OrderedNameKindTag>(s_metadata.at(d_backendId));
     auto it = idx.find(std::tuple(name, kind));
@@ -213,7 +213,7 @@ public:
     return true;
   }
 
-  bool setDomainMetadata(const DNSName& name, const std::string& kind, const std::vector<std::string>& meta) override
+  bool setDomainMetadata(const ZoneName& name, const std::string& kind, const std::vector<std::string>& meta) override
   {
     auto& idx = boost::multi_index::get<OrderedNameKindTag>(s_metadata.at(d_backendId));
     auto it = idx.find(std::tuple(name, kind));
@@ -246,9 +246,9 @@ public:
   {
   }
 
-  bool getAuth(const DNSName& target, SOAData* sd) override
+  bool getAuth(const ZoneName& target, SOAData* sd) override
   {
-    static const DNSName best("d.0.1.0.0.2.ip6.arpa.");
+    static const ZoneName best("d.0.1.0.0.2.ip6.arpa.");
 
     ++d_authLookupCount;
 
@@ -286,12 +286,12 @@ public:
   {
   }
 
-  bool getDomainMetadata(const DNSName& /* name */, const std::string& /* kind */, std::vector<std::string>& /* meta */) override
+  bool getDomainMetadata(const ZoneName& /* name */, const std::string& /* kind */, std::vector<std::string>& /* meta */) override
   {
     return false;
   }
 
-  bool setDomainMetadata(const DNSName& /* name */, const std::string& /* kind */, const std::vector<std::string>& /* meta */) override
+  bool setDomainMetadata(const ZoneName& /* name */, const std::string& /* kind */, const std::vector<std::string>& /* meta */) override
   {
     return false;
   }
@@ -460,7 +460,7 @@ static void checkRecordExists(const std::vector<DNSZoneRecord>& records, const D
 BOOST_AUTO_TEST_CASE(test_simple) {
 
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("powerdns.com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::1", 60));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::A, "192.168.0.1", 60));
@@ -566,14 +566,14 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_separate_zones) {
   // no overlap
 
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("powerdns.com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::1", 60));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::A, "192.168.0.1", 60));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("geo.powerdns.com."), QType::A, "192.168.0.42", 60));
     SimpleBackend::s_zones[1].insert(zoneA);
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("powerdns.org."), 2);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("powerdns.org."), 2);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.org."), QType::SOA, "ns1.powerdns.org. powerdns.org. 3 600 600 3600000 604800", 3600));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.org."), QType::AAAA, "2001:db8::2", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.org."), QType::AAAA, "2001:db8::2", 60));
@@ -712,13 +712,13 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_overlay) {
   // one backend holds the SOA, NS and one A
   // a second backend holds another A and AAAA
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("powerdns.com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::NS, "ns1.powerdns.com.", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::A, "192.168.0.1", 60));
     SimpleBackend::s_zones[1].insert(zoneA);
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("powerdns.com."), 1);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::A, "192.168.0.2", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::1", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::A, "192.168.0.1", 60));
@@ -838,7 +838,7 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_overlay_name) {
   // one backend holds the apex with SOA, NS and one A
   // a second backend holds others names
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("powerdns.com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::NS, "ns1.powerdns.com.", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::A, "192.168.0.1", 60));
@@ -846,7 +846,7 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_overlay_name) {
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::1", 60));
     SimpleBackend::s_zones[1].insert(zoneA);
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("powerdns.com."), 1);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::A, "192.168.0.1", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::AAAA, "192.168.0.1", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("geo.powerdns.com."), QType::A, "192.168.0.42", 60));
@@ -962,14 +962,14 @@ BOOST_AUTO_TEST_CASE(test_child_zone) {
   // Check that DS queries are correctly handled
 
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("com."), QType::SOA, "a.gtld-servers.net. nstld.verisign-grs.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::NS, "ns1.powerdns.com.", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::DS, "44030 8 3 7DD75AE1565051F9563CF8DF976AC99CDCA51E3463019C81BD2BB083 82F3854E", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("ns1.powerdns.com."), QType::A, "192.0.2.1", 3600));
     SimpleBackend::s_zones[1].insert(zoneA);
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("powerdns.com."), 2);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("powerdns.com."), 2);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::2", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::NS, "ns1.powerdns.com.", 3600));
@@ -1004,7 +1004,7 @@ BOOST_AUTO_TEST_CASE(test_child_zone) {
     {
       // test getAuth() for DS
       SOAData sd;
-      BOOST_REQUIRE(ub.getAuth(DNSName("powerdns.com."), QType::DS, &sd));
+      BOOST_REQUIRE(ub.getAuth(ZoneName("powerdns.com."), QType::DS, &sd));
       BOOST_CHECK_EQUAL(sd.qname.toString(), "com.");
       BOOST_CHECK_EQUAL(sd.domain_id, 1);
     }
@@ -1012,7 +1012,7 @@ BOOST_AUTO_TEST_CASE(test_child_zone) {
     {
       // test getAuth() for A
       SOAData sd;
-      BOOST_REQUIRE(ub.getAuth(DNSName("powerdns.com."), QType::A, &sd));
+      BOOST_REQUIRE(ub.getAuth(ZoneName("powerdns.com."), QType::A, &sd));
       BOOST_CHECK_EQUAL(sd.qname.toString(), "powerdns.com.");
       BOOST_CHECK_EQUAL(sd.domain_id, 2);
     }
@@ -1040,12 +1040,12 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_best_soa) {
   // while the others do simple lookups
 
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("d.0.1.0.0.2.ip6.arpa."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("d.0.1.0.0.2.ip6.arpa."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("d.0.1.0.0.2.ip6.arpa."), QType::SOA, "ns.apnic.net. read-txt-record-of-zone-first-dns-admin.apnic.net. 3005126844 7200 1800 604800 3600", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("2.4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa."), QType::PTR, "a.reverse.", 3600));
     SimpleBackend::s_zones[1].insert(zoneA);
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("0.1.0.0.2.ip6.arpa."), 2);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("0.1.0.0.2.ip6.arpa."), 2);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("0.1.0.0.2.ip6.arpa."), QType::SOA, "ns.apnic.net. read-txt-record-of-zone-first-dns-admin.apnic.net. 3005126844 7200 1800 604800 3600", 3600));
     SimpleBackend::s_zones[2].insert(zoneB);
 
@@ -1064,7 +1064,7 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_best_soa) {
 
       // test getAuth()
       SOAData sd;
-      BOOST_REQUIRE(ub.getAuth(DNSName("2.4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa."), QType::PTR, &sd));
+      BOOST_REQUIRE(ub.getAuth(ZoneName("2.4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa."), QType::PTR, &sd));
       BOOST_CHECK_EQUAL(sd.qname.toString(), "d.0.1.0.0.2.ip6.arpa.");
       BOOST_CHECK_EQUAL(sd.domain_id, 1);
 
@@ -1096,7 +1096,7 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_metadata) {
   // Updating will insert into the first backend, leaving the first one untouched
 
   try {
-    SimpleBackend::SimpleDNSZone zoneA(DNSName("powerdns.com."), 1);
+    SimpleBackend::SimpleDNSZone zoneA(ZoneName("powerdns.com."), 1);
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::SOA, "ns1.powerdns.com. powerdns.com. 3 600 600 3600000 604800", 3600));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.com."), QType::AAAA, "2001:db8::1", 60));
     zoneA.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.com."), QType::A, "192.168.0.1", 60));
@@ -1104,7 +1104,7 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_metadata) {
     SimpleBackend::s_zones[1].insert(zoneA);
     SimpleBackend::s_metadata[1].insert(SimpleBackend::SimpleMetaData(DNSName("powerdns.com."), "test-data-a", { "value1", "value2"}));
 
-    SimpleBackend::SimpleDNSZone zoneB(DNSName("powerdns.org."), 2);
+    SimpleBackend::SimpleDNSZone zoneB(ZoneName("powerdns.org."), 2);
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.org."), QType::SOA, "ns1.powerdns.org. powerdns.org. 3 600 600 3600000 604800", 3600));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("powerdns.org."), QType::AAAA, "2001:db8::2", 60));
     zoneB.d_records->insert(SimpleBackend::SimpleDNSRecord(DNSName("www.powerdns.org."), QType::AAAA, "2001:db8::2", 60));
@@ -1120,40 +1120,40 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_metadata) {
     {
       // check the initial values
       std::vector<std::string> values;
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.com."), "test-data-a", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.com."), "test-data-a", values));
       BOOST_REQUIRE_EQUAL(values.size(), 2U);
       BOOST_CHECK_EQUAL(values.at(0), "value1");
       BOOST_CHECK_EQUAL(values.at(1), "value2");
       values.clear();
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.com."), "test-data-b", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.com."), "test-data-b", values));
       BOOST_CHECK_EQUAL(values.size(), 0U);
       values.clear();
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.org."), "test-data-a", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.org."), "test-data-a", values));
       BOOST_CHECK_EQUAL(values.size(), 0U);
       values.clear();
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.org."), "test-data-b", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.org."), "test-data-b", values));
       BOOST_CHECK_EQUAL(values.size(), 0U);
     }
 
     {
       // update the values
-      BOOST_CHECK(ub.setDomainMetadata(DNSName("powerdns.com."), "test-data-a", std::vector<std::string>({"value3"})));
-      BOOST_CHECK(ub.setDomainMetadata(DNSName("powerdns.org."), "test-data-a", std::vector<std::string>({"value4"})));
-      BOOST_CHECK(ub.setDomainMetadata(DNSName("powerdns.org."), "test-data-b", std::vector<std::string>({"value5"})));
+      BOOST_CHECK(ub.setDomainMetadata(ZoneName("powerdns.com."), "test-data-a", std::vector<std::string>({"value3"})));
+      BOOST_CHECK(ub.setDomainMetadata(ZoneName("powerdns.org."), "test-data-a", std::vector<std::string>({"value4"})));
+      BOOST_CHECK(ub.setDomainMetadata(ZoneName("powerdns.org."), "test-data-b", std::vector<std::string>({"value5"})));
     }
 
     // check the updated values
     {
       std::vector<std::string> values;
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.com."), "test-data-a", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.com."), "test-data-a", values));
       BOOST_REQUIRE_EQUAL(values.size(), 1U);
       BOOST_CHECK_EQUAL(values.at(0), "value3");
       values.clear();
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.org."), "test-data-a", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.org."), "test-data-a", values));
       BOOST_REQUIRE_EQUAL(values.size(), 1U);
       BOOST_CHECK_EQUAL(values.at(0), "value4");
       values.clear();
-      BOOST_CHECK(ub.getDomainMetadata(DNSName("powerdns.org."), "test-data-b", values));
+      BOOST_CHECK(ub.getDomainMetadata(ZoneName("powerdns.org."), "test-data-b", values));
       BOOST_REQUIRE_EQUAL(values.size(), 1U);
       BOOST_CHECK_EQUAL(values.at(0), "value5");
     }

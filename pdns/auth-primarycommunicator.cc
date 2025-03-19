@@ -111,7 +111,7 @@ void CommunicatorClass::queueNotifyDomain(const DomainInfo& di, UeberBackend* B)
     g_log << Logger::Warning << "Request to queue notification for domain '" << di.zone << "' was processed, but no valid nameservers or ALSO-NOTIFYs found. Not notifying!" << endl;
 }
 
-bool CommunicatorClass::notifyDomain(const DNSName& domain, UeberBackend* B)
+bool CommunicatorClass::notifyDomain(const ZoneName& domain, UeberBackend* B)
 {
   DomainInfo di;
   if (!B->getDomainInfo(domain, di)) {
@@ -169,7 +169,7 @@ void CommunicatorClass::getUpdatedProducers(UeberBackend* B, vector<DomainInfo>&
 
         DNSResourceRecord rr;
         makeIncreasedSOARecord(sd, "EPOCH", "", rr);
-        di.backend->startTransaction(sd.qname, -1);
+        di.backend->startTransaction(ZoneName(sd.qname), -1);
         if (!di.backend->replaceRRSet(di.id, rr.qname, rr.qtype, vector<DNSResourceRecord>(1, rr))) {
           di.backend->abortTransaction();
           throw PDNSException("backend hosting producer zone '" + sd.qname.toLogString() + "' does not support editing records");
@@ -237,7 +237,7 @@ time_t CommunicatorClass::doNotifications(PacketHandler* P)
       g_log << Logger::Warning << "Received unsuccessful notification report for '" << p.qdomain << "' from " << from.toStringWithPort() << ", error: " << RCode::to_s(p.d.rcode) << endl;
     }
 
-    if (d_nq.removeIf(from, p.d.id, p.qdomain)) {
+    if (d_nq.removeIf(from, p.d.id, ZoneName(p.qdomain))) {
       g_log << Logger::Notice << "Removed from notification list: '" << p.qdomain << "' to " << from.toStringWithPort() << " " << (p.d.rcode ? RCode::to_s(p.d.rcode) : "(was acknowledged)") << endl;
     }
     else {
@@ -247,7 +247,7 @@ time_t CommunicatorClass::doNotifications(PacketHandler* P)
   }
 
   // send out possible new notifications
-  DNSName domain;
+  ZoneName domain;
   string ip;
   uint16_t id = 0;
 
@@ -280,7 +280,7 @@ time_t CommunicatorClass::doNotifications(PacketHandler* P)
   return d_nq.earliest();
 }
 
-void CommunicatorClass::sendNotification(int sock, const DNSName& domain, const ComboAddress& remote, uint16_t id, UeberBackend* B)
+void CommunicatorClass::sendNotification(int sock, const ZoneName& domain, const ComboAddress& remote, uint16_t id, UeberBackend* B)
 {
   vector<string> meta;
   DNSName tsigkeyname;
@@ -323,12 +323,12 @@ void CommunicatorClass::sendNotification(int sock, const DNSName& domain, const 
   }
 }
 
-void CommunicatorClass::drillHole(const DNSName& domain, const string& ip)
+void CommunicatorClass::drillHole(const ZoneName& domain, const string& ip)
 {
   (*d_holes.lock())[pair(domain, ip)] = time(nullptr);
 }
 
-bool CommunicatorClass::justNotified(const DNSName& domain, const string& ip)
+bool CommunicatorClass::justNotified(const ZoneName& domain, const string& ip)
 {
   auto holes = d_holes.lock();
   auto it = holes->find(pair(domain, ip));
@@ -362,7 +362,7 @@ void CommunicatorClass::makeNotifySockets()
   }
 }
 
-void CommunicatorClass::notify(const DNSName& domain, const string& ip)
+void CommunicatorClass::notify(const ZoneName& domain, const string& ip)
 {
   d_nq.add(domain, ip);
 }

@@ -34,14 +34,14 @@ class BindDomainInfo
 public:
   void clear() 
   {
-    name=DNSName();
+    name=ZoneName();
     filename=type="";
     primaries.clear();
     alsoNotify.clear();
     d_dev=0;
     d_ino=0;
   }
-  DNSName name;
+  ZoneName name;
   string viewName;
   string filename;
   vector<ComboAddress> primaries;

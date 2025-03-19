@@ -179,7 +179,7 @@ public:
       g_log << Logger::Debug << "[" << getPrefix() << "] Got empty result" << endl;
   }
 
-  bool list(const DNSName& target, int domain_id, bool /* include_disabled */ = false) override
+  bool list(const ZoneName& target, int domain_id, bool /* include_disabled */ = false) override
   {
     if (f_list == nullptr) {
       g_log << Logger::Error << "[" << getPrefix() << "] dns_list missing - cannot do AXFR" << endl;
@@ -190,7 +190,7 @@ public:
       throw PDNSException("list attempted while another was running");
 
     logCall("list", "target=" << target << ",domain_id=" << domain_id);
-    list_result_t result = f_list(target, domain_id);
+    list_result_t result = f_list(DNSName(target), domain_id);
 
     if (result.which() == 0)
       return false;
@@ -275,7 +275,7 @@ public:
     logResult("zone=" << di.zone << ",serial=" << di.serial << ",kind=" << di.getKindString());
   }
 
-  bool getDomainInfo(const DNSName& domain, DomainInfo& di, bool /* getSerial */ = true) override
+  bool getDomainInfo(const ZoneName& domain, DomainInfo& di, bool /* getSerial */ = true) override
   {
     if (f_get_domaininfo == nullptr) {
       // use getAuth instead
@@ -290,7 +290,7 @@ public:
     }
 
     logCall("get_domaininfo", "domain=" << domain);
-    get_domaininfo_result_t result = f_get_domaininfo(domain);
+    get_domaininfo_result_t result = f_get_domaininfo(DNSName(domain));
 
     if (result.which() == 0)
       return false;
@@ -309,20 +309,20 @@ public:
     logCall("get_all_domains", "");
     for (const auto& row : f_get_all_domains()) {
       DomainInfo di;
-      di.zone = row.first;
+      di.zone = ZoneName(row.first);
       logResult(di.zone);
       parseDomainInfo(row.second, di);
       domains->push_back(di);
     }
   }
 
-  bool getAllDomainMetadata(const DNSName& name, std::map<std::string, std::vector<std::string>>& meta) override
+  bool getAllDomainMetadata(const ZoneName& name, std::map<std::string, std::vector<std::string>>& meta) override
   {
     if (f_get_all_domain_metadata == nullptr)
       return false;
 
     logCall("get_all_domain_metadata", "name=" << name);
-    get_all_domain_metadata_result_t result = f_get_all_domain_metadata(name);
+    get_all_domain_metadata_result_t result = f_get_all_domain_metadata(DNSName(name));
     if (result.which() == 0)
       return false;
 
@@ -336,13 +336,13 @@ public:
     return true;
   }
 
-  bool getDomainMetadata(const DNSName& name, const std::string& kind, std::vector<std::string>& meta) override
+  bool getDomainMetadata(const ZoneName& name, const std::string& kind, std::vector<std::string>& meta) override
   {
     if (f_get_domain_metadata == nullptr)
       return false;
 
     logCall("get_domain_metadata", "name=" << name << ",kind=" << kind);
-    get_domain_metadata_result_t result = f_get_domain_metadata(name, kind);
+    get_domain_metadata_result_t result = f_get_domain_metadata(DNSName(name), kind);
     if (result.which() == 0)
       return false;
 
@@ -354,13 +354,13 @@ public:
     return true;
   }
 
-  bool getDomainKeys(const DNSName& name, std::vector<DNSBackend::KeyData>& keys) override
+  bool getDomainKeys(const ZoneName& name, std::vector<DNSBackend::KeyData>& keys) override
   {
     if (f_get_domain_keys == nullptr)
       return false;
 
     logCall("get_domain_keys", "name=" << name);
-    get_domain_keys_result_t result = f_get_domain_keys(name);
+    get_domain_keys_result_t result = f_get_domain_keys(DNSName(name));
 
     if (result.which() == 0)
       return false;

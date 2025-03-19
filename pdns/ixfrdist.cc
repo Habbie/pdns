@@ -345,7 +345,7 @@ static void communicatorReceiveNotificationAnswers(const int sock4, const int so
       g_log << Logger::Warning << "Received unsuccessful notification report for '" << packet.qdomain << "' from " << from.toStringWithPort() << ", error: " << RCode::to_s(packet.d.rcode) << endl;
     }
 
-    if (g_notificationQueue.lock()->removeIf(from, packet.d.id, packet.qdomain)) {
+    if (g_notificationQueue.lock()->removeIf(from, packet.d.id, ZoneName(packet.qdomain))) {
       g_log << Logger::Notice << "Removed from notification list: '" << packet.qdomain << "' to " << from.toStringWithPort() << " " << (packet.d.rcode != 0 ? RCode::to_s(packet.d.rcode) : "(was acknowledged)") << endl;
     }
     else {
@@ -356,7 +356,7 @@ static void communicatorReceiveNotificationAnswers(const int sock4, const int so
 
 static void communicatorSendNotifications(const int sock4, const int sock6)
 {
-  DNSName domain;
+  ZoneName domain;
   string destinationIp;
   uint16_t notificationId = 0;
   bool purged{false};
@@ -648,7 +648,7 @@ static ResponseType maybeHandleNotify(const MOADNSParser& mdp, const ComboAddres
     if (!found->second.notify.empty()) {
       for (const auto& address : found->second.notify) {
         g_log << Logger::Debug << logPrefix << "Queuing notification for " << mdp.d_qname << " to " << address.toStringWithPort() << std::endl;
-        g_notificationQueue.lock()->add(mdp.d_qname, address);
+        g_notificationQueue.lock()->add(ZoneName(mdp.d_qname), address);
       }
     }
     return ResponseType::EmptyNoError;

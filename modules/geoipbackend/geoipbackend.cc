@@ -57,7 +57,7 @@ struct GeoIPService
 struct GeoIPDomain
 {
   std::uint32_t id{};
-  DNSName domain;
+  ZoneName domain;
   int ttl{};
   map<DNSName, GeoIPService> services;
   map<DNSName, vector<GeoIPDNSResourceRecord>> records;
@@ -219,11 +219,11 @@ bool GeoIPBackend::loadDomain(const YAML::Node& domain, std::uint32_t domainID, 
 {
   try {
     dom.id = domainID;
-    dom.domain = DNSName(domain["domain"].as<string>());
+    dom.domain = ZoneName(domain["domain"].as<string>());
     dom.ttl = domain["ttl"].as<int>();
 
     for (auto recs = domain["records"].begin(); recs != domain["records"].end(); recs++) {
-      DNSName qname = DNSName(recs->first.as<string>());
+      ZoneName qname = ZoneName(recs->first.as<string>());
       vector<GeoIPDNSResourceRecord> rrs;
 
       for (auto item = recs->second.begin(); item != recs->second.end(); item++) {
@@ -895,7 +895,7 @@ void GeoIPBackend::rediscover(string* /* status */)
   reload();
 }
 
-bool GeoIPBackend::getDomainInfo(const DNSName& domain, DomainInfo& di, bool /* getSerial */)
+bool GeoIPBackend::getDomainInfo(const ZoneName& domain, DomainInfo& di, bool /* getSerial */)
 {
   ReadLock rl(&s_state_lock);
 
@@ -931,7 +931,7 @@ void GeoIPBackend::getAllDomains(vector<DomainInfo>* domains, bool /* getSerial 
   }
 }
 
-bool GeoIPBackend::getAllDomainMetadata(const DNSName& name, std::map<std::string, std::vector<std::string>>& meta)
+bool GeoIPBackend::getAllDomainMetadata(const ZoneName& name, std::map<std::string, std::vector<std::string>>& meta)
 {
   if (!d_dnssec)
     return false;
@@ -949,7 +949,7 @@ bool GeoIPBackend::getAllDomainMetadata(const DNSName& name, std::map<std::strin
   return false;
 }
 
-bool GeoIPBackend::getDomainMetadata(const DNSName& name, const std::string& kind, std::vector<std::string>& meta)
+bool GeoIPBackend::getDomainMetadata(const ZoneName& name, const std::string& kind, std::vector<std::string>& meta)
 {
   if (!d_dnssec)
     return false;
@@ -969,7 +969,7 @@ bool GeoIPBackend::getDomainMetadata(const DNSName& name, const std::string& kin
   return false;
 }
 
-bool GeoIPBackend::getDomainKeys(const DNSName& name, std::vector<DNSBackend::KeyData>& keys)
+bool GeoIPBackend::getDomainKeys(const ZoneName& name, std::vector<DNSBackend::KeyData>& keys)
 {
   if (!d_dnssec)
     return false;
@@ -1013,7 +1013,7 @@ bool GeoIPBackend::getDomainKeys(const DNSName& name, std::vector<DNSBackend::Ke
   return false;
 }
 
-bool GeoIPBackend::removeDomainKey(const DNSName& name, unsigned int id)
+bool GeoIPBackend::removeDomainKey(const ZoneName& name, unsigned int id)
 {
   if (!d_dnssec)
     return false;
@@ -1049,7 +1049,7 @@ bool GeoIPBackend::removeDomainKey(const DNSName& name, unsigned int id)
   return false;
 }
 
-bool GeoIPBackend::addDomainKey(const DNSName& name, const KeyData& key, int64_t& id)
+bool GeoIPBackend::addDomainKey(const ZoneName& name, const KeyData& key, int64_t& id)
 {
   if (!d_dnssec)
     return false;
@@ -1087,7 +1087,7 @@ bool GeoIPBackend::addDomainKey(const DNSName& name, const KeyData& key, int64_t
   return false;
 }
 
-bool GeoIPBackend::activateDomainKey(const DNSName& name, unsigned int id)
+bool GeoIPBackend::activateDomainKey(const ZoneName& name, unsigned int id)
 {
   if (!d_dnssec)
     return false;
@@ -1122,7 +1122,7 @@ bool GeoIPBackend::activateDomainKey(const DNSName& name, unsigned int id)
   return false;
 }
 
-bool GeoIPBackend::deactivateDomainKey(const DNSName& name, unsigned int id)
+bool GeoIPBackend::deactivateDomainKey(const ZoneName& name, unsigned int id)
 {
   if (!d_dnssec)
     return false;
@@ -1157,17 +1157,17 @@ bool GeoIPBackend::deactivateDomainKey(const DNSName& name, unsigned int id)
   return false;
 }
 
-bool GeoIPBackend::publishDomainKey(const DNSName& /* name */, unsigned int /* id */)
+bool GeoIPBackend::publishDomainKey(const ZoneName& /* name */, unsigned int /* id */)
 {
   return false;
 }
 
-bool GeoIPBackend::unpublishDomainKey(const DNSName& /* name */, unsigned int /* id */)
+bool GeoIPBackend::unpublishDomainKey(const ZoneName& /* name */, unsigned int /* id */)
 {
   return false;
 }
 
-bool GeoIPBackend::hasDNSSECkey(const DNSName& name)
+bool GeoIPBackend::hasDNSSECkey(const ZoneName& name)
 {
   ostringstream pathname;
   pathname << getArg("dnssec-keydir") << "/" << name.toStringNoDot() << "*.key";

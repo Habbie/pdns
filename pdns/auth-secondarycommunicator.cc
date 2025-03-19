@@ -48,7 +48,7 @@
 
 #include "ixfr.hh"
 
-void CommunicatorClass::addSuckRequest(const DNSName& domain, const ComboAddress& primary, SuckRequest::RequestPriority priority, bool force)
+void CommunicatorClass::addSuckRequest(const ZoneName& domain, const ComboAddress& primary, SuckRequest::RequestPriority priority, bool force)
 {
   auto data = d_data.lock();
   SuckRequest sr;
@@ -94,7 +94,7 @@ static bool catalogDiff(const DomainInfo& di, vector<CatalogInfo>& fromXFR, vect
   bool doTransaction{true};
   bool inTransaction{false};
   CatalogInfo ciCreate, ciRemove;
-  std::unordered_map<DNSName, bool> clearCache;
+  std::unordered_map<ZoneName, bool> clearCache;
   vector<CatalogInfo> retrieve;
 
   try {
@@ -186,7 +186,7 @@ static bool catalogDiff(const DomainInfo& di, vector<CatalogInfo>& fromXFR, vect
         CatalogInfo ci;
         ci.fromJson(d.options, CatalogInfo::CatalogType::Consumer);
 
-        if (di.zone != d.catalog && di.zone == ci.d_coo) {
+        if (di.zone != d.catalog && DNSName(di.zone) == ci.d_coo) {
           if (ciCreate.d_unique == ci.d_unique) {
             g_log << Logger::Warning << logPrefix << "zone '" << d.zone << "' owner change without state reset, old catalog '" << d.catalog << "', new catalog '" << di.zone << "'" << endl;
 
@@ -326,7 +326,7 @@ static bool catalogProcess(const DomainInfo& di, vector<DNSResourceRecord>& rrs,
   DNSName rel;
   DNSName unique;
   for (auto& rr : rrs) {
-    if (di.zone == rr.qname) {
+    if (DNSName(di.zone) == rr.qname) {
       if (rr.qtype == QType::SOA) {
         hasSOA = true;
         continue;
@@ -377,7 +377,7 @@ static bool catalogProcess(const DomainInfo& di, vector<DNSResourceRecord>& rrs,
 
         ci = {};
         ci.setType(CatalogInfo::CatalogType::Consumer);
-        ci.d_zone = DNSName(rr.content);
+        ci.d_zone = ZoneName(rr.content);
         ci.d_unique = unique;
 
         if (!dupcheck.insert(ci.d_zone).second) {
@@ -425,7 +425,7 @@ static bool catalogProcess(const DomainInfo& di, vector<DNSResourceRecord>& rrs,
   return catalogDiff(di, fromXFR, fromDB, logPrefix);
 }
 
-void CommunicatorClass::ixfrSuck(const DNSName& domain, const TSIGTriplet& tt, const ComboAddress& laddr, const ComboAddress& remote, ZoneStatus& zs, vector<DNSRecord>* axfr)
+void CommunicatorClass::ixfrSuck(const ZoneName& domain, const TSIGTriplet& tt, const ComboAddress& laddr, const ComboAddress& remote, ZoneStatus& zs, vector<DNSRecord>* axfr)
 {
   string logPrefix = "IXFR-in zone '" + domain.toLogString() + "', primary '" + remote.toString() + "', ";
 
@@ -636,7 +636,7 @@ static vector<DNSResourceRecord> doAxfr(const ComboAddress& raddr, const DNSName
   return rrs;
 }
 
-void CommunicatorClass::suck(const DNSName& domain, const ComboAddress& remote, bool force) // NOLINT(readability-function-cognitive-complexity)
+void CommunicatorClass::suck(const ZoneName& domain, const ComboAddress& remote, bool force) // NOLINT(readability-function-cognitive-complexity)
 {
   {
     auto data = d_data.lock();
@@ -1391,9 +1391,9 @@ void CommunicatorClass::secondaryRefresh(PacketHandler* P)
   }
 }
 
-vector<pair<DNSName, ComboAddress>> CommunicatorClass::getSuckRequests()
+vector<pair<ZoneName, ComboAddress>> CommunicatorClass::getSuckRequests()
 {
-  vector<pair<DNSName, ComboAddress>> ret;
+  vector<pair<ZoneName, ComboAddress>> ret;
   auto data = d_data.lock();
   ret.reserve(data->d_suckdomains.size());
   for (auto const& d : data->d_suckdomains) {
