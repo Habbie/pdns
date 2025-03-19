@@ -28,6 +28,8 @@
 #include <boost/test/unit_test.hpp>
 #include <unistd.h>
 
+#include "config.h"
+
 #include "dnsdist.hh"
 #include "dnsdist-ecs.hh"
 #include "dnsdist-internal-queries.hh"

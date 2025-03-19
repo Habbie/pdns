@@ -8,6 +8,8 @@
 #include <thread>
 #include <boost/test/unit_test.hpp>
 
+#include "config.h"
+
 #include "dnsdist-rings.hh"
 #include "gettime.hh"
 

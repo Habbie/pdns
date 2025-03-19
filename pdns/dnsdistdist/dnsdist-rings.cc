@@ -22,6 +22,8 @@
 
 #include <fstream>
 
+#include "config.h"
+
 #include "dnsdist-rings.hh"
 
 void Rings::init(size_t capacity, size_t numberOfShards, size_t nbLockRetries, bool recordQueries, bool recordResponses)

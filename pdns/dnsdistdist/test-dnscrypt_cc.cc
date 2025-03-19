@@ -27,6 +27,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "config.h"
+
 #include "dnscrypt.hh"
 #include "dnsname.hh"
 #include "dnsparser.hh"

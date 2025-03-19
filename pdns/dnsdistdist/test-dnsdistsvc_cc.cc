@@ -7,6 +7,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "config.h"
+
 #include "dnsdist-svc.hh"
 #include "svc-records.hh"
 #include "dnsparser.hh"

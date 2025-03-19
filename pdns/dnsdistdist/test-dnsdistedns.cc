@@ -27,6 +27,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "config.h"
+
 #include "dnsdist-edns.hh"
 #include "dnsname.hh"
 #include "dnswriter.hh"

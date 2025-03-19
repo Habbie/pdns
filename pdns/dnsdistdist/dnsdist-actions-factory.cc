@@ -21,9 +21,10 @@
  */
 #include <unordered_map>
 
+#include "config.h"
+
 #include "dnsdist-actions-factory.hh"
 
-#include "config.h"
 #include "dnsdist.hh"
 #include "dnsdist-async.hh"
 #include "dnsdist-dnsparser.hh"

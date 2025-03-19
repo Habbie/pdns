@@ -1,11 +1,12 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "dnsname.hh"
 #include "dnsparser.hh"
 #include "dnsrecords.hh"
 #include "qtype.hh"
 #include <boost/smart_ptr/make_shared_array.hpp>
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include <fcntl.h>
 

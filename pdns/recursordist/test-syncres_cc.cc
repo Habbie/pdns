@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifndef BOOST_TEST_DYN_LINK
 #define BOOST_TEST_DYN_LINK
 #endif
