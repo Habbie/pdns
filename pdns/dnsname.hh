@@ -80,6 +80,10 @@ inline unsigned char dns_tolower(unsigned char c)
 // - EqualityComparable
 // - LessThanComparable
 // - Hash
+#if defined(DNSDIST) || defined(RECURSOR) // [
+#else // ] [
+class ZoneName;
+#endif // ]
 class DNSName
 {
 public:
@@ -221,6 +225,14 @@ public:
     size_t d_position{0};
   };
   RawLabelsVisitor getRawLabelsVisitor() const;
+
+#if defined(DNSDIST) || defined(RECURSOR) // [
+#else // ] [
+  // Sugar while ZoneName::operator DNSName are made explicit
+  bool isPartOf(const ZoneName& rhs) const;
+  DNSName makeRelative(const ZoneName& zone) const;
+  void makeUsRelative(const ZoneName& zone);
+#endif // ]
 
 private:
   string_t d_storage;
