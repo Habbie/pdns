@@ -421,7 +421,7 @@ static std::vector<std::unique_ptr<DNSBackend>>::iterator findBestMatchingBacken
       bestMatch->first = soaData->qname.wirelength();
       bestMatch->second = *soaData;
 
-      if (soaData->qname == shorter) {
+      if (soaData->qname == DNSName(shorter)) {
         break;
       }
     }
@@ -465,8 +465,8 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
 
     if (cachedOk && g_zoneCache.isEnabled()) {
       if (g_zoneCache.getEntry(shorter, zoneId)) {
-        if (fillSOAFromZoneRecord(shorter, zoneId, soaData)) {
-          if (foundTarget(target, shorter, qtype, soaData, found)) {
+        if (fillSOAFromZoneRecord(shorter.operator DNSName&(), zoneId, soaData)) {
+          if (foundTarget(DNSName(target), shorter.operator const DNSName&(), qtype, soaData, found)) {
             return true;
           }
 
@@ -481,14 +481,14 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
     }
 
     d_question.qtype = QType::SOA;
-    d_question.qname = shorter;
+    d_question.qname = DNSName(shorter);
     d_question.zoneId = zoneId;
 
     // Check cache.
     if (cachedOk && (d_cache_ttl != 0 || d_negcache_ttl != 0)) {
-      auto cacheResult = fillSOAFromCache(soaData, shorter);
+      auto cacheResult = fillSOAFromCache(soaData, shorter.operator DNSName&());
       if (cacheResult == CacheResult::Hit) {
-        if (foundTarget(target, shorter, qtype, soaData, found)) {
+        if (foundTarget(DNSName(target), shorter.operator const DNSName&(), qtype, soaData, found)) {
           return true;
         }
 
@@ -509,7 +509,7 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
       if (backend == backends.end()) {
         if (d_negcache_ttl != 0U) {
           DLOG(g_log << Logger::Error << "add neg cache entry:" << shorter << endl);
-          d_question.qname = shorter;
+          d_question.qname = DNSName(shorter);
           addNegCache(d_question);
         }
 
@@ -534,7 +534,7 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
       }
     }
 
-    if (foundTarget(target, shorter, qtype, soaData, found)) {
+    if (foundTarget(DNSName(target), shorter.operator const DNSName&(), qtype, soaData, found)) {
       return true;
     }
 
@@ -547,7 +547,7 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
 bool UeberBackend::getSOAUncached(const ZoneName& domain, SOAData& soaData)
 {
   d_question.qtype = QType::SOA;
-  d_question.qname = domain;
+  d_question.qname = DNSName(domain);
   d_question.zoneId = -1;
 
   for (auto& backend : backends) {

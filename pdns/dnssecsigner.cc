@@ -119,7 +119,7 @@ static int getRRSIGsForRRSET(DNSSECKeeper& dk, const ZoneName& signer, const DNS
   rrc.d_originalttl=signTTL;
   rrc.d_siginception=startOfWeek - 7*86400; // XXX should come from zone metadata
   rrc.d_sigexpire=startOfWeek + 14*86400;
-  rrc.d_signer = signer;
+  rrc.d_signer = DNSName(signer);
   rrc.d_tag = 0;
 
   DNSSECKeeper::keyset_t keys = dk.getKeys(signer);
@@ -190,13 +190,13 @@ static bool rrsigncomp(const DNSZoneRecord& a, const DNSZoneRecord& b)
   return std::tie(a.dr.d_place, a.dr.d_type) < std::tie(b.dr.d_place, b.dr.d_type);
 }
 
-static bool getBestAuthFromSet(const set<DNSName>& authSet, const DNSName& name, ZoneName& auth)
+static bool getBestAuthFromSet(const set<ZoneName>& authSet, const DNSName& name, ZoneName& auth)
 {
   auth.trimToLabels(0);
-  DNSName sname(name);
+  ZoneName sname(name);
   do {
     if(authSet.find(sname) != authSet.end()) {
-      auth = ZoneName(sname);
+      auth = sname;
       return true;
     }
   }
@@ -205,7 +205,7 @@ static bool getBestAuthFromSet(const set<DNSName>& authSet, const DNSName& name,
   return false;
 }
 
-void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const set<DNSName>& authSet, vector<DNSZoneRecord>& rrs, DNSPacket* packet)
+void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const set<ZoneName>& authSet, vector<DNSZoneRecord>& rrs, DNSPacket* packet)
 {
   stable_sort(rrs.begin(), rrs.end(), rrsigncomp);
 

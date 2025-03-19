@@ -49,7 +49,7 @@ bool g_pdnsinfo;
 unsigned int g_domainid;
 string g_basedn;
 string g_metadatadn;
-DNSName g_zonename;
+ZoneName g_zonename;
 map<DNSName,bool> g_objects;
 map<string, bool> g_entries;
 map<DNSName,bool> g_recorddata;
@@ -95,7 +95,7 @@ static void callback_simple( unsigned int domain_id, const DNSName &domain, cons
         dn += g_zonename.toStringNoDot() + "," + g_basedn;
         cout << "dn: " << dn << endl;
 
-        if( host.countLabels() == 0 ) { host = g_zonename; }
+        if( host.countLabels() == 0 ) { host = DNSName(g_zonename); }
 
         if( !g_entries[dn] )
         {
@@ -345,7 +345,7 @@ int main( int argc, char* argv[] )
                                         return 1;
                         }
 
-                        g_zonename = DNSName(args["zone-name"]);
+                        g_zonename = ZoneName(args["zone-name"]);
                         ZoneParserTNG zpt(args["zone-file"], g_zonename);
                         zpt.setMaxGenerateSteps(args.asNum("max-generate-steps"));
                         DNSResourceRecord rr;

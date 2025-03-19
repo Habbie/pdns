@@ -231,7 +231,7 @@ bool GeoIPBackend::loadDomain(const YAML::Node& domain, std::uint32_t domainID, 
         GeoIPDNSResourceRecord rr;
         rr.domain_id = static_cast<int>(dom.id);
         rr.ttl = dom.ttl;
-        rr.qname = qname;
+        rr.qname = DNSName(qname);
         if (rec->first.IsNull()) {
           rr.qtype = QType(0);
         }
@@ -276,7 +276,7 @@ bool GeoIPBackend::loadDomain(const YAML::Node& domain, std::uint32_t domainID, 
         rr.auth = true;
         rrs.push_back(rr);
       }
-      std::swap(dom.records[qname], rrs);
+      std::swap(dom.records[DNSName(qname)], rrs);
     }
 
     setupNetmasks(domain, dom);

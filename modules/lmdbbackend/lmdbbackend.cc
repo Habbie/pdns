@@ -856,6 +856,20 @@ namespace serialization
   }
 
   template <class Archive>
+  void save(Archive& ar, const ZoneName& g, const unsigned int version)
+  {
+    save(ar, g.operator const DNSName&(), version);
+  }
+
+  template <class Archive>
+  void load(Archive& ar, ZoneName& g, const unsigned int version)
+  {
+    DNSName tmp;
+    load(ar, tmp, version);
+    g = ZoneName(tmp);
+  }
+
+  template <class Archive>
   void save(Archive& ar, const QType& g, const unsigned int /* version */)
   {
     ar & g.getCode();
@@ -1588,7 +1602,7 @@ bool LMDBBackend::get(DNSZoneRecord& zr)
 
       zr.disabled = lrr.disabled;
       if (!zr.disabled || d_includedisabled) {
-        zr.dr.d_name = compoundOrdername::getQName(key) + d_lookupdomain;
+        zr.dr.d_name = compoundOrdername::getQName(key) + DNSName(d_lookupdomain);
         zr.domain_id = compoundOrdername::getDomainID(key);
         zr.dr.d_type = compoundOrdername::getQType(key).getCode();
         zr.dr.d_ttl = lrr.ttl;
@@ -1878,7 +1892,7 @@ void LMDBBackend::getUpdatedPrimaries(vector<DomainInfo>& updatedDomains, std::u
     }
 
     if (di.kind == DomainInfo::Producer) {
-      catalogs.insert(di.zone);
+      catalogs.insert(DNSName(di.zone));
       catalogHashes[di.zone].process("\0");
       return false; // Producer fresness check is performed elsewhere
     }
@@ -2156,7 +2170,7 @@ bool LMDBBackend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qna
       }
     }
     before = co.getQName(key.getNoStripHeader<StringView>());
-    unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + di.zone;
+    unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + DNSName(di.zone);
 
     // now to find after .. at the beginning of the zone
     if (cursor.lower_bound(co(id), key, val)) {
@@ -2254,7 +2268,7 @@ bool LMDBBackend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qna
           }
         }
         before = co.getQName(key.getNoStripHeader<StringView>());
-        unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + di.zone;
+        unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + DNSName(di.zone);
         // cout <<"Should still find 'after'!"<<endl;
         // for 'after', we need to find the first hash of this zone
 
@@ -2284,7 +2298,7 @@ bool LMDBBackend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qna
       ++count;
     }
     before = co.getQName(key.getNoStripHeader<StringView>());
-    unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + di.zone;
+    unhashed = DNSName(lrr.content.c_str(), lrr.content.size(), 0, false) + DNSName(di.zone);
     // cout<<"Went backwards, found "<<before<<endl;
     // return us to starting point
     while (count--)
@@ -2348,8 +2362,8 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
     // cout << "Hit end of database, bummer"<<endl;
     cursor.last(key, val);
     if (co.getDomainID(key.getNoStripHeader<string_view>()) == id) {
-      before = co.getQName(key.getNoStripHeader<string_view>()) + zonename;
-      after = zonename;
+      before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+      after = DNSName(zonename);
     }
     // else
     // cout << "We were at end of database, but this zone is not there?!"<<endl;
@@ -2359,7 +2373,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
 
   if (co.getQType(key.getNoStripHeader<string_view>()).getCode() && co.getDomainID(key.getNoStripHeader<string_view>()) == id && co.getQName(key.getNoStripHeader<string_view>()) == qname2) { // don't match ENTs
     // cout << "Had an exact match!"<<endl;
-    before = qname2 + zonename;
+    before = qname2 + DNSName(zonename);
     int rc;
     for (;;) {
       rc = cursor.next(key, val);
@@ -2375,16 +2389,16 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
     }
     if (rc || co.getDomainID(key.getNoStripHeader<string_view>()) != id) {
       // cout << "We hit the end of the zone or database. 'after' is apex" << endl;
-      after = zonename;
+      after = DNSName(zonename);
       return false;
     }
-    after = co.getQName(key.getNoStripHeader<string_view>()) + zonename;
+    after = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     return true;
   }
 
   if (co.getDomainID(key.getNoStripHeader<string_view>()) != id) {
     // cout << "Ended up in next zone, 'after' is zonename" <<endl;
-    after = zonename;
+    after = DNSName(zonename);
     // cout << "Now hunting for previous" << endl;
     int rc;
     for (;;) {
@@ -2405,7 +2419,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
         break;
     }
 
-    before = co.getQName(key.getNoStripHeader<string_view>()) + zonename;
+    before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     // cout<<"Found: "<< before<<endl;
     return true;
   }
@@ -2417,7 +2431,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
     LMDBResourceRecord lrr;
     deserializeFromBuffer(val.get<StringView>(), lrr);
     if (co.getQType(key.getNoStripHeader<string_view>()).getCode() && (lrr.auth || co.getQType(key.getNoStripHeader<string_view>()).getCode() == QType::NS)) {
-      after = co.getQName(key.getNoStripHeader<string_view>()) + zonename;
+      after = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
       // cout <<"Found auth ("<<lrr.auth<<") or an NS record "<<after<<", type: "<<co.getQType(key.getNoStripHeader<string_view>()).toString()<<", ttl = "<<lrr.ttl<<endl;
       // cout << makeHexDump(val.get<string>()) << endl;
       break;
@@ -2428,7 +2442,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
       ++skips;
     if (rc || co.getDomainID(key.getNoStripHeader<string_view>()) != id) {
       // cout << "  oops, hit end of database or zone. This means after is apex" <<endl;
-      after = zonename;
+      after = DNSName(zonename);
       break;
     }
   }
@@ -2443,7 +2457,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
       // cout << "We hit the beginning of the zone or database.. now what" << endl;
       return false;
     }
-    before = co.getQName(key.getNoStripHeader<string_view>()) + zonename;
+    before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     LMDBResourceRecord lrr;
     deserializeFromBuffer(val.get<string_view>(), lrr);
     // cout<<"And before to "<<before<<", auth = "<<rr.auth<<endl;

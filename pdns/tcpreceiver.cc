@@ -689,8 +689,8 @@ int TCPNameserver::doAXFR(const DNSName &target, std::unique_ptr<DNSPacket>& q, 
   DNSZoneRecord soa = makeEditedDNSZRFromSOAData(dk, sd);
   outpacket->addRecord(DNSZoneRecord(soa));
   if(securedZone && !presignedZone) {
-    set<DNSName> authSet;
-    authSet.insert(target);
+    set<ZoneName> authSet;
+    authSet.insert(targetZone);
     addRRSigs(dk, db, authSet, outpacket->getRRS());
   }
 
@@ -1009,7 +1009,7 @@ send:
   typedef map<DNSName, NSECXEntry, CanonDNSNameCompare> nsecxrepo_t;
   nsecxrepo_t nsecxrepo;
 
-  ChunkedSigningPipe csp(target, (securedZone && !presignedZone), ::arg().asNum("signing-threads", 1), ::arg().mustDo("workaround-11804") ? 1 : 100);
+  ChunkedSigningPipe csp(targetZone, (securedZone && !presignedZone), ::arg().asNum("signing-threads", 1), ::arg().mustDo("workaround-11804") ? 1 : 100);
 
   DNSName keyname;
   unsigned int udiff;
@@ -1262,7 +1262,7 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
   }
 
   if (serialPermitsIXFR) {
-    DNSName target = q->qdomain;
+    ZoneName target(q->qdomain);
     TSIGRecordContent trc;
     DNSName tsigkeyname;
     string tsigsecret;
@@ -1292,7 +1292,7 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
     DNSZoneRecord soa = makeEditedDNSZRFromSOAData(dk, sd);
     outpacket->addRecord(std::move(soa));
     if(securedZone && outpacket->d_dnssecOk) {
-      set<DNSName> authSet;
+      set<ZoneName> authSet;
       authSet.insert(target);
       addRRSigs(dk, db, authSet, outpacket->getRRS());
     }

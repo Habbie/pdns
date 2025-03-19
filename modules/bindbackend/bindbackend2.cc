@@ -286,7 +286,7 @@ bool Bind2Backend::feedRecord(const DNSResourceRecord& rr, const DNSName& /* ord
     qname = rr.qname.toString();
   }
   else if (rr.qname.isPartOf(d_transaction_qname)) {
-    if (rr.qname == d_transaction_qname) {
+    if (rr.qname == DNSName(d_transaction_qname)) {
       qname = "@";
     }
     else {
@@ -823,7 +823,7 @@ void Bind2Backend::fixupOrderAndAuth(std::shared_ptr<recordstorage_t>& records, 
 
     if (!skip && nsec3zone && iter->qtype != QType::RRSIG && (iter->auth || (iter->qtype == QType::NS && (ns3pr.d_flags == 0u)) || (dssets.count(iter->qname) != 0u))) {
       Bind2DNSRecord bdr = *iter;
-      bdr.nsec3hash = toBase32Hex(hashQNameWithSalt(ns3pr, bdr.qname + zoneName));
+      bdr.nsec3hash = toBase32Hex(hashQNameWithSalt(ns3pr, bdr.qname + DNSName(zoneName)));
       records->replace(iter, bdr);
     }
 
@@ -874,7 +874,7 @@ void Bind2Backend::doEmptyNonTerminals(std::shared_ptr<recordstorage_t>& records
   rr.ttl = 0;
   for (auto& nt : nonterm) {
     string hashed;
-    rr.qname = nt.first + zoneName;
+    rr.qname = nt.first + DNSName(zoneName);
     if (nsec3zone && nt.second)
       hashed = toBase32Hex(hashQNameWithSalt(ns3pr, rr.qname));
     insertRecord(records, zoneName, rr.qname, rr.qtype, rr.content, rr.ttl, hashed, &nt.second);
@@ -905,7 +905,7 @@ void Bind2Backend::loadConfig(string* status) // NOLINT(readability-function-cog
 
     g_log << Logger::Warning << d_logprefix << " Parsing " << domains.size() << " domain(s), will report when done" << endl;
 
-    set<DNSName> oldnames, newnames;
+    set<ZoneName> oldnames, newnames;
     {
       auto state = s_state.read_lock();
       for (const BB2DomainInfo& bbd : *state) {
@@ -1019,13 +1019,13 @@ void Bind2Backend::loadConfig(string* status) // NOLINT(readability-function-cog
         safePutBBDomainInfo(bbd);
       }
     }
-    vector<DNSName> diff;
+    vector<ZoneName> diff;
 
     set_difference(oldnames.begin(), oldnames.end(), newnames.begin(), newnames.end(), back_inserter(diff));
     unsigned int remdomains = diff.size();
 
-    for (const DNSName& name : diff) {
-      safeRemoveBBDomainInfo(ZoneName(name));
+    for (const ZoneName& name : diff) {
+      safeRemoveBBDomainInfo(name);
     }
 
     // count number of entirely new domains
@@ -1142,7 +1142,7 @@ bool Bind2Backend::getBeforeAndAfterNamesAbsolute(uint32_t id, const DNSName& qn
         iter = --hashindex.end();
       before = DNSName(iter->nsec3hash);
     }
-    unhashed = iter->qname + bbd.d_name;
+    unhashed = iter->qname + DNSName(bbd.d_name);
 
     return true;
   }
@@ -1274,7 +1274,8 @@ bool Bind2Backend::handle::get_normal(DNSResourceRecord& r)
   }
   DLOG(g_log << "Bind2Backend get() returning a rr with a " << QType(d_iter->qtype).getCode() << endl);
 
-  r.qname = qname.empty() ? domain : (qname + domain);
+  DNSName domainName(domain);
+  r.qname = qname.empty() ? domainName : (qname + domainName);
   r.domain_id = id;
   r.content = (d_iter)->content;
   //  r.domain_id=(d_iter)->domain_id;
@@ -1317,7 +1318,8 @@ bool Bind2Backend::list(const ZoneName& /* target */, int id, bool /* include_di
 bool Bind2Backend::handle::get_list(DNSResourceRecord& r)
 {
   if (d_qname_iter != d_qname_end) {
-    r.qname = d_qname_iter->qname.empty() ? domain : (d_qname_iter->qname + domain);
+    DNSName domainName(domain);
+    r.qname = d_qname_iter->qname.empty() ? domainName : (d_qname_iter->qname + domainName);
     r.domain_id = id;
     r.content = (d_qname_iter)->content;
     r.qtype = (d_qname_iter)->qtype;
@@ -1472,7 +1474,8 @@ bool Bind2Backend::searchRecords(const string& pattern, size_t maxResults, vecto
       shared_ptr<const recordstorage_t> rhandle = h.d_records.get();
 
       for (recordstorage_t::const_iterator ri = rhandle->begin(); result.size() < maxResults && ri != rhandle->end(); ri++) {
-        DNSName name = ri->qname.empty() ? i.d_name : (ri->qname + i.d_name);
+        DNSName domainName(i.d_name);
+        DNSName name = ri->qname.empty() ? domainName : (ri->qname + domainName);
         if (sm.match(name) || sm.match(ri->content)) {
           DNSResourceRecord r;
           r.qname = std::move(name);

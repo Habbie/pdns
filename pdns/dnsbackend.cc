@@ -244,7 +244,7 @@ vector<std::unique_ptr<DNSBackend>> BackendMakerClass::all(bool metadataOnly)
 */
 bool DNSBackend::getSOA(const ZoneName& domain, SOAData& soaData)
 {
-  this->lookup(QType(QType::SOA), domain, -1);
+  this->lookup(QType(QType::SOA), DNSName(domain), -1);
   S.inc("backend-queries");
 
   DNSResourceRecord resourceRecord;
@@ -258,7 +258,7 @@ bool DNSBackend::getSOA(const ZoneName& domain, SOAData& soaData)
         throw PDNSException("Got non-SOA record when asking for SOA, zone: '" + domain.toLogString() + "'");
       }
       hits++;
-      soaData.qname = domain;
+      soaData.qname = DNSName(domain);
       soaData.ttl = resourceRecord.ttl;
       soaData.db = this;
       soaData.domain_id = resourceRecord.domain_id;
@@ -304,7 +304,7 @@ bool DNSBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonename, c
 {
   DNSName unhashed;
   bool ret = this->getBeforeAndAfterNamesAbsolute(id, qname.makeRelative(zonename).makeLowerCase(), unhashed, before, after);
-  DNSName lczonename = zonename.makeLowerCase();
+  DNSName lczonename = DNSName(zonename.makeLowerCase());
   before += lczonename;
   after += lczonename;
   return ret;

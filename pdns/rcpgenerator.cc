@@ -36,7 +36,7 @@
 #include "base64.hh"
 #include "namespaces.hh"
 
-RecordTextReader::RecordTextReader(string str, DNSName zone) :
+RecordTextReader::RecordTextReader(string str, ZoneName zone) :
   d_string(std::move(str)), d_zone(std::move(zone))
 {
    /* remove whitespace */
@@ -271,10 +271,10 @@ void RecordTextReader::xfrName(DNSName& val, bool, bool)
   }
 
   if (sval.empty()) {
-    sval = d_zone;
+    sval = DNSName(d_zone);
   }
   else if (!d_zone.empty()) {
-    sval += d_zone;
+    sval += DNSName(d_zone);
   }
   val = std::move(sval);
 }

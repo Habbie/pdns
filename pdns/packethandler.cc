@@ -1373,7 +1373,7 @@ std::unique_ptr<DNSPacket> PacketHandler::doQuestion(DNSPacket& p)
   DNSZoneRecord rr;
 
   int retargetcount=0;
-  set<DNSName> authSet;
+  set<ZoneName> authSet;
 
   vector<DNSZoneRecord> rrset;
   bool weDone=false, weRedirected=false, weHaveUnauth=false, doSigs=false;
@@ -1569,7 +1569,7 @@ std::unique_ptr<DNSPacket> PacketHandler::doQuestion(DNSPacket& p)
       goto sendit;  // NOLINT(cppcoreguidelines-avoid-goto)
     }
 
-    authSet.insert(d_sd.qname);
+    authSet.insert(ZoneName(d_sd.qname));
     d_dnssec=(p.d_dnssecOk && d_dk.isSecuredZone(ZoneName(d_sd.qname)));
     doSigs |= d_dnssec;
 

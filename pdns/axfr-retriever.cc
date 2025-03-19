@@ -30,7 +30,7 @@
 using pdns::resolver::parseResult;
 
 AXFRRetriever::AXFRRetriever(const ComboAddress& remote,
-                             const DNSName& domain,
+                             const ZoneName& domain,
                              const TSIGTriplet& tsigConf,
                              const ComboAddress* laddr,
                              size_t maxReceivedBytes,
@@ -57,7 +57,7 @@ AXFRRetriever::AXFRRetriever(const ComboAddress& remote,
     d_soacount = 0;
   
     vector<uint8_t> packet;
-    DNSPacketWriter pw(packet, domain, QType::AXFR);
+    DNSPacketWriter pw(packet, DNSName(domain), QType::AXFR);
     pw.getHeader()->id = dns_random_uint16();
 
     if (!tsigConf.name.empty()) {

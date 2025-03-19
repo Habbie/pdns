@@ -770,14 +770,14 @@ bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info
     if (!res.second && !res.first->second.update) {
       res.first->second.update = res.first->second.auth != rr.auth || res.first->second.ordername != rr.ordername;
     }
-    else if ((!securedZone || narrow) && rr.qname == zone) {
+    else if ((!securedZone || narrow) && rr.qname == DNSName(zone)) {
       res.first->second.update = true;
     }
 
     if (rr.qtype.getCode())
     {
       qnames.insert(rr.qname);
-      if(rr.qtype.getCode() == QType::NS && rr.qname != zone)
+      if(rr.qtype.getCode() == QType::NS && rr.qname != DNSName(zone))
         nsset.insert(rr.qname);
       if(rr.qtype.getCode() == QType::DS)
         dsnames.insert(rr.qname);
@@ -811,13 +811,13 @@ bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info
     for (auto &loopRR: rrs) {
       bool skip=false;
       DNSName shorter = loopRR.qname;
-      if (shorter != zone && shorter.chopOff() && shorter != zone) {
+      if (shorter != DNSName(zone) && shorter.chopOff() && shorter != DNSName(zone)) {
         do {
           if(nsset.count(shorter)) {
             skip=true;
             break;
           }
-        } while(shorter.chopOff() && shorter != zone);
+        } while(shorter.chopOff() && shorter != DNSName(zone));
       }
       shorter = loopRR.qname;
       if(!skip && (loopRR.qtype.getCode() != QType::NS || !isOptOut)) {
@@ -826,7 +826,7 @@ bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info
           if(!nsec3set.count(shorter)) {
             nsec3set.insert(shorter);
           }
-        } while(shorter != zone && shorter.chopOff());
+        } while(shorter != DNSName(zone) && shorter.chopOff());
       }
     }
   }
@@ -899,7 +899,7 @@ bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info
       if(doent)
       {
         shorter=qname;
-        while(shorter!=zone && shorter.chopOff())
+        while(shorter!=DNSName(zone) && shorter.chopOff())
         {
           if(!qnames.count(shorter))
           {

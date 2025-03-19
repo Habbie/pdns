@@ -409,8 +409,8 @@ public:
   bool has8bitBytes() const { return d_name.has8bitBytes(); }
 
   // Conversion from ZoneName to DNSName
-  operator const DNSName&() const { return d_name; }
-  operator DNSName&() { return d_name; }
+  explicit operator const DNSName&() const { return d_name; }
+  explicit operator DNSName&() { return d_name; }
 
 private:
   DNSName d_name;
