@@ -718,6 +718,7 @@ struct RecordStatus
  * \param info& A string where informational messages are added
  * \param doTransaction Whether or not to wrap the rectify in a transaction
  */
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info, bool doTransaction) {
   if (isPresigned(zone, doTransaction)) {
     error =  "Rectify presigned zone '"+zone.toLogString()+"' is not allowed/necessary.";
@@ -777,8 +778,9 @@ bool DNSSECKeeper::rectifyZone(const ZoneName& zone, string& error, string& info
     if (rr.qtype.getCode())
     {
       qnames.insert(rr.qname);
-      if(rr.qtype.getCode() == QType::NS && rr.qname != DNSName(zone))
+      if(rr.qtype.getCode() == QType::NS && rr.qname != DNSName(zone)) {
         nsset.insert(rr.qname);
+      }
       if(rr.qtype.getCode() == QType::DS)
         dsnames.insert(rr.qname);
       rrs.emplace_back(rr);

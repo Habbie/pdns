@@ -99,6 +99,7 @@ int PacketHandler::checkUpdatePrescan(const DNSRecord *rr) {
 
 
 // Implements section 3.4.2 of RFC2136
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 uint PacketHandler::performUpdate(const string &msgPrefix, const DNSRecord *rr, DomainInfo *di, bool isPresigned, bool* narrow, bool* haveNSEC3, NSEC3PARAMRecordContent *ns3pr, bool *updatedSerial) {
 
   QType rrType = QType(rr->d_type);
@@ -276,6 +277,7 @@ uint PacketHandler::performUpdate(const string &msgPrefix, const DNSRecord *rr, 
             break;
 
           bool foundShorter = false;
+	  // NOLINTNEXTLINE(bugprone-narrowing-conversions)
           di->backend->lookup(QType(QType::ANY), shorter.operator const DNSName&(), di->id);
           while (di->backend->get(rec)) {
             if (rec.qname == rr->d_name && rec.qtype == QType::DS)
@@ -401,8 +403,9 @@ uint PacketHandler::performUpdate(const string &msgPrefix, const DNSRecord *rr, 
     di->backend->lookup(rrType, rr->d_name, di->id);
     while(di->backend->get(rec)) {
       if (rr->d_class == QClass::ANY) { // 3.4.2.3
-        if (rec.qname == DNSName(di->zone) && (rec.qtype == QType::NS || rec.qtype == QType::SOA)) // Never delete all SOA and NS's
+        if (rec.qname == DNSName(di->zone) && (rec.qtype == QType::NS || rec.qtype == QType::SOA)) { // Never delete all SOA and NS's
           rrset.push_back(rec);
+	}
         else
           recordsToDelete.push_back(rec);
       }
@@ -962,6 +965,7 @@ int PacketHandler::processUpdate(DNSPacket& packet) { // NOLINT(readability-func
     if (nsRRtoDelete.size()) {
       vector<DNSResourceRecord> nsRRInZone;
       DNSResourceRecord rec;
+      // NOLINTNEXTLINE(bugprone-narrowing-conversions)
       di.backend->lookup(QType(QType::NS), di.zone.operator const DNSName&(), di.id);
       while (di.backend->get(rec)) {
         nsRRInZone.push_back(rec);

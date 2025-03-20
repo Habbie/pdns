@@ -1328,7 +1328,7 @@ static int editZone(const ZoneName &zone, const PDNSColors& col) {
     unixDie("Editing file with: '"+cmdline+"', perhaps set EDITOR variable");
   }
   cmdline.clear();
-  ZoneParserTNG zpt(tmpnam, ZoneName(g_rootdnsname));
+  ZoneParserTNG zpt(static_cast<char *>(tmpnam), ZoneName(g_rootdnsname));
   zpt.setMaxGenerateSteps(::arg().asNum("max-generate-steps"));
   zpt.setMaxIncludes(::arg().asNum("max-include-depth"));
   DNSResourceRecord zrr;
@@ -2231,6 +2231,7 @@ static bool showZone(DNSSECKeeper& dnsseckeeper, const ZoneName& zone, bool expo
     vector<DNSKEYRecordContent> keys;
     DNSZoneRecord zr;
 
+    // NOLINTNEXTLINE(bugprone-narrowing-conversions)
     di.backend->lookup(QType(QType::DNSKEY), DNSName(zone), di.id );
     while(di.backend->get(zr)) {
       keys.push_back(*getRR<DNSKEYRecordContent>(zr.dr));
@@ -2485,6 +2486,7 @@ static int testSchema(DNSSECKeeper& dk, const ZoneName& zone)
   cout<<"Committing"<<endl;
   db->commitTransaction();
   cout<<"Querying TXT"<<endl;
+  // NOLINTNEXTLINE(bugprone-narrowing-conversions)
   db->lookup(QType(QType::TXT), DNSName(zone), di.id);
   if(db->get(rrget))
   {

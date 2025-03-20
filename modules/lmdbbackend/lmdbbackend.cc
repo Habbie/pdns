@@ -856,17 +856,17 @@ namespace serialization
   }
 
   template <class Archive>
-  void save(Archive& ar, const ZoneName& g, const unsigned int version)
+  void save(Archive& arc, const ZoneName& zone, const unsigned int version)
   {
-    save(ar, g.operator const DNSName&(), version);
+    save(arc, zone.operator const DNSName&(), version);
   }
 
   template <class Archive>
-  void load(Archive& ar, ZoneName& g, const unsigned int version)
+  void load(Archive& arc, ZoneName& zone, const unsigned int version)
   {
     DNSName tmp;
-    load(ar, tmp, version);
-    g = ZoneName(tmp);
+    load(arc, tmp, version);
+    zone = ZoneName(tmp);
   }
 
   template <class Archive>
@@ -2362,7 +2362,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
     // cout << "Hit end of database, bummer"<<endl;
     cursor.last(key, val);
     if (co.getDomainID(key.getNoStripHeader<string_view>()) == id) {
-      before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+      before = compoundOrdername::getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
       after = DNSName(zonename);
     }
     // else
@@ -2392,7 +2392,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
       after = DNSName(zonename);
       return false;
     }
-    after = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+    after = compoundOrdername::getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     return true;
   }
 
@@ -2419,7 +2419,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
         break;
     }
 
-    before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+    before = compoundOrdername::getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     // cout<<"Found: "<< before<<endl;
     return true;
   }
@@ -2431,7 +2431,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
     LMDBResourceRecord lrr;
     deserializeFromBuffer(val.get<StringView>(), lrr);
     if (co.getQType(key.getNoStripHeader<string_view>()).getCode() && (lrr.auth || co.getQType(key.getNoStripHeader<string_view>()).getCode() == QType::NS)) {
-      after = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+      after = compoundOrdername::getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
       // cout <<"Found auth ("<<lrr.auth<<") or an NS record "<<after<<", type: "<<co.getQType(key.getNoStripHeader<string_view>()).toString()<<", ttl = "<<lrr.ttl<<endl;
       // cout << makeHexDump(val.get<string>()) << endl;
       break;
@@ -2457,7 +2457,7 @@ bool LMDBBackend::getBeforeAndAfterNames(uint32_t id, const ZoneName& zonenameU,
       // cout << "We hit the beginning of the zone or database.. now what" << endl;
       return false;
     }
-    before = co.getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
+    before = compoundOrdername::getQName(key.getNoStripHeader<string_view>()) + DNSName(zonename);
     LMDBResourceRecord lrr;
     deserializeFromBuffer(val.get<string_view>(), lrr);
     // cout<<"And before to "<<before<<", auth = "<<rr.auth<<endl;

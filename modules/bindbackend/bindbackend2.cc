@@ -905,7 +905,8 @@ void Bind2Backend::loadConfig(string* status) // NOLINT(readability-function-cog
 
     g_log << Logger::Warning << d_logprefix << " Parsing " << domains.size() << " domain(s), will report when done" << endl;
 
-    set<ZoneName> oldnames, newnames;
+    set<ZoneName> oldnames;
+    set<ZoneName> newnames;
     {
       auto state = s_state.read_lock();
       for (const BB2DomainInfo& bbd : *state) {

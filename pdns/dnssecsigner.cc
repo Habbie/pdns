@@ -205,7 +205,7 @@ static bool getBestAuthFromSet(const set<ZoneName>& authSet, const DNSName& name
   return false;
 }
 
-void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const set<ZoneName>& authSet, vector<DNSZoneRecord>& rrs, DNSPacket* packet)
+void addRRSigs(DNSSECKeeper& dsk, UeberBackend& ueber, const set<ZoneName>& authSet, vector<DNSZoneRecord>& rrs, DNSPacket* packet)
 {
   stable_sort(rrs.begin(), rrs.end(), rrsigncomp);
 
@@ -224,7 +224,7 @@ void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const set<ZoneName>& authSet,
   for(auto pos = rrs.cbegin(); pos != rrs.cend(); ++pos) {
     if(pos != rrs.cbegin() && (signQType != pos->dr.d_type  || signQName != pos->dr.d_name)) {
       if (getBestAuthFromSet(authSet, authQName, signer))
-        addSignature(dk, db, signer, signQName, wildcardQName, signQType, signTTL, signPlace, toSign, signedRecords, origTTL, packet);
+        addSignature(dsk, ueber, signer, signQName, wildcardQName, signQType, signTTL, signPlace, toSign, signedRecords, origTTL, packet);
     }
     signedRecords.push_back(*pos);
     signQName = pos->dr.d_name.makeLowerCase();
@@ -250,6 +250,6 @@ void addRRSigs(DNSSECKeeper& dk, UeberBackend& db, const set<ZoneName>& authSet,
     }
   }
   if (getBestAuthFromSet(authSet, authQName, signer))
-    addSignature(dk, db, signer, signQName, wildcardQName, signQType, signTTL, signPlace, toSign, signedRecords, origTTL, packet);
+    addSignature(dsk, ueber, signer, signQName, wildcardQName, signQType, signTTL, signPlace, toSign, signedRecords, origTTL, packet);
   rrs.swap(signedRecords);
 }

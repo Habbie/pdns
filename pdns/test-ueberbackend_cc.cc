@@ -76,7 +76,7 @@ public:
 
   struct SimpleMetaData
   {
-    SimpleMetaData(const ZoneName& name, const std::string& kind, const std::vector<std::string>& values): d_name(name), d_kind(kind), d_values(values)
+    SimpleMetaData(ZoneName name, std::string kind, std::vector<std::string> values): d_name(std::move(name)), d_kind(std::move(kind)), d_values(std::move(values))
     {
     }
 
@@ -96,7 +96,7 @@ public:
                        member<SimpleMetaData, ZoneName, &SimpleMetaData::d_name>,
                        member<SimpleMetaData, std::string, &SimpleMetaData::d_kind>
                        >,
-                     composite_key_compare<CanonZoneNameCompare, std::less<std::string> >
+                     composite_key_compare<CanonZoneNameCompare, std::less<> >
                      >
       >
     > MetaDataStorage;
@@ -1160,11 +1160,11 @@ BOOST_AUTO_TEST_CASE(test_multi_backends_metadata) {
 
     {
       // check that it has not been updated in the second backend
-      const auto& it = SimpleBackend::s_metadata[2].find(std::tuple(ZoneName("powerdns.org."), "test-data-b"));
-      BOOST_REQUIRE(it != SimpleBackend::s_metadata[2].end());
-      BOOST_REQUIRE_EQUAL(it->d_values.size(), 2U);
-      BOOST_CHECK_EQUAL(it->d_values.at(0), "value1");
-      BOOST_CHECK_EQUAL(it->d_values.at(1), "value2");
+      const auto& iter = SimpleBackend::s_metadata[2].find(std::tuple(ZoneName("powerdns.org."), "test-data-b"));
+      BOOST_REQUIRE(iter != SimpleBackend::s_metadata[2].end());
+      BOOST_REQUIRE_EQUAL(iter->d_values.size(), 2U);
+      BOOST_CHECK_EQUAL(iter->d_values.at(0), "value1");
+      BOOST_CHECK_EQUAL(iter->d_values.at(1), "value2");
     }
     };
 
