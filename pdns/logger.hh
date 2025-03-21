@@ -108,6 +108,10 @@ public:
   Logger& operator<<(const char* s);
   Logger& operator<<(const string& s); //!< log a string
   Logger& operator<<(const DNSName&);
+#if defined(DNSDIST) || defined(RECURSOR)
+#else
+  Logger& operator<<(const ZoneName&);
+#endif
   Logger& operator<<(const ComboAddress&); //!< log an address
   Logger& operator<<(Urgency); //!< set the urgency, << style
 

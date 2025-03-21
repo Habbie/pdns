@@ -765,3 +765,86 @@ void DNSName::makeUsRelative(const ZoneName& zone)
   makeUsRelative(zone.operator const DNSName&());
 }
 #endif // ]
+
+#if defined(DNSDIST) || defined(RECURSOR) // [
+#else // ] [
+ZoneName::ZoneName(std::string_view name)
+{
+  // TODO: should we check and ignore escaped separators?
+  if (auto disc = name.find(c_discriminator); disc != std::string_view::npos) {
+    // May end up being empty
+    d_discriminator = name.substr(disc + 1);
+    name = name.substr(0, disc);
+  }
+  new(&d_name) DNSName(name);
+}
+
+std::string ZoneName::toLogString() const
+{
+  std::string ret = d_name.toLogString();
+  if (!d_discriminator.empty()) {
+    ret += c_discriminator;
+    ret += d_discriminator;
+  }
+  return ret;
+}
+
+size_t ZoneName::hash(size_t init) const
+{
+  if (!d_discriminator.empty()) {
+    init = burtleCI((const unsigned char *)d_discriminator.data(), d_discriminator.length(), init);
+  }
+  return d_name.hash(init);
+}
+
+bool ZoneName::operator<(const ZoneName& rhs)  const
+{
+  // Order by DNSName first, by discriminator second.
+  // Unfortunately we can't use std::lexicographical_compare_three_way() yet
+  // as this would require C++20.
+  const auto *iter1 = d_name.getStorage().cbegin();
+  const auto *last1 = d_name.getStorage().cend();
+  const auto *iter2 = rhs.d_name.getStorage().cbegin();
+  const auto *last2 = rhs.d_name.getStorage().cend();
+  while (iter1 != last1 && iter2 != last2) {
+    auto char1 = dns_tolower(*iter1);
+    auto char2 = dns_tolower(*iter2);
+    if (char1 < char2) {
+      return true;
+    }
+    if (char1 > char2) {
+      return false;
+    }
+    ++iter1;
+    ++iter2;
+  }
+  if (iter1 == last1) {
+    if (iter2 != last2) {
+      return true; // our DNSName is shorter (subset) than the other
+    }
+  }
+  else {
+    return false; // our DNSName is longer (superset) than the other
+  }
+  // At this point, both DNSName compare equal, we have to compare
+  // discriminators (which are case-sensitive).
+  return d_discriminator < rhs.d_discriminator;
+}
+
+bool ZoneName::canonCompare(const ZoneName& rhs) const
+{
+  // Similarly to operator< above, this compares DNSName first, discriminator
+  // second. Unfortunately because DNSName::canonCompare() is complicated,
+  // it can't pragmatically be duplicated here, hence the two calls.
+  // TODO: change DNSName::canonCompare() to return a three-state value
+  // (lt, eq, ge) in order to be able to call it only once.
+  if (!d_name.canonCompare(rhs.d_name)) {
+    return false;
+  }
+  if (!rhs.d_name.canonCompare(d_name)) {
+    return true;
+  }
+  // Both DNSName compare equal.
+  return d_discriminator < rhs.d_discriminator;
+}
+#endif // ]

@@ -211,6 +211,17 @@ Logger& Logger::operator<<(const DNSName& d)
   return *this;
 }
 
+#if defined(DNSDIST) || defined(RECURSOR) // [
+// ZoneName is DNSName, the following routine would cause redeclaration errors
+#else // ] [
+Logger& Logger::operator<<(const ZoneName& d)
+{
+  *this << d.toLogString();
+
+  return *this;
+}
+#endif // ]
+
 Logger& Logger::operator<<(const ComboAddress& ca)
 {
   *this << ca.toLogString();

@@ -37,6 +37,8 @@
 #include <unordered_set>
 #include <string_view>
 
+using namespace std::string_view_literals;
+
 #include <boost/version.hpp>
 #include <boost/container/string.hpp>
 
@@ -326,18 +328,27 @@ extern const DNSName g_rootdnsname, g_wildcarddnsname;
 using ZoneName = DNSName;
 using CanonZoneNameCompare = CanonDNSNameCompare;
 #else // ] [
-// ZoneName: this is currently equivalent to DNSName, but intended to only
-// store zone names. Conversions between DNSName and ZoneName are allowed,
-// but must be explicit.
+// ZoneName: this is equivalent to DNSName, but intended to only store zone
+// names. In addition to the name, an optional discriminator (``view'') is
+// allowed. The discriminator is never part of a DNS packet; it can only be
+// used by backends to perform specific extra processing.
+// Discriminators are case-sensitive.
+// Conversions between DNSName and ZoneName are allowed, but must be explicit;
+// conversions to DNSName lose the discriminator.
+
 class ZoneName
 {
 public:
+  // The character used to separate a name from its discriminator.
+  constexpr static char c_discriminator{':'}; // TODO: bikeshed
+
   ZoneName() = default; //!< Constructs an *empty* ZoneName, NOT the root!
   // Work around assertion in some boost versions that do not like self-assignment of boost::container::string
   ZoneName& operator=(const ZoneName& rhs)
   {
     if (this != &rhs) {
       d_name = rhs.d_name;
+      d_discriminator = rhs.d_discriminator;
     }
     return *this;
   }
@@ -345,23 +356,26 @@ public:
   {
     if (this != &rhs) {
       d_name = std::move(rhs.d_name);
+      d_discriminator = std::move(rhs.d_discriminator);
     }
     return *this;
   }
   ZoneName(const ZoneName& a) = default;
   ZoneName(ZoneName&& a) = default;
 
-  explicit ZoneName(std::string_view sw) : d_name(sw) {}
-  explicit ZoneName(const DNSName& name) : d_name(name) {}
+  explicit ZoneName(std::string_view);
+  explicit ZoneName(std::string_view name, std::string_view disc) : d_name(name), d_discriminator(disc) {}
+  explicit ZoneName(const DNSName& name, std::string_view disc = ""sv) : d_name(name), d_discriminator(disc) {}
 
   bool isPartOf(const ZoneName& rhs) const { return d_name.isPartOf(rhs.d_name); }
   bool isPartOf(const DNSName& rhs) const { return d_name.isPartOf(rhs); }
-  bool operator==(const ZoneName& rhs) const { return d_name == rhs.d_name; }
-  bool operator!=(const ZoneName& rhs) const { return d_name != rhs.d_name; }
+  bool operator==(const ZoneName& rhs) const { return d_name == rhs.d_name && d_discriminator == rhs.d_discriminator; }
+  bool operator!=(const ZoneName& rhs) const { return !(*this == rhs); }
 
+  // IMPORTANT! None of the "toString" routines will output the discriminator, but toLogString().
   std::string toString(const std::string& separator=".", const bool trailing=true) const { return d_name.toString(separator, trailing); }
   void toString(std::string& output, const std::string& separator=".", const bool trailing=true) const { d_name.toString(output, separator, trailing); }
-  std::string toLogString() const { return d_name.toLogString(); }
+  std::string toLogString() const;
   std::string toStringNoDot() const { return d_name.toStringNoDot(); }
   std::string toStringRootDot() const { return d_name.toStringRootDot(); }
   std::string toDNSString() const { return d_name.toDNSString(); }
@@ -370,6 +384,7 @@ public:
   bool chopOff() { return d_name.chopOff(); }
   ZoneName makeRelative(const ZoneName& zone) const
   {
+    // TODO: throw an exception if different discriminators?
     ZoneName ret(*this);
     ret.d_name.makeUsRelative(zone.d_name);
     return ret;
@@ -387,18 +402,13 @@ public:
   size_t wirelength() const { return d_name.wirelength(); }
   bool empty() const { return d_name.empty(); }
   bool isRoot() const { return d_name.isRoot(); }
-  void clear() { d_name.clear(); }
+  void clear() { d_name.clear(); d_discriminator.clear(); }
   void trimToLabels(unsigned int trim) { d_name.trimToLabels(trim); }
-  size_t hash(size_t init=0) const { return d_name.hash(init); }
-  ZoneName& operator+=(const ZoneName& rhs)
-  {
-    d_name += rhs.d_name;
-    return *this;
-  }
+  size_t hash(size_t init=0) const;
 
-  bool operator<(const ZoneName& rhs)  const { return d_name < rhs.d_name; }
+  bool operator<(const ZoneName& rhs)  const;
 
-  bool canonCompare(const ZoneName& rhs) const { return d_name.canonCompare(rhs.d_name); }
+  bool canonCompare(const ZoneName& rhs) const;
 
   typedef boost::container::string string_t;
 
@@ -412,8 +422,12 @@ public:
   explicit operator const DNSName&() const { return d_name; }
   explicit operator DNSName&() { return d_name; }
 
+  bool hasDiscriminator() const { return !d_discriminator.empty(); }
+  std::string getDiscriminator() const { return d_discriminator; }
+
 private:
   DNSName d_name;
+  std::string d_discriminator{};
 };
 
 size_t hash_value(ZoneName const& d);
