@@ -2853,8 +2853,7 @@ static int showZone(vector<string>& cmds, const std::string_view synopsis)
     return usage(synopsis);
   }
   DNSSECKeeper dk; //NOLINT(readability-identifier-length)
-  ZoneName d(cmds.at(1));
-  if (!showZone(dk, d)) {
+  if (!showZone(dk, ZoneName(cmds.at(1)))) {
     return 1;
   }
   return 0;
