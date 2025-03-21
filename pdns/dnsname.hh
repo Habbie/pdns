@@ -427,9 +427,6 @@ public:
 
 private:
   DNSName d_name;
-  
-
-public: // FIXME noooo
   std::string d_discriminator{};
 };
 
