@@ -48,9 +48,14 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
   string tag;
 
   try {
-    auto *nettag = d_nets.lookup(net->getNetwork());
-    if (nettag != nullptr) {
-      tag = nettag->second;
+    // FIXME: adjust test_auth_zonecache.cc to pass a netmask, then see if anything else crashes
+    // just so we know what codepaths also don't pass a net
+    // i noticed that AXFR does not crash (but also does not 'view'), perhaps it does not use the zone cache?
+    if (net != nullptr) {
+      auto *nettag = d_nets.lookup(net->getNetwork());
+      if (nettag != nullptr) {
+        tag = nettag->second;
+      }
     }
   }
   catch (...) {
