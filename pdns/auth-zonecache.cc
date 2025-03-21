@@ -59,7 +59,7 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
 
   cerr<<"tag=["<<tag<<"]"<<endl;
 
-  ZoneName tagZone(zone);
+  ZoneName tagZone(zone.operator const DNSName&(), tag); // FIXME: feels ugly?
   // tagZone.d_tag = tag;
 
   auto& mc = getMap(tagZone);
