@@ -470,17 +470,17 @@ public:
     return false;
   }
 
-  virtual bool viewListZones(const string& /* view */, vector<DNSName>& /* result */)
+  virtual bool viewListZones(const string& /* view */, vector<ZoneName>& /* result */)
   {
     return false;
   }
 
-  virtual bool viewAddZone(const string& /* view */, const DNSName& /* zone */)
+  virtual bool viewAddZone(const string& /* view */, const ZoneName& /* zone */)
   {
     return false;
   }
 
-  virtual bool viewDelZone(const string& /* view */, const DNSName& /* zone */)
+  virtual bool viewDelZone(const string& /* view */, const ZoneName& /* zone */)
   {
     return false;
   }

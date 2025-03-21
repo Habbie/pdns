@@ -1350,17 +1350,17 @@ bool LMDBBackend::viewList(vector<string>& result)
   return true;
 }
 
-bool LMDBBackend::viewListZones(const string& view, vector<DNSName>& result)
+bool LMDBBackend::viewListZones(const string& view, vector<ZoneName>& result)
 {
   return false;
 }
 
-bool LMDBBackend::viewAddZone(const string& view, const DNSName& zone)
+bool LMDBBackend::viewAddZone(const string& view, const ZoneName& zone)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();
 
   string key = view + string(1, (char)0) + zone.toString();
-  string val = "foo"; // discriminator goes here
+  string val = zone.getDiscriminator(); // discriminator goes here
 
   txn->put(d_tviews, key, val);
   txn->commit();
@@ -1368,7 +1368,7 @@ bool LMDBBackend::viewAddZone(const string& view, const DNSName& zone)
   return true;
 }
 
-bool LMDBBackend::viewDelZone(const string& view, const DNSName& zone)
+bool LMDBBackend::viewDelZone(const string& view, const ZoneName& zone)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();
 

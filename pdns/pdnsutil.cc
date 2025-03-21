@@ -4543,7 +4543,7 @@ static int viewAddZone(vector<string>& cmds, const std::string_view synopsis)
   }
 
   string view{cmds.at(2)};
-  DNSName zone{cmds.at(3)}; // should be a DiscName
+  ZoneName zone{cmds.at(3)};
   if (! matchingBackend->viewAddZone(view, zone)) {
     cerr<<"viewAddZone returned false"<<endl;
     return 1;
@@ -4577,7 +4577,7 @@ static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
   }
 
   string view{cmds.at(2)};
-  DNSName zone{cmds.at(3)}; // should be a DiscName
+  ZoneName zone{cmds.at(3)};
   if (! matchingBackend->viewDelZone(view, zone)) {
     cerr<<"viewDelZone returned false"<<endl;
     return 1;

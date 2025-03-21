@@ -84,9 +84,9 @@ public:
   bool replaceComments(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<Comment>& comments) override;
 
   bool viewList(vector<string>& /* result */) override;
-  bool viewListZones(const string& /* view */, vector<DNSName>& /* result */) override;
-  bool viewAddZone(const string& /* view */, const DNSName& /* zone */) override;
-  bool viewDelZone(const string& /* view */, const DNSName& /* zone */) override;
+  bool viewListZones(const string& /* view */, vector<ZoneName>& /* result */) override;
+  bool viewAddZone(const string& /* view */, const ZoneName& /* zone */) override;
+  bool viewDelZone(const string& /* view */, const ZoneName& /* zone */) override;
 
   bool networkSet(const Netmask& net, std::string& tag) override;
   bool networkList(vector<pair<Netmask, string> >& networks) override;
