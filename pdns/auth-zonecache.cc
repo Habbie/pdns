@@ -59,8 +59,8 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
 
   cerr<<"tag=["<<tag<<"]"<<endl;
 
-  DNSName tagZone(zone);
-  tagZone.d_tag = tag;
+  ZoneName tagZone(zone);
+  // tagZone.d_tag = tag;
 
   auto& mc = getMap(tagZone);
   cerr<<"looking for "<<tagZone<<", hash="<<tagZone.hash()<<endl;

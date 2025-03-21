@@ -2143,8 +2143,9 @@ static bool showZone(DNSSECKeeper& dnsseckeeper, const ZoneName& zone, bool expo
   }
   if (!exportDS) {
     cout<<"This is a "<<DomainInfo::getKindString(di.kind)<<" zone"<<endl;
-    if (! di.zone.d_tag.empty()) {
-      cout<<"Tag: " << di.zone.d_tag << endl;
+    auto disc = di.zone.getDiscriminator();
+    if (! disc.empty()) {
+      cout<<"Tag: " << disc << endl;
     }
     if (di.isPrimaryType()) {
       cout<<"Last SOA serial number we notified: "<<di.notified_serial<<" ";
@@ -2848,12 +2849,11 @@ static int verifyCrypto(vector<string>& cmds, const std::string_view synopsis)
 
 static int showZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if(cmds.size() != 3) {
+  if(cmds.size() != 2) {
     return usage(synopsis);
   }
   DNSSECKeeper dk; //NOLINT(readability-identifier-length)
-  DNSName d(cmds.at(1));
-  d.d_tag = cmds.at(2);
+  ZoneName d(cmds.at(1));
   if (!showZone(dk, d)) {
     return 1;
   }

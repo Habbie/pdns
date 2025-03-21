@@ -35,7 +35,7 @@ std::string keyConv(const T& t)
     throw std::out_of_range(std::string(__PRETTY_FUNCTION__) + " Attempt to serialize an unset DNSName");
   }
 
-  std::string ret = keyConv(t.d_tag) + std::string(1, (char)0);
+  std::string ret;
 
   if (t.isRoot()) {
     return ret + std::string(1, (char)0);
@@ -60,7 +60,7 @@ std::string keyConv(const T& t)
 template <class T, typename std::enable_if<std::is_same<T, ZoneName>::value, T>::type* = nullptr>
 std::string keyConv(const T& t)
 {
-  return keyConv(t.operator const DNSName&());
+  return keyConv(t.getDiscriminator()) + string(1, (char)0) + keyConv(t.operator const DNSName&());
 }
 
 class LMDBBackend : public DNSBackend
