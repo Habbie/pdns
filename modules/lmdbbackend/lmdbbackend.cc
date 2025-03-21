@@ -56,7 +56,7 @@
 
 // List the class version here. Default is 0
 BOOST_CLASS_VERSION(LMDBBackend::KeyDataDB, 1)
-BOOST_CLASS_VERSION(DomainInfo, 1)
+BOOST_CLASS_VERSION(DomainInfo, 2)
 
 static bool s_first = true;
 static uint32_t s_shards = 0;
@@ -856,17 +856,20 @@ namespace serialization
   }
 
   template <class Archive>
-  void save(Archive& arc, const ZoneName& zone, const unsigned int version)
+  void save(Archive& arc, const ZoneName& zone, const unsigned int /* version */)
   {
-    save(arc, zone.operator const DNSName&(), version);
+    arc & zone.operator const DNSName&();
+    arc & zone.getDiscriminator();
   }
 
   template <class Archive>
-  void load(Archive& arc, ZoneName& zone, const unsigned int version)
+  void load(Archive& arc, ZoneName& zone, const unsigned int /* version */)
   {
     DNSName tmp;
-    load(arc, tmp, version);
-    zone = ZoneName(tmp);
+    std::string disc{};
+    arc & tmp;
+    arc & disc;
+    zone = ZoneName(tmp, disc);
   }
 
   template <class Archive>
@@ -900,7 +903,14 @@ namespace serialization
   template <class Archive>
   void load(Archive& ar, DomainInfo& g, const unsigned int version)
   {
-    ar & g.zone;
+    if (version >= 2) {
+      ar & g.zone;
+    }
+    else {
+      DNSName tmp;
+      ar & tmp;
+      new (&g.zone) ZoneName(tmp);
+    }
     ar & g.last_check;
     ar & g.account;
     ar & g.primaries;
