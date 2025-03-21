@@ -97,7 +97,6 @@ public:
   {
     if (this != &rhs) {
       d_storage = rhs.d_storage;
-      d_tag = rhs.d_tag;
     }
     return *this;
   }
@@ -105,7 +104,6 @@ public:
   {
     if (this != &rhs) {
       d_storage = std::move(rhs.d_storage);
-      d_tag = std::move(rhs.d_tag);
     }
     return *this;
   }
@@ -159,7 +157,6 @@ public:
   void trimToLabels(unsigned int);
   size_t hash(size_t init=0) const
   {
-    init = burtleCI((const unsigned char*)d_tag.data(), d_tag.size(), init);
     return burtleCI((const unsigned char*)d_storage.c_str(), d_storage.size(), init);
   }
   DNSName& operator+=(const DNSName& rhs)
@@ -231,7 +228,6 @@ public:
   };
   RawLabelsVisitor getRawLabelsVisitor() const;
 
-  std::string d_tag; // this does not want to live here. I think we want class ZoneName which holds a DNSName and a tag, or which perhaps inherits from DNSName (not sure that helps a lot)
 #if defined(DNSDIST) || defined(RECURSOR) // [
 #else // ] [
   // Sugar while ZoneName::operator DNSName are made explicit
@@ -802,10 +798,6 @@ DNSName::string_t segmentDNSNameRaw(const char* input, size_t inputlen); // from
 bool DNSName::operator==(const DNSName& rhs) const
 {
   if (rhs.empty() != empty() || rhs.d_storage.size() != d_storage.size()) {
-    return false;
-  }
-
-  if (d_tag != rhs.d_tag) {
     return false;
   }
 

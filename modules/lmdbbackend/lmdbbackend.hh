@@ -187,7 +187,6 @@ private:
     {
       std::string ret = operator()(id);
       DNSName t2 = t;
-      t2.d_tag = ""; // FIXME: HACK
       ret += keyConv(t2);
       ret.append(1, (char)0); // this means '00' really ends the zone
       return ret;
