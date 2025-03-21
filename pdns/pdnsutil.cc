@@ -3143,12 +3143,10 @@ static int deleteZone(vector<string>& cmds, const std::string_view synopsis)
 
 static int createZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if(cmds.size() != 3 && cmds.size()!=4 ) {
+  if(cmds.size() != 2 && cmds.size()!=3 ) {
     return usage(synopsis);
   }
-  DNSName zone(cmds.at(2));
-  zone.d_tag = cmds.at(1);
-  return createZone(ZoneName(zone), cmds.size() > 2 ? DNSName(cmds.at(2)) : DNSName());
+  return createZone(ZoneName(cmds.at(1)), cmds.size() > 2 ? DNSName(cmds.at(2)) : DNSName());
 }
 
 static int createSecondaryZone(vector<string>& cmds, const std::string_view synopsis)
