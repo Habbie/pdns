@@ -1350,9 +1350,39 @@ bool LMDBBackend::viewList(vector<string>& result)
   return true;
 }
 
-bool LMDBBackend::viewListZones(const string& view, vector<ZoneName>& result)
+bool LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 {
-  return false;
+  result.clear();
+
+  auto txn = d_tdomains->getEnv()->getROTransaction();
+
+  auto cursor = txn->getROCursor(d_tviews);
+
+  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  MDBOutVal val{}; // <discriminator>
+
+  auto ret = cursor.first(key, val);
+
+  if (ret == MDB_NOTFOUND) {
+    return true;
+  }
+
+  do {
+    try {
+      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      auto tag = val.get<string>();
+      cerr<<"in view ["<<view<<"], zone ["<<zone<<"] has tag ["<<tag<<"]"<<endl;
+      if (view == inview) {
+        result.emplace_back(ZoneName(zone, tag));
+      }
+    } catch (std::exception &e) {
+      cerr<<e.what()<<": "<<makeHexDump(key.getNoStripHeader<string>())<<" / "<<makeHexDump(val.get<string>())<<endl;
+    }
+
+    ret = cursor.next(key, val); // this should be prefix-limited to quickly find, and then only scan, one view
+  } while (ret != MDB_NOTFOUND);
+
+  return true;
 }
 
 bool LMDBBackend::viewAddZone(const string& view, const ZoneName& zone)

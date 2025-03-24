@@ -4508,13 +4508,25 @@ static int viewList(vector<string>& cmds, const std::string_view synopsis)
     return 1;
   }
 
-  vector<string> ret;
-  if (! matchingBackend->viewList(ret)) {
-    cerr<<"viewList returned false"<<endl;
-    return 1;
+  if (cmds.size() == 2) {
+    vector<string> ret;
+    if (! matchingBackend->viewList(ret)) {
+      cerr<<"viewList returned false"<<endl;
+      return 1;
+    }
+    for (const auto& view : ret) {
+      cout << view << endl;
+    }
   }
-  for (const auto& view : ret) {
-    cout << view << endl;
+  else {
+    vector<ZoneName> ret;
+    if (! matchingBackend->viewListZones(cmds.at(2), ret)) {
+      cerr<<"viewList returned false"<<endl;
+      return 1;
+    }
+    for (const auto& zone : ret) {
+      cout << zone << endl;
+    }
   }
   return 0;
 }
