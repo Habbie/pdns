@@ -1344,7 +1344,7 @@ bool LMDBBackend::viewList(vector<string>& result)
       cerr<<e.what()<<": "<<makeHexDump(key.getNoStripHeader<string>())<<" / "<<makeHexDump(val.get<string>())<<endl;
     }
 
-    ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view
+    ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
   } while (ret != MDB_NOTFOUND);
 
   return true;
