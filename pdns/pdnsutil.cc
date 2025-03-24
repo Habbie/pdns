@@ -4490,8 +4490,7 @@ static int viewList(vector<string>& cmds, const std::string_view synopsis)
   if (cmds.size() < 2) {
     // FIXME: should there be backend choice here at all?
     // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: view-list BACKEND" << endl;
-    return 1;
+    return usage(synopsis);
   }
 
   // FIXME: how many copies of 'find matching backend' code do we have?
@@ -4536,8 +4535,7 @@ static int viewAddZone(vector<string>& cmds, const std::string_view synopsis)
   if (cmds.size() < 4) {
     // FIXME: should there be backend choice here at all?
     // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: synopsis goes here" << endl;
-    return 1;
+    return usage(synopsis);
   }
 
   // FIXME: how many copies of 'find matching backend' code do we have?
@@ -4570,8 +4568,7 @@ static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
   if (cmds.size() < 4) {
     // FIXME: should there be backend choice here at all?
     // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: synopsis goes here" << endl;
-    return 1;
+    return usage(synopsis);
   }
 
   // FIXME: how many copies of 'find matching backend' code do we have?
@@ -4601,8 +4598,7 @@ static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
 static int networkList(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 1) {
-    cerr << "Usage: network-list" << endl;
-    return 1;
+    return usage(synopsis);
   }
 
   UtilBackend B("default"); //NOLINT(readability-identifier-length)
@@ -4657,8 +4653,7 @@ static int networkSet(vector<string>& cmds, const std::string_view synopsis)
   if (cmds.size() < 3) {
     // FIXME: should there be backend choice here at all?
     // alternatively, should backend choice be a generic pdnsutil feature?
-    cerr << "Usage: network-set NET TAG" << endl;
-    return 1;
+    return usage(synopsis);
   }
 
   UtilBackend B("default"); //NOLINT(readability-identifier-length)
