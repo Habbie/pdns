@@ -52,7 +52,7 @@ class TestBasics(ApiTestCase):
         self.assertEqual(r.headers['access-control-allow-origin'], "*")
         self.assertEqual(r.headers['access-control-allow-headers'], 'Content-Type, X-API-Key')
         if is_auth():
-            self.assertEqual(r.headers['access-control-allow-methods'], 'GET, PATCH, PUT, DELETE, OPTIONS')
+            self.assertEqual(r.headers['access-control-allow-methods'], 'DELETE, GET, PATCH, PUT, OPTIONS')
         else:
             self.assertEqual(r.headers['access-control-allow-methods'], 'GET, PUT, DELETE, OPTIONS')
 

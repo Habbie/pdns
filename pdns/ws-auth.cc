@@ -2690,44 +2690,99 @@ void AuthWebServer::webThread()
   try {
     setThreadName("pdns/webserver");
     if (::arg().mustDo("api")) {
-      d_ws->registerApiHandler("/api/v1/servers/localhost/cache/flush", apiServerCacheFlush, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/config", apiServerConfig, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/search-data", apiServerSearchData, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/statistics", apiServerStatistics, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries/<ip>/<nameserver>", &apiServerAutoprimaryDetailDELETE, "DELETE");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/autoprimaries", &apiServerAutoprimariesPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailPUT, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys/<id>", apiServerTSIGKeyDetailDELETE, "DELETE");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys", apiServerTSIGKeysGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/tsigkeys", apiServerTSIGKeysPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/axfr-retrieve", apiServerZoneAxfrRetrieve, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys/<key_id>", apiZoneCryptokeysGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys/<key_id>", apiZoneCryptokeysPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys/<key_id>", apiZoneCryptokeysPUT, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys/<key_id>", apiZoneCryptokeysDELETE, "DELETE");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys", apiZoneCryptokeysGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/cryptokeys", apiZoneCryptokeysPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/export", apiServerZoneExport, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/metadata/<kind>", apiZoneMetadataKindGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/metadata/<kind>", apiZoneMetadataKindPUT, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/metadata/<kind>", apiZoneMetadataKindDELETE, "DELETE");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/metadata", apiZoneMetadataGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/metadata", apiZoneMetadataPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/notify", apiServerZoneNotify, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>/rectify", apiServerZoneRectify, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>", apiServerZoneDetailGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>", apiServerZoneDetailPATCH, "PATCH");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>", apiServerZoneDetailPUT, "PUT");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones/<id>", apiServerZoneDetailDELETE, "DELETE");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones", apiServerZonesGET, "GET");
-      d_ws->registerApiHandler("/api/v1/servers/localhost/zones", apiServerZonesPOST, "POST");
-      d_ws->registerApiHandler("/api/v1/servers/localhost", apiServerDetail, "GET");
-      d_ws->registerApiHandler("/api/v1/servers", apiServer, "GET");
-      d_ws->registerApiHandler("/api/v1", apiDiscoveryV1, "GET");
-      d_ws->registerApiHandler("/api/docs", apiDocs, "GET");
-      d_ws->registerApiHandler("/api", apiDiscovery, "GET");
+      std::string url{"/api"};
+
+      d_ws->registerApiHandler(url, apiDiscovery, "GET");
+
+      auto urlLen = url.length(); // used to "backtrack"
+      url += "/docs";
+      d_ws->registerApiHandler(url, apiDocs, "GET");
+
+      url.resize(urlLen); // back to /api
+      url += "/v1";
+      d_ws->registerApiHandler(url, apiDiscoveryV1, "GET");
+      url += "/servers";
+      d_ws->registerApiHandler(url, apiServer, "GET");
+      url += "/localhost";
+      d_ws->registerApiHandler(url, apiServerDetail, "GET");
+
+      // Cache
+      urlLen = url.length();
+      url += "/cache/flush";
+      d_ws->registerApiHandler(url, apiServerCacheFlush, "PUT");
+
+      // Config
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/config";
+      d_ws->registerApiHandler(url, apiServerConfig, "GET");
+
+      // Search data
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/search-data";
+      d_ws->registerApiHandler(url, apiServerSearchData, "GET");
+
+      // Statistics
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/statistics";
+      d_ws->registerApiHandler(url, apiServerStatistics, "GET");
+
+      // Autoprimaries
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/autoprimaries";
+      d_ws->registerApiHandler(url, apiServerAutoprimariesGET, "GET");
+      d_ws->registerApiHandler(url, apiServerAutoprimariesPOST, "POST");
+      url += "/<ip>/<nameserver>";
+      d_ws->registerApiHandler(url, apiServerAutoprimaryDetailDELETE, "DELETE");
+
+      // TSIG Keys
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/tsigkeys";
+      d_ws->registerApiHandler(url, apiServerTSIGKeysGET, "GET");
+      d_ws->registerApiHandler(url, apiServerTSIGKeysPOST, "POST");
+      url += "/<id>";
+      d_ws->registerApiHandler(url, apiServerTSIGKeyDetailDELETE, "DELETE");
+      d_ws->registerApiHandler(url, apiServerTSIGKeyDetailGET, "GET");
+      d_ws->registerApiHandler(url, apiServerTSIGKeyDetailPUT, "PUT");
+
+      // Zones
+      url.resize(urlLen); // back to /api/v1/servers/localhost
+      url += "/zones";
+      d_ws->registerApiHandler(url, apiServerZonesGET, "GET");
+      d_ws->registerApiHandler(url, apiServerZonesPOST, "POST");
+      url += "/<id>";
+      d_ws->registerApiHandler(url, apiServerZoneDetailDELETE, "DELETE");
+      d_ws->registerApiHandler(url, apiServerZoneDetailGET, "GET");
+      d_ws->registerApiHandler(url, apiServerZoneDetailPATCH, "PATCH");
+      d_ws->registerApiHandler(url, apiServerZoneDetailPUT, "PUT");
+      urlLen = url.length();
+      url += "/axfr-retrieve";
+      d_ws->registerApiHandler(url, apiServerZoneAxfrRetrieve, "PUT");
+      url.resize(urlLen); // back to /api/v1/servers/localhost/zones/<id>
+      url += "/cryptokeys";
+      d_ws->registerApiHandler(url, apiZoneCryptokeysGET, "GET");
+      d_ws->registerApiHandler(url, apiZoneCryptokeysPOST, "POST");
+      url += "/<key_id>";
+      d_ws->registerApiHandler(url, apiZoneCryptokeysDELETE, "DELETE");
+      d_ws->registerApiHandler(url, apiZoneCryptokeysGET, "GET");
+      d_ws->registerApiHandler(url, apiZoneCryptokeysPOST, "POST");
+      d_ws->registerApiHandler(url, apiZoneCryptokeysPUT, "PUT");
+      url.resize(urlLen); // back to /api/v1/servers/localhost/zones/<id>
+      url += "/export";
+      d_ws->registerApiHandler(url, apiServerZoneExport, "GET");
+      url.resize(urlLen); // back to /api/v1/servers/localhost/zones/<id>
+      url += "/metadata";
+      d_ws->registerApiHandler(url, apiZoneMetadataGET, "GET");
+      d_ws->registerApiHandler(url, apiZoneMetadataPOST, "POST");
+      url += "/<kind>";
+      d_ws->registerApiHandler(url, apiZoneMetadataKindDELETE, "DELETE");
+      d_ws->registerApiHandler(url, apiZoneMetadataKindGET, "GET");
+      d_ws->registerApiHandler(url, apiZoneMetadataKindPUT, "PUT");
+      url.resize(urlLen); // back to /api/v1/servers/localhost/zones/<id>
+      url += "/notify";
+      d_ws->registerApiHandler(url, apiServerZoneNotify, "PUT");
+      url.resize(urlLen); // back to /api/v1/servers/localhost/zones/<id>
+      url += "/rectify";
+      d_ws->registerApiHandler(url, apiServerZoneRectify, "PUT");
     }
     if (::arg().mustDo("webserver")) {
       d_ws->registerWebHandler(
