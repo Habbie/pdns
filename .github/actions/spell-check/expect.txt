@@ -975,6 +975,7 @@ orsn
 Oservers
 otherdomain
 otherpool
+othervariant
 ourname
 ourserial
 outpacket
@@ -1497,6 +1498,7 @@ Valkenburg
 Vandalon
 vandergaast
 Vandoren
+variantless
 Vasiliy
 Veldhuyzen
 Verheijen
