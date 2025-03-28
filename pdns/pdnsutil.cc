@@ -4514,29 +4514,15 @@ static int viewList(vector<string>& cmds, const std::string_view synopsis)
 
 static int viewAddZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if (cmds.size() < 4) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
+  if (cmds.size() < 3) {
     return usage(synopsis);
   }
 
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+  UtilBackend B("default"); //NOLINT(readability-identifier-length)
 
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
-
-  string view{cmds.at(2)};
-  ZoneName zone{cmds.at(3)};
-  if (! matchingBackend->viewAddZone(view, zone)) {
+  string view{cmds.at(1)};
+  ZoneName zone{cmds.at(2)};
+  if (! B.viewAddZone(view, zone)) {
     cerr<<"viewAddZone returned false"<<endl;
     return 1;
  }
@@ -4547,29 +4533,15 @@ static int viewAddZone(vector<string>& cmds, const std::string_view synopsis)
 // I bet we could combine Add and Del, here and in lmdbbackend
 static int viewDelZone(vector<string>& cmds, const std::string_view synopsis)
 {
-  if (cmds.size() < 4) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
+  if (cmds.size() < 3) {
     return usage(synopsis);
   }
 
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+  UtilBackend B("default"); //NOLINT(readability-identifier-length)
 
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
-
-  string view{cmds.at(2)};
-  ZoneName zone{cmds.at(3)};
-  if (! matchingBackend->viewDelZone(view, zone)) {
+  string view{cmds.at(1)};
+  ZoneName zone{cmds.at(2)};
+  if (! B.viewDelZone(view, zone)) {
     cerr<<"viewDelZone returned false"<<endl;
     return 1;
  }
@@ -4694,13 +4666,13 @@ struct commandDispatcher {
 // clang-format off
 static const std::unordered_map<std::string, commandDispatcher> commands{
   {"view-list", {true, viewList, GROUP_VIEWS,
-   "view-list BACKEND [VIEW]",
+   "view-list [VIEW]",
    "\tList all view names, or all zones inside a given view"}},
   {"view-add-zone", {true, viewAddZone, GROUP_VIEWS,
-   "view-add-zone BACKEND VIEW ZONE:DISC",
+   "view-add-zone VIEW ZONE[:DISC]",
    "\tAdd a zone variant to a view"}},
   {"view-del-zone", {true, viewDelZone, GROUP_VIEWS,
-   "view-del-zone BACKEND VIEW ZONE:DISC",
+   "view-del-zone VIEW ZONE:DISC",
    "\tRemove a zone variant from a view"}},
   {"network-list", {true, networkList, GROUP_VIEWS,
    "network-list",
