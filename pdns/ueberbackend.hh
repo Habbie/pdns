@@ -134,6 +134,9 @@ public:
   bool getTSIGKeys(std::vector<struct TSIGKey>& keys);
   bool deleteTSIGKey(const DNSName& name);
 
+  bool networkSet(const Netmask& net, std::string& tag);
+  void networkList(vector<pair<Netmask, string>>& networks);
+
   bool searchRecords(const string& pattern, vector<DNSResourceRecord>::size_type maxResults, vector<DNSResourceRecord>& result);
   bool searchComments(const string& pattern, size_t maxResults, vector<Comment>& result);
 
