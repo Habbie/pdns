@@ -1577,6 +1577,7 @@ bool LMDBBackend::get(DNSZoneRecord& zr)
       }
 
       deserializeFromBuffer(d_currentVal.get<string_view>(), d_currentrrset);
+      cout<<"timestamp="<<d_currentVal.getTimestamp()<<endl;
       d_currentrrsetpos = 0;
     }
     else {

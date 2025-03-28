@@ -455,3 +455,8 @@ MDBROCursor MDBROTransactionImpl::getROCursor(const MDBDbi &dbi)
   }
   return MDBROCursor(d_cursors, cursor);
 }
+
+uint64_t MDBOutVal::getTimestamp() const
+{
+  return LMDBLS::LSgetTimestamp(getNoStripHeader<string_view>());
+}

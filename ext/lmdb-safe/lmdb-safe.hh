@@ -213,6 +213,8 @@ struct MDBOutVal
 #ifndef DNSDIST
   template <class T>
   T getNoStripHeader() const;
+
+  uint64_t getTimestamp() const;
 #endif
 
   MDB_val d_mdbval;
