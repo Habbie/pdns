@@ -137,6 +137,11 @@ public:
   bool networkSet(const Netmask& net, std::string& tag);
   void networkList(vector<pair<Netmask, string> >& networks);
 
+  void viewList(vector<string>& /* result */);
+  void viewListZones(const string& /* view */, vector<ZoneName>& /* result */);
+  bool viewAddZone(const string& /* view */, const ZoneName& /* zone */);
+  bool viewDelZone(const string& /* view */, const ZoneName& /* zone */);
+
   bool searchRecords(const string& pattern, vector<DNSResourceRecord>::size_type maxResults, vector<DNSResourceRecord>& result);
   bool searchComments(const string& pattern, size_t maxResults, vector<Comment>& result);
 

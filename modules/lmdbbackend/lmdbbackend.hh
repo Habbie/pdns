@@ -83,8 +83,8 @@ public:
   bool replaceRRSet(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<DNSResourceRecord>& rrset) override;
   bool replaceComments(uint32_t domain_id, const DNSName& qname, const QType& qt, const vector<Comment>& comments) override;
 
-  bool viewList(vector<string>& /* result */) override;
-  bool viewListZones(const string& /* view */, vector<ZoneName>& /* result */) override;
+  void viewList(vector<string>& /* result */) override;
+  void viewListZones(const string& /* view */, vector<ZoneName>& /* result */) override;
   bool viewAddZone(const string& /* view */, const ZoneName& /* zone */) override;
   bool viewDelZone(const string& /* view */, const ZoneName& /* zone */) override;
 

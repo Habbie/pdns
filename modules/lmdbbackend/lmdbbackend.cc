@@ -1317,10 +1317,8 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
   return comments.empty();
 }
 
-bool LMDBBackend::viewList(vector<string>& result)
+void LMDBBackend::viewList(vector<string>& result)
 {
-  result.clear();
-
   auto txn = d_tdomains->getEnv()->getROTransaction();
 
   auto cursor = txn->getROCursor(d_tviews);
@@ -1331,7 +1329,7 @@ bool LMDBBackend::viewList(vector<string>& result)
   auto ret = cursor.first(key, val);
 
   if (ret == MDB_NOTFOUND) {
-    return true;
+    return;
   }
 
   do {
@@ -1346,11 +1344,9 @@ bool LMDBBackend::viewList(vector<string>& result)
 
     ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
   } while (ret != MDB_NOTFOUND);
-
-  return true;
 }
 
-bool LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
+void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 {
   result.clear();
 
@@ -1364,7 +1360,7 @@ bool LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
   auto ret = cursor.first(key, val);
 
   if (ret == MDB_NOTFOUND) {
-    return true;
+    return;
   }
 
   do {
@@ -1381,10 +1377,9 @@ bool LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 
     ret = cursor.next(key, val); // this should be prefix-limited to quickly find, and then only scan, one view
   } while (ret != MDB_NOTFOUND);
-
-  return true;
 }
 
+// make this add-or-del to reduce code duplication?
 bool LMDBBackend::viewAddZone(const string& view, const ZoneName& zone)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();

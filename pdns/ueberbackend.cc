@@ -894,6 +894,42 @@ void UeberBackend::networkList(vector<pair<Netmask, string> >& networks)
   }
 }
 
+void UeberBackend::viewList(vector<string>& result)
+{
+  for (auto& backend : backends) {
+    backend->viewList(result);
+  }
+}
+
+void UeberBackend::viewListZones(const string& view, vector<ZoneName>& result)
+{
+  for (auto& backend : backends) {
+    backend->viewListZones(view, result);
+  }
+}
+
+bool UeberBackend::viewAddZone(const string& view, const ZoneName& zone)
+{
+  for (auto& backend : backends) {
+    if (backend->viewAddZone(view, zone)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool UeberBackend::viewDelZone(const string& view, const ZoneName& zone)
+{
+  for (auto& backend : backends) {
+    if (backend->viewDelZone(view, zone)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+
 // API Search
 //
 bool UeberBackend::searchRecords(const string& pattern, size_t maxResults, vector<DNSResourceRecord>& result)

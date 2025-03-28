@@ -465,14 +465,14 @@ public:
     return false;
   }
 
-  virtual bool viewList(vector<string>& /* result */)
+  virtual void viewList(vector<string>& /* result */)
   {
-    return false;
+    return;
   }
 
-  virtual bool viewListZones(const string& /* view */, vector<ZoneName>& /* result */)
+  virtual void viewListZones(const string& /* view */, vector<ZoneName>& /* result */)
   {
-    return false;
+    return;
   }
 
   virtual bool viewAddZone(const string& /* view */, const ZoneName& /* zone */)

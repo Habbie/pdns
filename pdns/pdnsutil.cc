@@ -4487,42 +4487,24 @@ static int backendLookup(vector<string>& cmds, const std::string_view synopsis)
 
 static int viewList(vector<string>& cmds, const std::string_view synopsis)
 {
-  if (cmds.size() < 2) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
+  if (cmds.size() > 2) {
     return usage(synopsis);
   }
 
-  // FIXME: how many copies of 'find matching backend' code do we have?
-  std::unique_ptr<DNSBackend> matchingBackend{nullptr};
+  UtilBackend B("default"); //NOLINT(readability-identifier-length)
 
-  for (auto& backend : BackendMakers().all()) {
-    if (backend->getPrefix() == cmds.at(1)) {
-      matchingBackend = std::move(backend);
-    }
-  }
-
-  if (matchingBackend == nullptr) {
-    cerr << "Unknown backend '" << cmds.at(1) << "'" << endl;
-    return 1;
-  }
-
-  if (cmds.size() == 2) {
+  if (cmds.size() == 1) {
     vector<string> ret;
-    if (! matchingBackend->viewList(ret)) {
-      cerr<<"viewList returned false"<<endl;
-      return 1;
-    }
+    B.viewList(ret);
+
     for (const auto& view : ret) {
       cout << view << endl;
     }
   }
   else {
     vector<ZoneName> ret;
-    if (! matchingBackend->viewListZones(cmds.at(2), ret)) {
-      cerr<<"viewList returned false"<<endl;
-      return 1;
-    }
+    B.viewListZones(cmds.at(1), ret);
+
     for (const auto& zone : ret) {
       cout << zone << endl;
     }
