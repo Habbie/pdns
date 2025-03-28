@@ -1,4 +1,14 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -o pipefail
+set -e # to make this first call exit us early for non-variant capable backends. This relies on the existing example.com causing "already exists"
 $PDNSUTIL --config-dir=. --config-name=$backend create-zone example.com:variant1 2>&1 | egrep -v 'file|use them'
+set +e
 $PDNSUTIL --config-dir=. --config-name=$backend show-zone example.com:variant1 2>&1
 
+$PDNSUTIL --config-dir=. --config-name=$backend create-zone .:myroot 2>&1 | egrep -v 'file|use them'
+$PDNSUTIL --config-dir=. --config-name=$backend show-zone .:myroot 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend create-zone . 2>&1 | egrep -v 'file|use them'
+$PDNSUTIL --config-dir=. --config-name=$backend show-zone . 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend list-all-zones | LC_ALL=C sort
