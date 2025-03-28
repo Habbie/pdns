@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -o pipefail
 set -e # to make this first call exit us early for non-variant capable backends. This relies on the existing example.com causing "already exists"
-$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myview example.org:variant3 2>&1
+$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myview example.org:variant3 2>&1 | egrep -v 'destructor called'
 set +e
 echo == one view
 $PDNSUTIL --config-dir=. --config-name=$backend view-list 2>&1
