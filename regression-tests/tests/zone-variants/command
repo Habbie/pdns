@@ -1,0 +1,4 @@
+#!/bin/sh
+$PDNSUTIL --config-dir=. --config-name=$backend create-zone example.com:variant1 2>&1 | egrep -v 'file|use them'
+$PDNSUTIL --config-dir=. --config-name=$backend show-zone example.com:variant1 2>&1
+

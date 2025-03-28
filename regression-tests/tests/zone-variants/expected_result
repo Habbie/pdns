@@ -1,0 +1,9 @@
+Zone 'example.com:variant1' exists already
+This is a Native zone
+Metadata items: None
+Zone has NSEC semantics
+keys: 
+ID = 1 (CSK), flags = 257, tag = 65433, algo = 13, bits = 256	  Active	 Published  ( ECDSAP256SHA256 ) 
+CSK DNSKEY = example.com. IN DNSKEY 257 3 13 OMCIfaFwOHoVSxWVAkvRTqvsaWNJdH3l78nvQHMh1JgNWGcRg+Zj5f7ZNHuf21xJBEiBbbbpFCyPpu9AKQbaEQ== ; ( ECDSAP256SHA256 )
+DS = example.com. IN DS 65433 13 2 8698395924f2268b830f20564d8b45d8897f66e704a3247f1fe3086d2478fe27 ; ( SHA256 digest )
+DS = example.com. IN DS 65433 13 4 4f3d92a02523b6ac85f219ff43a617cc04bf8ee3dc00db26005d19a3d54fffe9797ab609c05dbfb7e6f93f38f7a12d39 ; ( SHA-384 digest )
