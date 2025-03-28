@@ -479,6 +479,34 @@ public:
     return false;
   }
 
+  virtual void viewList(vector<string>& /* result */)
+  {
+  }
+
+  virtual void viewListZones(const string& /* view */, vector<ZoneName>& /* result */)
+  {
+  }
+
+  virtual bool viewAddZone(const string& /* view */, const ZoneName& /* zone */)
+  {
+    return false;
+  }
+
+  virtual bool viewDelZone(const string& /* view */, const ZoneName& /* zone */)
+  {
+    return false;
+  }
+
+  virtual bool networkSet(const Netmask& /* net */, std::string& /* tag */)
+  {
+    return false;
+  }
+
+  virtual bool networkList(vector<pair<Netmask, string>>& /* networks */)
+  {
+    return false;
+  }
+
   //! Returns whether backend operations have caused files to be created.
   virtual bool hasCreatedLocalFiles() const
   {
