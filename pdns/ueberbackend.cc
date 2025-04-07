@@ -877,6 +877,31 @@ void UeberBackend::viewListZones(const string& view, vector<ZoneName>& result)
   }
 }
 
+// FIXME: The logic in viewAddZone and viewDelZone causes view information to
+// be stored in the first views-capable backend, and could cause serious hair
+// pulling in setups with multiple views-capable backends (are we sure we
+// ever want to support that?)
+
+bool UeberBackend::viewAddZone(const string& view, const ZoneName& zone)
+{
+  for (auto& backend : backends) {
+    if (backend->viewAddZone(view, zone)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool UeberBackend::viewDelZone(const string& view, const ZoneName& zone)
+{
+  for (auto& backend : backends) {
+    if (backend->viewDelZone(view, zone)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool UeberBackend::networkSet(const Netmask& net, std::string& tag)
 {
   for (auto& backend : backends) {
