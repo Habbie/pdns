@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -o pipefail
+set -e # to make this first call exit us early for non-variant capable backends. This relies on the existing example.com causing "already exists"
+$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myview example.org:variant3 2>&1 | egrep -v 'destructor called'
+set +e
+echo == one view
+$PDNSUTIL --config-dir=. --config-name=$backend view-list 2>&1
+echo == with one zone
+$PDNSUTIL --config-dir=. --config-name=$backend view-list myview 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myview example.org:variant2 2>&1
+$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myview example.net:variant5 2>&1
+echo == with two zones
+$PDNSUTIL --config-dir=. --config-name=$backend view-list myview 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend view-add-zone myotherview example.com 2>&1
+
+echo == view with one zone
+$PDNSUTIL --config-dir=. --config-name=$backend view-list myotherview 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend view-del-zone myview example.org:variant2 2>&1
+echo == view with one zone
+$PDNSUTIL --config-dir=. --config-name=$backend view-list myview 2>&1
+
+$PDNSUTIL --config-dir=. --config-name=$backend view-del-zone myotherview example.com 2>&1
+echo == one view
+$PDNSUTIL --config-dir=. --config-name=$backend view-list 2>&1
