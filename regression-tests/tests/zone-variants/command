@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 set -o pipefail
+
+pdnsutil_wrapper() {
+$PDNSUTIL --config-dir=. --config-name=$backend $* 2>&1 | egrep -v 'destructor'
+}
+
 set -e # to make this first call exit us early for non-variant capable backends. This relies on the existing example.com causing "already exists"
-$PDNSUTIL --config-dir=. --config-name=$backend create-zone example.com:variant1 2>&1 | egrep -v 'file|use them|destructor called'
+
+pdnsutil_wrapper create-zone example.com:variant1 | egrep -v 'file|use them'
 set +e
-$PDNSUTIL --config-dir=. --config-name=$backend show-zone example.com:variant1 2>&1
+pdnsutil_wrapper show-zone example.com:variant1
 
-$PDNSUTIL --config-dir=. --config-name=$backend create-zone .:myroot 2>&1 | egrep -v 'file|use them'
-$PDNSUTIL --config-dir=. --config-name=$backend show-zone .:myroot 2>&1
+pdnsutil_wrapper create-zone .:myroot | egrep -v 'file|use them'
+pdnsutil_wrapper show-zone .:myroot
 
-$PDNSUTIL --config-dir=. --config-name=$backend create-zone . 2>&1 | egrep -v 'file|use them'
-$PDNSUTIL --config-dir=. --config-name=$backend show-zone . 2>&1
+pdnsutil_wrapper create-zone . | egrep -v 'file|use them'
+pdnsutil_wrapper show-zone .
 
-$PDNSUTIL --config-dir=. --config-name=$backend list-all-zones | LC_ALL=C sort
+pdnsutil_wrapper list-all-zones | LC_ALL=C sort
