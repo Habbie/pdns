@@ -293,6 +293,16 @@ void UeberBackend::updateZoneCache()
     }
   }
   g_zoneCache.replace(zone_indices);
+
+  NetmaskTree<string> nettree;
+  for (auto& backend : backends) {
+    vector<pair<Netmask, string>> nettag;
+    backend->networkList(nettag);
+    for (auto& [net, tag] : nettag) {
+      nettree.insert_or_assign(net, tag);
+    }
+  }
+  g_zoneCache.replace(nettree); // FIXME: this needs some smart pending stuff too
 }
 
 void UeberBackend::rediscover(string* status)
@@ -445,7 +455,7 @@ static bool foundTarget(const ZoneName& target, const ZoneName& shorter, const Q
   return false;
 }
 
-bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* soaData, bool cachedOk)
+bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* soaData, bool cachedOk, DNSPacket* pkt_p)
 {
   // A backend can respond to our authority request with the 'best' match it
   // has. For example, when asked for a.b.c.example.com. it might respond with
@@ -465,6 +475,12 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
     int zoneId{-1};
 
     if (cachedOk && g_zoneCache.isEnabled()) {
+      Netmask remote;
+
+      if (pkt_p != nullptr) {
+        remote = pkt_p->getRealRemote(); // we lose the prefix len from ECS here
+      }
+      if (g_zoneCache.getEntry(shorter, zoneId, &remote)) {
       if (g_zoneCache.getEntry(shorter, zoneId)) {
         if (fillSOAFromZoneRecord(shorter, zoneId, soaData)) {
           if (foundTarget(target, shorter, qtype, soaData, found)) {
