@@ -26,6 +26,7 @@
 #include "dnsname.hh"
 #include "lock.hh"
 #include "misc.hh"
+#include "iputils.hh"
 
 class AuthZoneCache : public boost::noncopyable
 {
@@ -33,11 +34,12 @@ public:
   AuthZoneCache(size_t mapsCount = 1024);
 
   void replace(const vector<std::tuple<ZoneName, int>>& zone);
+  void replace(NetmaskTree<string> nettree);
   void add(const ZoneName& zone, const int zoneId);
   void remove(const ZoneName& zone);
   void setReplacePending(); //!< call this when data collection for the subsequent replace() call starts.
 
-  bool getEntry(const ZoneName& zone, int& zoneId);
+  bool getEntry(const ZoneName& zone, int& zoneId, Netmask* net = nullptr);
 
   size_t size() { return *d_statnumentries; } //!< number of entries in the cache
 
@@ -57,6 +59,7 @@ public:
   void clear();
 
 private:
+  NetmaskTree<string> d_nets;
   struct CacheValue
   {
     int zoneId{-1};
