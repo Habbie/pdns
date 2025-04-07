@@ -56,7 +56,8 @@
 
 // List the class version here. Default is 0
 BOOST_CLASS_VERSION(LMDBBackend::KeyDataDB, 1)
-BOOST_CLASS_VERSION(DomainInfo, 1)
+BOOST_CLASS_VERSION(ZoneName, 1)
+BOOST_CLASS_VERSION(DomainInfo, 2)
 
 static bool s_first = true;
 static uint32_t s_shards = 0;
@@ -858,39 +859,29 @@ namespace serialization
   template <class Archive>
   void save(Archive& arc, const ZoneName& zone, const unsigned int /* version */)
   {
-    // Because ZoneName is an object containing a single DNSName field,
-    // we can't naively write
-    //   arc & zone.operator const DNSName&();
-    // because the serialization actually writes the class version number in
-    // front of our provided serialization, thus causing it to be larger than
-    // the DNSName serialization. In order to remain interoperable with
-    // existing serializations, we skip the DNSName's own version number and
-    // directly serialize its contents.
-    const DNSName& name = zone.operator const DNSName&();
-    if (name.empty()) {
-      arc& std::string(); // it's arc.operator& but clang-format is confused here
-    }
-    else {
-      arc & name.toDNSStringLC();
-    }
+    arc & zone.operator const DNSName&();
+    arc & zone.getVariant();
   }
 
   template <class Archive>
-  void load(Archive& arc, ZoneName& zone, const unsigned int /* version */)
+  void load(Archive& arc, ZoneName& zone, const unsigned int version)
   {
-    // Similarly to save() above, we can't write
-    //   DNSName tmp;
-    //   arc & tmp;
-    //   zone = ZoneName(tmp);
-    // but have to reconstruct a DNSName from a string.
-    string tmp;
+    if (version == 0) { // for schemas up to 5, ZoneName serialized as DNSName
+      std::string tmp{};
+      arc & tmp;
+      if (tmp.empty()) {
+        zone = ZoneName();
+      }
+      else {
+        zone = ZoneName(DNSName(tmp.c_str(), tmp.size(), 0, false));
+      }
+      return;
+    }
+    DNSName tmp;
+    std::string variant{};
     arc & tmp;
-    if (tmp.empty()) {
-      zone = ZoneName();
-    }
-    else {
-      zone = ZoneName(DNSName(tmp.c_str(), tmp.size(), 0, false));
-    }
+    arc & variant;
+    zone = ZoneName(tmp, variant);
   }
 
   template <class Archive>
@@ -924,20 +915,40 @@ namespace serialization
   template <class Archive>
   void load(Archive& ar, DomainInfo& g, const unsigned int version)
   {
-    ar & g.zone;
+    if (version >= 2) {
+      ar & g.zone;
+    }
+    else {
+      DNSName tmp;
+      ar & tmp;
+      new (&g.zone) ZoneName(tmp);
+    }
     ar & g.last_check;
     ar & g.account;
     ar & g.primaries;
     ar & g.id;
     ar & g.notified_serial;
     ar & g.kind;
-    if (version >= 1) {
-      ar & g.options;
-      ar & g.catalog;
-    }
-    else {
+    switch (version) {
+    case 0:
+      // These fields did not exist.
       g.options.clear();
       g.catalog.clear();
+      break;
+    case 1:
+      // These fields did exist, but catalog as DNSName only.
+      ar & g.options;
+      {
+        DNSName tmp;
+        ar & tmp;
+        g.catalog = ZoneName(tmp);
+      }
+      break;
+    default:
+      // These fields exist, with catalog as ZoneName.
+      ar & g.options;
+      ar & g.catalog;
+      break;
     }
   }
 
