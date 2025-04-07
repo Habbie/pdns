@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include "pdns/misc.hh"
 #include "auth-zonecache.hh"
 #include "logger.hh"
 #include "statbag.hh"
@@ -42,9 +43,42 @@ AuthZoneCache::AuthZoneCache(size_t mapsCount) :
   d_statnumentries = S.getPointer("zone-cache-size");
 }
 
-bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId)
+bool AuthZoneCache::getEntry(ZoneName& zone, int& zoneId, Netmask* net)
 {
+  string view;
+
+  try {
+    // FIXME: adjust test_auth_zonecache.cc to pass a netmask, then see if anything else crashes
+    // just so we know what codepaths also don't pass a net
+    // i noticed that AXFR does not crash (but also does not 'view'), perhaps it does not use the zone cache?
+    if (net != nullptr) {
+      auto* netview = d_nets.lookup(net->getNetwork());
+      if (netview != nullptr) {
+        view = netview->second;
+      }
+    }
+  }
+  catch (...) {
+    // this handles the "empty" case, but might hide other errors
+  }
+
+  cerr << "view=[" << view << "]"; // VIEWS_DEBUG remove
+
+  string variant;
+  if (d_views.count(view) == 1) { // FIXME lock
+    cerr << 1; // VIEWS_DEBUG remove
+    auto& viewmap = d_views.at(view);
+    if (viewmap.count(DNSName(zone)) == 1) {
+      cerr << 2; // VIEWS_DEBUG remove
+      variant = viewmap.at(DNSName(zone));
+    }
+  }
+  cerr << ", variant=[" << variant << "]" << endl; // VIEWS_DEBUG remove
+
+  zone.setVariant(variant);
+
   auto& mc = getMap(zone);
+  cerr << "looking for " << zone << ", hash=" << zone.hash() << endl; // VIEWS_DEBUG remove
   bool found = false;
   {
     auto map = mc.d_map.read_lock();
@@ -52,6 +86,7 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId)
     if (iter != map->end()) {
       found = true;
       zoneId = iter->second.zoneId;
+      cerr << "found with zoneId=" << zoneId << endl; // VIEWS_DEBUG remove
     }
   }
 
@@ -84,6 +119,7 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
   // build new maps
   for (const auto& [zone, id] : zone_indices) {
+    cerr << "inserting zone=" << zone << ", id=" << id << endl; // VIEWS_DEBUG remove
     CacheValue val;
     val.zoneId = id;
     auto& mc = newMaps[getMapIndex(zone)];
@@ -131,6 +167,20 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
     d_statnumentries->store(count);
   }
+}
+
+void AuthZoneCache::replace(NetmaskTree<string> nettree)
+{
+  // FIXME: lock
+
+  d_nets.swap(nettree);
+}
+
+void AuthZoneCache::replace(ViewsMap viewsmap)
+{
+  // FIXME: lock
+
+  d_views.swap(viewsmap);
 }
 
 void AuthZoneCache::add(const ZoneName& zone, const int zoneId)

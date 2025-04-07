@@ -341,6 +341,33 @@ void UeberBackend::updateZoneCache()
     }
   }
   g_zoneCache.replace(zone_indices);
+
+  NetmaskTree<string> nettree;
+  for (auto& backend : backends) {
+    vector<pair<Netmask, string>> nettag;
+    backend->networkList(nettag);
+    for (auto& [net, tag] : nettag) {
+      nettree.insert_or_assign(net, tag);
+    }
+  }
+  g_zoneCache.replace(nettree); // FIXME: this needs some smart pending stuff too
+
+  AuthZoneCache::ViewsMap viewsmap;
+  for (auto& backend : backends) {
+    vector<string> views;
+    backend->viewList(views);
+    for (auto& view : views) {
+      vector<ZoneName> zones;
+      backend->viewListZones(view, zones);
+      for (ZoneName& zone : zones) {
+        auto zonename = DNSName(zone);
+        auto variant = zone.getVariant();
+        viewsmap[view][zonename] = variant;
+        cerr << "view " << view << " has zone " << zonename << " as variant " << variant << endl; // VIEWS_DEBUG remove
+      }
+    }
+  }
+  g_zoneCache.replace(viewsmap);
 }
 
 void UeberBackend::rediscover(string* status)
@@ -493,7 +520,7 @@ static bool foundTarget(const ZoneName& target, const ZoneName& shorter, const Q
   return false;
 }
 
-bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* soaData, bool cachedOk)
+bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* soaData, bool cachedOk, DNSPacket* pkt_p)
 {
   // A backend can respond to our authority request with the 'best' match it
   // has. For example, when asked for a.b.c.example.com. it might respond with
@@ -513,9 +540,16 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
     int zoneId{-1};
 
     if (cachedOk && g_zoneCache.isEnabled()) {
-      if (g_zoneCache.getEntry(shorter, zoneId)) {
-        if (fillSOAFromZoneRecord(shorter, zoneId, soaData)) {
-          if (foundTarget(target, shorter, qtype, soaData, found)) {
+      Netmask remote;
+
+      if (pkt_p != nullptr) {
+        remote = pkt_p->getRealRemote(); // we lose the prefix len from ECS here
+      }
+      ZoneName _shorter(shorter); // don't want getEntry to mutate the one we're chopping off
+      if (g_zoneCache.getEntry(_shorter, zoneId, &remote)) {
+        if (fillSOAFromZoneRecord(_shorter, zoneId, soaData)) {
+          soaData->zonename = _shorter.makeLowerCase();
+          if (foundTarget(target, _shorter, qtype, soaData, found)) {
             return true;
           }
 
