@@ -1,0 +1,29 @@
+done
+== one view
+in view [myview], zone [example.org.] has variant [variant3]
+myview
+== with one zone
+in view [myview], zone [example.org.] has variant [variant3]
+example.org:variant3
+done
+done
+== with two zones
+in view [myview], zone [example.net.] has variant [variant5]
+in view [myview], zone [example.org.] has variant [variant2]
+example.net:variant5
+example.org:variant2
+done
+== view with one zone
+in view [myotherview], zone [example.com.] has variant []
+in view [myview], zone [example.net.] has variant [variant5]
+in view [myview], zone [example.org.] has variant [variant2]
+example.com
+done
+== view with one zone
+in view [myotherview], zone [example.com.] has variant []
+in view [myview], zone [example.net.] has variant [variant5]
+example.net:variant5
+done
+== one view
+in view [myview], zone [example.net.] has variant [variant5]
+myview
