@@ -31,6 +31,7 @@
 #include "pdns/dnspacket.hh"
 #include "pdns/dnssecinfra.hh"
 #include "pdns/logger.hh"
+#include "pdns/misc.hh"
 #include "pdns/pdnsexception.hh"
 #include "pdns/uuid-utils.hh"
 #include <boost/archive/binary_iarchive.hpp>
@@ -743,6 +744,8 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
+      d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
+      d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -805,6 +808,8 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
+    d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
+    d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
@@ -1315,6 +1320,151 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
   // if the vector is empty, good, that's what we do here (LMDB does not store comments)
   // if it's not, report failure
   return comments.empty();
+}
+
+void LMDBBackend::viewList(vector<string>& result)
+{
+  auto txn = d_tdomains->getEnv()->getROTransaction();
+
+  set<string> tmp;
+
+  auto cursor = txn->getROCursor(d_tviews);
+
+  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  MDBOutVal val{}; // <variant>
+
+  auto ret = cursor.first(key, val);
+
+  if (ret == MDB_NOTFOUND) {
+    return;
+  }
+
+  do {
+    try {
+      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      auto variant = val.get<string>();
+      cerr << "in view [" << view << "], zone [" << zone << "] has variant [" << variant << "]" << endl;
+      tmp.insert(view);
+    }
+    catch (std::exception& e) {
+      cerr << e.what() << ": " << makeHexDump(key.getNoStripHeader<string>()) << " / " << makeHexDump(val.get<string>()) << endl;
+    }
+
+    ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
+  } while (ret != MDB_NOTFOUND);
+
+  copy(tmp.begin(), tmp.end(), std::back_inserter(result));
+}
+
+void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
+{
+  result.clear();
+
+  auto txn = d_tdomains->getEnv()->getROTransaction();
+
+  auto cursor = txn->getROCursor(d_tviews);
+
+  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  MDBOutVal val{}; // <variant>
+
+  auto ret = cursor.first(key, val);
+
+  if (ret == MDB_NOTFOUND) {
+    return;
+  }
+
+  do {
+    try {
+      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      auto variant = val.get<string>();
+      cerr << "in view [" << view << "], zone [" << zone << "] has variant [" << variant << "]" << endl;
+      if (view == inview) {
+        result.emplace_back(ZoneName(zone, variant));
+      }
+    }
+    catch (std::exception& e) {
+      cerr << e.what() << ": " << makeHexDump(key.getNoStripHeader<string>()) << " / " << makeHexDump(val.get<string>()) << endl;
+    }
+
+    ret = cursor.next(key, val); // this should be prefix-limited to quickly find, and then only scan, one view
+  } while (ret != MDB_NOTFOUND);
+}
+
+// TODO: make this add-or-del to reduce code duplication?
+bool LMDBBackend::viewAddZone(const string& view, const ZoneName& zone)
+{
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
+
+  // Note that this relies upon ZoneName::toString() intentionally NOT outputting the variant name.
+  string key = view + string(1, (char)0) + zone.toString();
+  string val = zone.getVariant(); // variant goes here
+
+  txn->put(d_tviews, key, val);
+  txn->commit();
+
+  return true;
+}
+
+bool LMDBBackend::viewDelZone(const string& view, const ZoneName& zone)
+{
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
+
+  // Note that this relies upon ZoneName::toString() intentionally NOT outputting the variant name.
+  string key = view + string(1, (char)0) + zone.toString();
+  // string val = "foo"; // variant goes here
+
+  txn->del(d_tviews, key);
+  txn->commit();
+
+  return true;
+}
+
+bool LMDBBackend::networkSet(const Netmask& net, std::string& view)
+{
+  auto txn = d_tdomains->getEnv()->getRWTransaction();
+
+  if (view.empty()) {
+    txn->del(d_tnetworks, net.toByteString());
+  }
+  else {
+    txn->put(d_tnetworks, net.toByteString(), view);
+  }
+  txn->commit();
+
+  return true;
+}
+
+bool LMDBBackend::networkList(vector<pair<Netmask, string>>& networks)
+{
+  networks.clear();
+
+  auto txn = d_tdomains->getEnv()->getROTransaction();
+
+  auto cursor = txn->getROCursor(d_tnetworks);
+
+  MDBOutVal netval{};
+  MDBOutVal viewval{};
+
+  auto ret = cursor.first(netval, viewval);
+
+  if (ret == MDB_NOTFOUND) {
+    return true;
+  }
+
+  do {
+    try {
+      auto net = Netmask(netval.getNoStripHeader<string>(), Netmask::byteString);
+      auto view = viewval.get<string>();
+      networks.emplace_back(std::make_pair(net, view));
+    }
+    catch (std::exception& e) {
+      cerr << e.what() << ": " << makeHexDump(netval.getNoStripHeader<string>()) << " / " << makeHexDump(viewval.get<string>()) << endl;
+    }
+
+    ret = cursor.next(netval, viewval);
+  } while (ret != MDB_NOTFOUND);
+
+  return true;
 }
 
 // tempting to templatize these two functions but the pain is not worth it
