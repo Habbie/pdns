@@ -28,6 +28,7 @@ example.com
 example.com:bar
 example.com:foo
 example.com:variant1
+example.org:foo
 hiddencryptokeys.org
 insecure.dnssec-parent.com
 minimal.com
