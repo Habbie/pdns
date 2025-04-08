@@ -303,6 +303,23 @@ void UeberBackend::updateZoneCache()
     }
   }
   g_zoneCache.replace(nettree); // FIXME: this needs some smart pending stuff too
+
+  AuthZoneCache::ViewsMap viewsmap;
+  for (auto& backend : backends) {
+    vector<string> views;
+    backend->viewList(views);
+    for (auto& view : views) {
+      vector<ZoneName> zones;
+      backend->viewListZones(view, zones);
+      for (ZoneName& zone : zones) {
+        auto zonename = DNSName(zone);
+        auto variant = zone.getVariant();
+        viewsmap[view][zonename] = variant;
+        cerr<<"view "<<view<<" has zone "<<zonename<<" as variant "<<variant<<endl;
+      }
+    }
+  }
+  g_zoneCache.replace(viewsmap);
 }
 
 void UeberBackend::rediscover(string* status)

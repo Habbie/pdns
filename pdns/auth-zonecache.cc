@@ -45,16 +45,16 @@ AuthZoneCache::AuthZoneCache(size_t mapsCount) :
 
 bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
 {
-  string tag;
+  string view;
 
   try {
     // FIXME: adjust test_auth_zonecache.cc to pass a netmask, then see if anything else crashes
     // just so we know what codepaths also don't pass a net
     // i noticed that AXFR does not crash (but also does not 'view'), perhaps it does not use the zone cache?
     if (net != nullptr) {
-      auto* nettag = d_nets.lookup(net->getNetwork());
-      if (nettag != nullptr) {
-        tag = nettag->second;
+      auto* netview = d_nets.lookup(net->getNetwork());
+      if (netview != nullptr) {
+        view = netview->second;
       }
     }
   }
@@ -62,9 +62,20 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
     // this handles the "empty" case, but might hide other errors
   }
 
-  cerr << "tag=[" << tag << "]" << endl;
+  cerr << "view=[" << view << "]";
 
-  ZoneName tagZone(zone.operator const DNSName&(), tag); // FIXME: feels ugly?
+  string variant;
+  if (d_views.count(view) == 1) { // FIXME lock
+    cerr<<1;
+    auto& viewmap = d_views.at(view);
+    if (viewmap.count(DNSName(zone)) == 1) {
+      cerr<<2;
+      variant = viewmap.at(DNSName(zone));
+    }
+  }
+  cerr << ", variant=[" << variant << "]" << endl;
+
+  ZoneName tagZone(zone.operator const DNSName&(), variant); // FIXME: feels ugly?
   // tagZone.d_tag = tag;
 
   auto& mc = getMap(tagZone);
@@ -165,6 +176,15 @@ void AuthZoneCache::replace(NetmaskTree<string> nettree)
 
   d_nets.swap(nettree);
 }
+
+void AuthZoneCache::replace(ViewsMap viewsmap)
+{
+  // FIXME: lock
+
+  d_views.swap(viewsmap);
+}
+
+
 
 void AuthZoneCache::add(const ZoneName& zone, const int zoneId)
 {
