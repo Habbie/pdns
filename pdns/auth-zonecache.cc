@@ -62,24 +62,24 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
     // this handles the "empty" case, but might hide other errors
   }
 
-  cerr << "view=[" << view << "]";
+  cerr << "view=[" << view << "]"; // VIEWS_DEBUG remove
 
   string variant;
   if (d_views.count(view) == 1) { // FIXME lock
-    cerr<<1;
+    cerr << 1; // VIEWS_DEBUG remove
     auto& viewmap = d_views.at(view);
     if (viewmap.count(DNSName(zone)) == 1) {
-      cerr<<2;
+      cerr << 2; // VIEWS_DEBUG remove
       variant = viewmap.at(DNSName(zone));
     }
   }
-  cerr << ", variant=[" << variant << "]" << endl;
+  cerr << ", variant=[" << variant << "]" << endl; // VIEWS_DEBUG remove
 
   ZoneName tagZone(zone.operator const DNSName&(), variant); // FIXME: feels ugly?
   // tagZone.d_tag = tag;
 
   auto& mc = getMap(tagZone);
-  cerr << "looking for " << tagZone << ", hash=" << tagZone.hash() << endl;
+  cerr << "looking for " << tagZone << ", hash=" << tagZone.hash() << endl; // VIEWS_DEBUG remove
   bool found = false;
   {
     auto map = mc.d_map.read_lock();
@@ -87,7 +87,7 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
     if (iter != map->end()) {
       found = true;
       zoneId = iter->second.zoneId;
-      cerr << "found with zoneId=" << zoneId << endl;
+      cerr << "found with zoneId=" << zoneId << endl; // VIEWS_DEBUG remove
     }
   }
 
@@ -120,7 +120,7 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
   // build new maps
   for (const auto& [zone, id] : zone_indices) {
-    cerr << "inserting zone=" << zone << ", id=" << id << endl;
+    cerr << "inserting zone=" << zone << ", id=" << id << endl; // VIEWS_DEBUG remove
     CacheValue val;
     val.zoneId = id;
     auto& mc = newMaps[getMapIndex(zone)];
@@ -183,8 +183,6 @@ void AuthZoneCache::replace(ViewsMap viewsmap)
 
   d_views.swap(viewsmap);
 }
-
-
 
 void AuthZoneCache::add(const ZoneName& zone, const int zoneId)
 {

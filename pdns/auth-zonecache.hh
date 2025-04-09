@@ -33,7 +33,7 @@ class AuthZoneCache : public boost::noncopyable
 public:
   AuthZoneCache(size_t mapsCount = 1024);
 
-  using ViewsMap = std::map<std::string, std::map<DNSName, std::string> >;
+  using ViewsMap = std::map<std::string, std::map<DNSName, std::string>>;
 
   void replace(const vector<std::tuple<ZoneName, int>>& zone);
   void replace(NetmaskTree<string> nettree);
