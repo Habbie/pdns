@@ -315,7 +315,7 @@ void UeberBackend::updateZoneCache()
         auto zonename = DNSName(zone);
         auto variant = zone.getVariant();
         viewsmap[view][zonename] = variant;
-        cerr<<"view "<<view<<" has zone "<<zonename<<" as variant "<<variant<<endl;
+        cerr << "view " << view << " has zone " << zonename << " as variant " << variant << endl; // VIEWS_DEBUG remove
       }
     }
   }
