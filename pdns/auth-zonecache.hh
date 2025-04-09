@@ -42,7 +42,7 @@ public:
   void remove(const ZoneName& zone);
   void setReplacePending(); //!< call this when data collection for the subsequent replace() call starts.
 
-  bool getEntry(const ZoneName& zone, int& zoneId, Netmask* net = nullptr);
+  bool getEntry(ZoneName& zone, int& zoneId, Netmask* net = nullptr);
 
   size_t size() { return *d_statnumentries; } //!< number of entries in the cache
 

@@ -43,7 +43,7 @@ AuthZoneCache::AuthZoneCache(size_t mapsCount) :
   d_statnumentries = S.getPointer("zone-cache-size");
 }
 
-bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
+bool AuthZoneCache::getEntry(ZoneName& zone, int& zoneId, Netmask* net)
 {
   string view;
 
@@ -75,15 +75,14 @@ bool AuthZoneCache::getEntry(const ZoneName& zone, int& zoneId, Netmask* net)
   }
   cerr << ", variant=[" << variant << "]" << endl; // VIEWS_DEBUG remove
 
-  ZoneName tagZone(zone.operator const DNSName&(), variant); // FIXME: feels ugly?
-  // tagZone.d_tag = tag;
+  zone.setVariant(variant);
 
-  auto& mc = getMap(tagZone);
-  cerr << "looking for " << tagZone << ", hash=" << tagZone.hash() << endl; // VIEWS_DEBUG remove
+  auto& mc = getMap(zone);
+  cerr << "looking for " << zone << ", hash=" << zone.hash() << endl; // VIEWS_DEBUG remove
   bool found = false;
   {
     auto map = mc.d_map.read_lock();
-    auto iter = map->find(tagZone);
+    auto iter = map->find(zone);
     if (iter != map->end()) {
       found = true;
       zoneId = iter->second.zoneId;
