@@ -1898,6 +1898,10 @@ static int listAllZones(const std::string_view synopsis, const string &type="") 
   vector<DomainInfo> domains;
   B.getAllDomains(&domains, false, g_verbose);
 
+  // Sort results, so that domains which have variants will appear
+  // grouped in the output.
+  std::sort(domains.begin(), domains.end());
+
   int count = 0;
   for (const auto& di: domains) {
     if (di.kind == kindFilter || kindFilter == -1) {

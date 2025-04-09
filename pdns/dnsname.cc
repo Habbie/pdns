@@ -763,7 +763,9 @@ ZoneName::ZoneName(std::string_view name)
   if (auto sep = name.find(c_separator); sep != std::string_view::npos) {
     // May end up being empty
     d_variant = name.substr(sep + 1);
-    // TODO: validate d_variant (character set)
+    if (d_variant.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_-") != std::string::npos) {
+      throw std::out_of_range("invalid character in variant name '" + d_variant + "'");
+    }
     name = name.substr(0, sep);
   }
   d_name = DNSName(name);

@@ -1,4 +1,3 @@
-done
 == one view
 in view [myview], zone [example.org.] has variant [variant3]
 in view [view1], zone [example.com.] has variant [foo]
@@ -13,9 +12,15 @@ in view [view1], zone [example.com.] has variant [foo]
 in view [view1], zone [example.org.] has variant [foo]
 in view [view2], zone [example.com.] has variant [bar]
 example.org:variant3
-done
-done
+== view with one zone
+in view [myotherview], zone [example.com.] has variant []
+in view [myview], zone [example.org.] has variant [variant3]
+in view [view1], zone [example.com.] has variant [foo]
+in view [view1], zone [example.org.] has variant [foo]
+in view [view2], zone [example.com.] has variant [bar]
+example.com
 == with two zones
+in view [myotherview], zone [example.com.] has variant []
 in view [myview], zone [example.net.] has variant [variant5]
 in view [myview], zone [example.org.] has variant [variant2]
 in view [view1], zone [example.com.] has variant [foo]
@@ -23,16 +28,6 @@ in view [view1], zone [example.org.] has variant [foo]
 in view [view2], zone [example.com.] has variant [bar]
 example.net:variant5
 example.org:variant2
-done
-== view with one zone
-in view [myotherview], zone [example.com.] has variant []
-in view [myview], zone [example.net.] has variant [variant5]
-in view [myview], zone [example.org.] has variant [variant2]
-in view [view1], zone [example.com.] has variant [foo]
-in view [view1], zone [example.org.] has variant [foo]
-in view [view2], zone [example.com.] has variant [bar]
-example.com
-done
 == view with one zone
 in view [myotherview], zone [example.com.] has variant []
 in view [myview], zone [example.net.] has variant [variant5]
@@ -40,7 +35,6 @@ in view [view1], zone [example.com.] has variant [foo]
 in view [view1], zone [example.org.] has variant [foo]
 in view [view2], zone [example.com.] has variant [bar]
 example.net:variant5
-done
 == one view
 in view [myview], zone [example.net.] has variant [variant5]
 in view [view1], zone [example.com.] has variant [foo]
@@ -49,3 +43,14 @@ in view [view2], zone [example.com.] has variant [bar]
 myview
 view1
 view2
+== check proper variant replacement
+in view [myview], zone [example.net.] has variant [variant5]
+in view [view1], zone [example.com.] has variant [foo]
+in view [view1], zone [example.org.] has variant [foo]
+in view [view2], zone [example.com.] has variant [bar]
+example.net:variant5
+in view [myview], zone [example.net.] has variant [completelydifferent]
+in view [view1], zone [example.com.] has variant [foo]
+in view [view1], zone [example.org.] has variant [foo]
+in view [view2], zone [example.com.] has variant [bar]
+example.net:completelydifferent
