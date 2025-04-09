@@ -163,6 +163,7 @@ public:
     CAP_DIRECT = 1 << 2, // Backend supports direct commands
     CAP_LIST = 1 << 3, // Backend supports record enumeration
     CAP_CREATE = 1 << 4, // Backend supports domain creation
+    CAP_VIEWS = 1 << 5, // Backend supports views
   };
 
   virtual unsigned int getCapabilities() = 0;

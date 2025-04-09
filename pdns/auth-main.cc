@@ -345,7 +345,7 @@ static void declareArguments()
   ::arg().setSwitch("enable-gss-tsig", "Enable GSS TSIG processing") = "no";
 #endif
 
-  ::arg().setSwitch("views", "Enable views (subsetting) of zones, for backends which support them") = "no";
+  ::arg().setSwitch("views", "Enable views (variants) of zones, for backends which support them") = "no";
 
   ::arg().setDefaults();
 }

@@ -7,6 +7,7 @@ launch=lmdb
 lmdb-filename=./pdns.lmdb
 lmdb-random-ids=yes
 edns-subnet-processing
+views=yes
 __EOF__
 
         rm -f pdns.lmdb*
