@@ -1,1 +1,2 @@
-Zone 'example.com:variant1' exists already
+None of the configured backends support views.
+Zone 'example.com:variant1' was not created.
