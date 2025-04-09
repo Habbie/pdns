@@ -498,7 +498,6 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
         remote = pkt_p->getRealRemote(); // we lose the prefix len from ECS here
       }
       if (g_zoneCache.getEntry(shorter, zoneId, &remote)) {
-      if (g_zoneCache.getEntry(shorter, zoneId)) {
         if (fillSOAFromZoneRecord(shorter, zoneId, soaData)) {
           if (foundTarget(target, shorter, qtype, soaData, found)) {
             return true;

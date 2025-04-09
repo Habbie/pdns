@@ -762,13 +762,21 @@ ZoneName::ZoneName(std::string_view name)
 {
   if (auto sep = name.find(c_separator); sep != std::string_view::npos) {
     // May end up being empty
-    d_variant = name.substr(sep + 1);
-    if (d_variant.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_-") != std::string::npos) {
-      throw std::out_of_range("invalid character in variant name '" + d_variant + "'");
-    }
+    setVariant(name.substr(sep + 1));
     name = name.substr(0, sep);
   }
   d_name = DNSName(name);
+}
+
+void ZoneName::setVariant(std::string_view variant)
+{
+  if (variant.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_-") != std::string_view::npos) {
+    throw std::out_of_range("invalid character in variant name '" + std::string{variant} + "'");
+  }
+  if (!d_variant.empty()) {
+    throw std::runtime_error("Attempting to change the variant of a zone");
+  }
+  d_variant = variant;
 }
 
 std::string ZoneName::toLogString() const
