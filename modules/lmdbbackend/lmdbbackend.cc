@@ -669,6 +669,8 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     throw std::runtime_error("LMDB backend does not support multiple instances");
   }
 
+  d_views = ::arg().mustDo("views"); // This is a global setting
+
   setArgPrefix("lmdb" + suffix);
 
   string syncMode = toLower(getArg("sync-mode"));
@@ -830,6 +832,15 @@ LMDBBackend::~LMDBBackend()
     d_rwtxn.reset();
     d_rotxn.reset();
   }
+}
+
+unsigned int LMDBBackend::getCapabilities()
+{
+  unsigned int caps = CAP_DNSSEC | CAP_DIRECT | CAP_LIST | CAP_CREATE;
+  if (d_views) {
+    caps |= CAP_VIEWS;
+  }
+  return caps;
 }
 
 namespace boost
@@ -1857,6 +1868,12 @@ bool LMDBBackend::getSerial(DomainInfo& di)
 
 bool LMDBBackend::getDomainInfo(const ZoneName& domain, DomainInfo& info, bool getserial)
 {
+  // If caller asks about a zone with variant, but views are not enabled,
+  // punt.
+  if (domain.hasVariant() && !d_views) {
+    return false;
+  }
+
   {
     auto txn = d_tdomains->getROTransaction();
     // auto range = txn.prefix_range<0>(domain);
@@ -2015,6 +2032,11 @@ void LMDBBackend::getAllDomains(vector<DomainInfo>* domains, bool /* doSerial */
 {
   getAllDomainsFiltered(domains, [this, include_disabled](DomainInfo& di) {
     if (!getSerial(di) && !include_disabled) {
+      return false;
+    }
+
+    // Skip domains with variants if views are disabled.
+    if (di.zone.hasVariant() && !d_views) {
       return false;
     }
 
