@@ -766,7 +766,7 @@ ZoneName::ZoneName(std::string_view name)
     name = name.substr(0, sep);
   }
   // TODO: make ZoneName a friend of DNSName so that we can assign d_storage directly
-  d_name = std::move(DNSName(name));
+  d_name = DNSName(name);
 }
 
 void ZoneName::setVariant(std::string_view variant)
