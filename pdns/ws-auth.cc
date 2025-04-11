@@ -2700,7 +2700,7 @@ static void apiServerViewsPOST(HttpRequest* req, HttpResponse* resp)
   UeberBackend backend;
   DomainInfo domainInfo;
   const auto& document = req->json();
-  ZoneName zonename = ZoneName(apiNameToDNSName(stringFromJson(document, "name")));
+  ZoneName zonename = apiNameToZoneName(stringFromJson(document, "name"));
 
   if (!backend.getDomainInfo(zonename, domainInfo)) {
     throw HttpNotFoundException(); // zone name not found
