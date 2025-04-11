@@ -2712,7 +2712,7 @@ static void apiServerViewsPOST(HttpRequest* req, HttpResponse* resp)
   }
 
   resp->body = "";
-  resp->status = 201;
+  resp->status = 204;
 }
 
 // DELETE /views/<view>/<id>     removes ZoneName "id" from view "view"
@@ -2778,7 +2778,7 @@ static void apiServerNetworksPUT(HttpRequest* req, HttpResponse* resp)
   }
 
   resp->body = "";
-  resp->status = 201;
+  resp->status = 204;
 }
 
 static void cssfunction(HttpRequest* /* req */, HttpResponse* resp)
