@@ -2747,7 +2747,7 @@ static void apiServerNetworksGET(HttpRequest* req, HttpResponse* resp)
   Json::array jsonarray;
   Json::object item;
   for (const auto& pair : networks) {
-    if (!network.empty() && !(pair.first == network)) {
+    if (!network.empty() && !(pair.first == network)) { // FIXME: should this case handled by a separate call networkGet, to be implemented in lmdbbackend?
       continue;
     }
     item["network"] = pair.first.toString();
