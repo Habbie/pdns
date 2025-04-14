@@ -2687,6 +2687,10 @@ static void apiServerViewsGET(HttpRequest* req, HttpResponse* resp)
 
   backend.viewListZones(view, views);
 
+  if (views.empty()) {
+    throw HttpNotFoundException(); // view does not exist
+  }
+
   Json::array jsonarray;
   jsonFillZoneNameArray(jsonarray, views);
   Json::object jsonresult{
@@ -2755,6 +2759,10 @@ static void apiServerNetworksGET(HttpRequest* req, HttpResponse* resp)
     item["view"] = pair.second;
     jsonarray.emplace_back(item);
     item.clear();
+  }
+
+  if (!network.empty() && jsonarray.empty()) {
+    throw HttpNotFoundException(); // no views configured for that network
   }
 
   Json::object jsonresult{
