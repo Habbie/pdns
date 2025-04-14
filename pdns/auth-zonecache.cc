@@ -52,7 +52,8 @@ bool AuthZoneCache::getEntry(ZoneName& zone, int& zoneId, Netmask* net)
     // just so we know what codepaths also don't pass a net
     // i noticed that AXFR does not crash (but also does not 'view'), perhaps it does not use the zone cache?
     if (net != nullptr) {
-      auto* netview = d_nets.lookup(net->getNetwork());
+      auto nets = d_nets.read_lock();
+      const auto* netview = nets->lookup(net->getNetwork());
       if (netview != nullptr) {
         view = netview->second;
       }
@@ -65,12 +66,15 @@ bool AuthZoneCache::getEntry(ZoneName& zone, int& zoneId, Netmask* net)
   cerr << "view=[" << view << "]"; // VIEWS_DEBUG remove
 
   string variant;
-  if (d_views.count(view) == 1) { // FIXME lock
-    cerr << 1; // VIEWS_DEBUG remove
-    auto& viewmap = d_views.at(view);
-    if (viewmap.count(DNSName(zone)) == 1) {
-      cerr << 2; // VIEWS_DEBUG remove
-      variant = viewmap.at(DNSName(zone));
+  {
+    auto views = d_views.read_lock();
+    if (views->count(view) == 1) {
+      cerr << 1; // VIEWS_DEBUG remove
+      const auto& viewmap = views->at(view);
+      if (viewmap.count(DNSName(zone)) == 1) {
+        cerr << 2; // VIEWS_DEBUG remove
+        variant = viewmap.at(DNSName(zone));
+      }
     }
   }
   cerr << ", variant=[" << variant << "]" << endl; // VIEWS_DEBUG remove
@@ -107,6 +111,14 @@ bool AuthZoneCache::isEnabled() const
 void AuthZoneCache::clear()
 {
   purgeLockedCollectionsVector(d_maps);
+  // FIXME: this method being only used by tests, not sure it's worth doing this
+  // below...
+  {
+    d_nets.write_lock()->clear();
+  }
+  {
+    d_views.write_lock()->clear();
+  }
 }
 
 void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indices)
@@ -171,16 +183,14 @@ void AuthZoneCache::replace(const vector<std::tuple<ZoneName, int>>& zone_indice
 
 void AuthZoneCache::replace(NetmaskTree<string> nettree)
 {
-  // FIXME: lock
-
-  d_nets.swap(nettree);
+  auto nets = d_nets.write_lock();
+  nets->swap(nettree);
 }
 
 void AuthZoneCache::replace(ViewsMap viewsmap)
 {
-  // FIXME: lock
-
-  d_views.swap(viewsmap);
+  auto views = d_views.write_lock();
+  views->swap(viewsmap);
 }
 
 void AuthZoneCache::add(const ZoneName& zone, const int zoneId)
@@ -244,5 +254,39 @@ void AuthZoneCache::setReplacePending()
     auto pending = d_pending.lock();
     pending->d_replacePending = true;
     pending->d_pendingUpdates.clear();
+  }
+}
+
+void AuthZoneCache::addToView(const std::string& view, const ZoneName& zone)
+{
+  const DNSName& strictZone = zone.operator const DNSName&();
+  auto views = d_views.write_lock();
+  AuthZoneCache::ViewsMap& map = *views;
+  map[view][strictZone] = zone.getVariant();
+}
+
+void AuthZoneCache::removeFromView(const std::string& view, const ZoneName& zone)
+{
+  const DNSName& strictZone = zone.operator const DNSName&();
+  auto views = d_views.write_lock();
+  AuthZoneCache::ViewsMap& map = *views;
+  if (map.count(view) == 0) {
+    return; // Nothing to do, we did not know about that view
+  }
+  auto& innerMap = map.at(view);
+  if (auto iter = innerMap.find(strictZone); iter != innerMap.end()) {
+    innerMap.erase(iter);
+  }
+  // else nothing to do, we did not know about that zone in that view
+}
+
+void AuthZoneCache::updateNetwork(const Netmask& network, const std::string& view)
+{
+  auto nets = d_nets.write_lock();
+  if (view.empty()) {
+    nets->erase(network);
+  }
+  else {
+    nets->insert_or_assign(network, view);
   }
 }
