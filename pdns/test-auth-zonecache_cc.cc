@@ -119,4 +119,117 @@ BOOST_AUTO_TEST_CASE(test_add_while_pending_replace_duplicate)
   }
 }
 
+BOOST_AUTO_TEST_CASE(test_netmask)
+{
+  AuthZoneCache cache;
+  cache.setRefreshInterval(3600);
+
+  // Declare a few zones
+  ZoneName bl("bug.less");
+  ZoneName bli("bug.less:inner");
+  ZoneName blo("bug.less:outer");
+  ZoneName fb("fewer.bugs");
+  ZoneName bp("bad.puns");
+  cache.add(bli, 42);
+  cache.add(blo, 43);
+  cache.add(fb, 100);
+  cache.add(bp, 1000);
+
+  // Declare a few networks
+  std::string inner{"inner"};
+  std::string outer{"outer"};
+  std::string disjoint{"disjoint"};
+  Netmask innerMask("20.25.4.0/24");
+  Netmask outerMask("20.25.0.0/16");
+  cache.updateNetwork(outerMask, outer);
+  cache.updateNetwork(innerMask, inner);
+
+  // Declare a few views
+  cache.addToView(inner, bli);
+  cache.addToView(outer, blo);
+
+  int zoneId{0};
+  bool found;
+  ZoneName search{};
+
+  // Query from no known address
+  found = cache.getEntry(bl, zoneId);
+  if (found) {
+    BOOST_FAIL("bug.less lookup should have failed");
+  }
+
+  // Query from inner zone
+  Netmask nm(makeComboAddress("20.25.4.24"));
+  search = bl;
+  found = cache.getEntry(search, zoneId, &nm);
+  if (!found) {
+    BOOST_FAIL("bug.less lookup from inner zone should have succeeded");
+  }
+  if (zoneId != 42) {
+    BOOST_FAIL("bug.less lookup from inner zone reported wrong id " + std::to_string(zoneId));
+  }
+  if (nm != innerMask) {
+    BOOST_FAIL("bug.less lookup from inner zone reported wrong network " + nm.toString());
+  }
+  search = fb;
+  found = cache.getEntry(search, zoneId, &nm);
+  if (!found) {
+    BOOST_FAIL("fewer.bugs lookup from inner zone should have succeeded");
+  }
+  if (zoneId != 100) {
+    BOOST_FAIL("fewer.bugs lookup from inner zone reported wrong id " + std::to_string(zoneId));
+  }
+  if (nm != innerMask) {
+    BOOST_FAIL("fewer.bugs lookup from inner zone reported wrong network " + nm.toString());
+  }
+
+  // Query from outer zone
+  nm = makeComboAddress("20.25.20.25");
+  search = bl;
+  found = cache.getEntry(search, zoneId, &nm);
+  if (!found) {
+    BOOST_FAIL("bug.less lookup from outer zone should have succeeded");
+  }
+  if (zoneId != 43) {
+    BOOST_FAIL("bug.less lookup from outer zone reported wrong id " + std::to_string(zoneId));
+  }
+  if (nm != outerMask) {
+    BOOST_FAIL("bug.less lookup from outer zone reported wrong network " + nm.toString());
+  }
+  search = bp;
+  found = cache.getEntry(search, zoneId, &nm);
+  if (!found) {
+    BOOST_FAIL("bad.puns lookup from outer zone should have succeeded");
+  }
+  if (zoneId != 1000) {
+    BOOST_FAIL("bad.puns lookup from outer zone reported wrong id " + std::to_string(zoneId));
+  }
+  if (nm != outerMask) {
+    BOOST_FAIL("bad.puns lookup from outer zone reported wrong network " + nm.toString());
+  }
+
+  // Query from no particular zone, should clear netmask
+  nm = makeComboAddress("1.2.3.4");
+  search = ZoneName("non.existent");
+  found = cache.getEntry(search, zoneId, &nm);
+  if (found) {
+    BOOST_FAIL("non.existent lookup from the internet should have failed");
+  }
+  search = bl;
+  found = cache.getEntry(search, zoneId, &nm);
+  if (found) {
+    BOOST_FAIL("bug.less lookup from the internet should have failed");
+  }
+  found = cache.getEntry(bp, zoneId, &nm);
+  if (!found) {
+    BOOST_FAIL("bad.puns lookup from the internet should have succeeded");
+  }
+  if (zoneId != 1000) {
+    BOOST_FAIL("bad.puns lookup from the internet reported wrong id " + std::to_string(zoneId));
+  }
+  if (!nm.empty()) {
+    BOOST_FAIL("bad.puns lookup from the internet reported restricted network " + nm.toString());
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END();
