@@ -44,9 +44,7 @@ class Networks(ApiTestCase):
         # Check individual fetch
         r = self.get_network('192.0.2.0/24')
         print(r.content)
-        self.assertEqual(r.status_code, 200)  # FIXME: this should probably be 404
-        self.assertEqual(len(r.json()['networks']), 0)
-
+        self.assertEqual(r.status_code, 404)
 
     def set_network(self, prefix, **content):
         r = self.session.put(
