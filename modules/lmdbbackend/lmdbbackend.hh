@@ -332,8 +332,6 @@ private:
 
   bool getSerial(DomainInfo& di);
 
-  bool upgradeToSchemav3();
-
   bool get_list(DNSZoneRecord& rr);
   bool get_lookup(DNSZoneRecord& rr);
   std::string d_matchkey;
