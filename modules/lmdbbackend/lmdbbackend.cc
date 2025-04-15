@@ -53,7 +53,7 @@
 #include <systemd/sd-daemon.h>
 #endif
 
-#define SCHEMAVERSION 5
+#define SCHEMAVERSION 6
 
 // List the class version here. Default is 0
 BOOST_CLASS_VERSION(LMDBBackend::KeyDataDB, 1)
@@ -661,6 +661,15 @@ bool LMDBBackend::upgradeToSchemav5(std::string& filename)
   return true;
 }
 
+bool LMDBBackend::upgradeToSchemav6(std::string& /* filename */)
+{
+  // a v6 reader can read v5 databases just fine
+  // so this function currently does nothing
+  // - except rely on the caller to write '6' to pdns.schemaversion,
+  // as a v5 reader will be unable to handle domain objects once we've touched them
+  return true;
+}
+
 LMDBBackend::LMDBBackend(const std::string& suffix)
 {
   // overlapping domain ids in combination with relative names are a recipe for disaster
@@ -718,11 +727,11 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       // std::cerr<<"current schema version: "<<currentSchemaVersion<<", shards="<<currentSchemaVersionAndShards.second<<std::endl;
 
       if (getArgAsNum("schema-version") != SCHEMAVERSION) {
-        throw std::runtime_error("This version of the lmdbbackend only supports schema version 5. Configuration demands a lower version. Not starting up.");
+        throw std::runtime_error("This version of the lmdbbackend only supports schema version 6. Configuration demands a lower version. Not starting up.");
       }
 
       if (currentSchemaVersion > 0 && currentSchemaVersion < 3) {
-        throw std::runtime_error("this version of the lmdbbackend can only upgrade from schema v3/v4 to v5. Upgrading from older schemas is not yet supported.");
+        throw std::runtime_error("this version of the lmdbbackend can only upgrade from schema v3 and up. Upgrading from older schemas is not supported.");
       }
 
       if (currentSchemaVersion == 0) {
@@ -737,16 +746,23 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
         currentSchemaVersion = 5;
       }
 
-      if (currentSchemaVersion != 5) {
-        throw std::runtime_error("Somehow, we are not at schema version 5. Giving up");
+      if (currentSchemaVersion == 5) {
+        if (!upgradeToSchemav6(filename)) {
+          throw std::runtime_error("Failed to perform LMDB schema version upgrade from v5 to v6");
+        }
+        currentSchemaVersion = 6;
+      }
+
+      if (currentSchemaVersion != 6) {
+        throw std::runtime_error("Somehow, we are not at schema version 6. Giving up");
       }
 
       d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | MDB_NORDAHEAD | d_asyncFlag, 0600, mapSize), "domains_v5");
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
       d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-      d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
-      d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
+      d_tnetworks = d_tdomains->getEnv()->openDB("networks_v6", MDB_CREATE);
+      d_tviews = d_tdomains->getEnv()->openDB("views_v6", MDB_CREATE);
 
       auto pdnsdbi = d_tdomains->getEnv()->openDB("pdns", MDB_CREATE);
 
@@ -794,8 +810,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
       }
 
       MDBOutVal _schemaversion{};
-      if (txn->get(pdnsdbi, "schemaversion", _schemaversion) != 0) {
-        // our DB is entirely new, so we need to write the schemaversion
+      if (txn->get(pdnsdbi, "schemaversion", _schemaversion) != 0 || _schemaversion.get<uint32_t>() != currentSchemaVersion) {
         txn->put(pdnsdbi, "schemaversion", currentSchemaVersion);
       }
       txn->commit();
