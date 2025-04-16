@@ -109,9 +109,9 @@ std::pair<uint32_t, uint32_t> LMDBBackend::getSchemaVersionAndShards(std::string
     if (retCode != 0) {
       if (retCode == MDB_NOTFOUND) {
         // this means nothing has been inited yet
-        // we pretend this means 5
+        // we pretend this means the latest schema
         mdb_txn_abort(txn);
-        return {5U, 0U};
+        return {SCHEMAVERSION, 0U};
       }
       mdb_txn_abort(txn);
       throw std::runtime_error("mdb_dbi_open failed");
@@ -128,9 +128,9 @@ std::pair<uint32_t, uint32_t> LMDBBackend::getSchemaVersionAndShards(std::string
     if (retCode != 0) {
       if (retCode == MDB_NOTFOUND) {
         // this means nothing has been inited yet
-        // we pretend this means 5
+        // we pretend this means the latest schema
         mdb_txn_abort(txn);
-        return {5U, 0U};
+        return {SCHEMAVERSION, 0U};
       }
 
       throw std::runtime_error("mdb_get pdns.schemaversion failed");
@@ -143,7 +143,7 @@ std::pair<uint32_t, uint32_t> LMDBBackend::getSchemaVersionAndShards(std::string
     memcpy(&schemaversion, data.mv_data, data.mv_size);
   }
   else if (data.mv_size >= LMDBLS::LS_MIN_HEADER_SIZE + sizeof(schemaversion)) {
-    // schemaversion presumably is 5, stored in 32 bits, network order, after the LS header
+    // schemaversion is >= 5, stored in 32 bits, network order, after the LS header
 
     // FIXME: get actual header size (including extension blocks) instead of just reading from the back
     // FIXME: add a test for reading schemaversion and shards (and actual data, later) when there are variably sized headers
@@ -736,7 +736,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
 
       if (currentSchemaVersion == 0) {
         // no database is present yet, we can just create them
-        currentSchemaVersion = 5;
+        currentSchemaVersion = 6;
       }
 
       if (currentSchemaVersion == 3 || currentSchemaVersion == 4) {
