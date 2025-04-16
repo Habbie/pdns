@@ -19,7 +19,7 @@ do
 EOF
 
   $PDNSUTIL --config-dir="${workdir}" --config-name=lmdb create-zone example.com
-  ids=$( for i in a b c ; do $PDNSUTIL --config-dir="${workdir}" --config-name=lmdb add-zone-key example.com ksk ; done | xargs )
+  ids=$( for i in a b c ; do $PDNSUTIL --config-dir="${workdir}" --config-name=lmdb add-zone-key example.com ksk | head -1; done | xargs )
   if [ $random = no ]
   then
     if [ "$ids" = "1 2 3" ]
