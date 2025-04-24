@@ -226,6 +226,7 @@ void TCPNameserver::decrementClientCount(const ComboAddress& remote)
   }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void TCPNameserver::doConnection(int fd)
 {
   setThreadName("pdns/tcpConnect");

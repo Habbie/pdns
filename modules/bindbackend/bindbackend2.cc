@@ -342,7 +342,7 @@ void Bind2Backend::getUpdatedPrimaries(vector<DomainInfo>& changedDomains, std::
   SOAData soadata;
   for (DomainInfo& di : consider) {
     soadata.serial = 0;
-    try {
+    try { // NOLINTNEXTLINE(bugprone-narrowing-conversions)
       this->getSOA(di.zone, di.id, soadata); // we might not *have* a SOA yet, but this might trigger a load of it
     }
     catch (...) {
@@ -389,7 +389,7 @@ void Bind2Backend::getAllDomains(vector<DomainInfo>* domains, bool getSerial, bo
       if (di.backend != this)
         continue;
       try {
-        this->getSOA(di.zone, di.id, soadata);
+        this->getSOA(di.zone, di.id, soadata); // NOLINT(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
       }
       catch (...) {
         continue;
@@ -424,7 +424,7 @@ void Bind2Backend::getUnfreshSecondaryInfos(vector<DomainInfo>* unfreshDomains)
     SOAData soadata;
     soadata.refresh = 0;
     soadata.serial = 0;
-    try {
+    try { // NOLINTNEXTLINE(bugprone-narrowing-conversions)
       getSOA(sd.zone, sd.id, soadata); // we might not *have* a SOA yet
     }
     catch (...) {
@@ -454,6 +454,7 @@ bool Bind2Backend::getDomainInfo(const ZoneName& domain, DomainInfo& info, bool 
       SOAData sd;
       sd.serial = 0;
 
+      // NOLINTNEXTLINE(bugprone-narrowing-conversions)
       getSOA(bbd.d_name, bbd.d_id, sd); // we might not *have* a SOA yet
       info.serial = sd.serial;
     }

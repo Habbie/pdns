@@ -1333,11 +1333,11 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
 }
 
 // FIXME: this is not very efficient
-static DNSName keyUnconv(std::string& in)
+static DNSName keyUnconv(std::string& instr)
 {
-  // in is now com0example0
+  // instr is now com0example0
   vector<string> labels;
-  boost::split(labels, in, [](char c) { return c == '\0'; });
+  boost::split(labels, instr, [](char chr) { return chr == '\0'; });
 
   // we get a spurious empty label at the end, drop it
   labels.resize(labels.size() - 1);
