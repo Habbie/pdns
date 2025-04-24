@@ -1355,8 +1355,6 @@ void LMDBBackend::viewList(vector<string>& result)
 {
   auto txn = d_tdomains->getEnv()->getROTransaction();
 
-  set<string> tmp;
-
   auto cursor = txn->getROCursor(d_tviews);
 
   MDBOutVal key{}; // <view, dnsname>
@@ -1369,20 +1367,20 @@ void LMDBBackend::viewList(vector<string>& result)
   }
 
   do {
+    string view;
+    string zone;
     try {
-      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      std::tie(view, zone) = splitField(key.getNoStripHeader<string>(), '\x0');
       auto variant = val.get<string>();
-      cerr << "in view [" << view << "], zone [" << keyUnconv(zone) << "] has variant [" << variant << "]" << endl; // VIEWS_DEBUG remove
-      tmp.insert(view);
+      result.push_back(view);
     }
     catch (std::exception& e) {
       cerr << e.what() << ": " << makeHexDump(key.getNoStripHeader<string>()) << " / " << makeHexDump(val.get<string>()) << endl; // VIEWS_DEBUG improve this
     }
 
-    ret = cursor.next(key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
+    MDBInVal bound{view + string(1, (char)1)};
+    ret = cursor.lower_bound(bound, key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
   } while (ret != MDB_NOTFOUND);
-
-  copy(tmp.begin(), tmp.end(), std::back_inserter(result));
 }
 
 void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
@@ -1397,7 +1395,7 @@ void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
   MDBOutVal key{}; // <view, dnsname>
   MDBOutVal val{}; // <variant>
 
-  auto ret = cursor.first(key, val);
+  auto ret = cursor.prefix(prefix, key, val);
 
   if (ret == MDB_NOTFOUND) {
     return;
@@ -1408,16 +1406,13 @@ void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
       auto [view, _zone] = splitField(key.getNoStripHeader<string>(), '\x0');
       auto variant = val.get<string>();
       auto zone = keyUnconv(_zone);
-      cerr << "in view [" << view << "], zone [" << zone << "] has variant [" << variant << "]" << endl; // VIEWS_DEBUG remove
-      if (view == inview) {
-        result.emplace_back(ZoneName(zone, variant));
-      }
+      result.emplace_back(ZoneName(zone, variant));
     }
     catch (std::exception& e) {
       cerr << e.what() << ": " << makeHexDump(key.getNoStripHeader<string>()) << " / " << makeHexDump(val.get<string>()) << endl; // VIEWS_DEBUG improve this
     }
 
-    ret = cursor.next(key, val); // this should be prefix-limited to quickly find, and then only scan, one view
+    ret = cursor.next(key, val);
   } while (ret != MDB_NOTFOUND);
 }
 
