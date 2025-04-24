@@ -19,6 +19,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+#include "pdns/auth-zonecache.hh"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -368,12 +369,14 @@ void TCPNameserver::doConnection(int fd)
 
       if(packet->qtype.getCode()==QType::AXFR) {
         packet->d_xfr=true;
-        doAXFR(packet->qdomain, packet, fd);
+        g_zoneCache.setZoneVariant(packet);
+        doAXFR(packet->qdomainzone, packet, fd);
         continue;
       }
 
       if(packet->qtype.getCode()==QType::IXFR) {
         packet->d_xfr=true;
+        g_zoneCache.setZoneVariant(packet);
         doIXFR(packet, fd);
         continue;
       }
@@ -589,9 +592,9 @@ namespace {
 
 
 /** do the actual zone transfer. Return 0 in case of error, 1 in case of success */
-int TCPNameserver::doAXFR(const DNSName &target, std::unique_ptr<DNSPacket>& q, int outsock)  // NOLINT(readability-function-cognitive-complexity)
+int TCPNameserver::doAXFR(const ZoneName &targetZone, std::unique_ptr<DNSPacket>& q, int outsock)  // NOLINT(readability-function-cognitive-complexity)
 {
-  ZoneName targetZone(target);
+  DNSName target = targetZone.operator const DNSName&();
   string logPrefix="AXFR-out zone '"+targetZone.toLogString()+"', client '"+q->getRemoteStringWithPort()+"', ";
 
   std::unique_ptr<DNSPacket> outpacket= getFreshAXFRPacket(q);
@@ -1311,7 +1314,7 @@ int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
   }
 
   g_log<<Logger::Notice<<logPrefix<<"IXFR fallback to AXFR"<<endl;
-  return doAXFR(q->qdomain, q, outsock);
+  return doAXFR(q->qdomainzone, q, outsock);
 }
 
 TCPNameserver::~TCPNameserver() = default;
