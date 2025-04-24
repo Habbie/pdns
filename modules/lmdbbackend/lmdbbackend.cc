@@ -1334,6 +1334,24 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
   return comments.empty();
 }
 
+// FIXME: this is not very efficient
+static DNSName keyUnconv(std::string& in)
+{
+  // in is now com0example0
+  vector<string> labels;
+  boost::split(labels, in, [](char c) { return c == '\0'; });
+
+  // we get a spurious empty label at the end, drop it
+  labels.resize(labels.size() - 1);
+
+  DNSName tmp;
+
+  for (auto const& label : labels) {
+    tmp.appendRawLabel(label);
+  }
+  return tmp.labelReverse();
+}
+
 void LMDBBackend::viewList(vector<string>& result)
 {
   auto txn = d_tdomains->getEnv()->getROTransaction();
@@ -1342,7 +1360,7 @@ void LMDBBackend::viewList(vector<string>& result)
 
   auto cursor = txn->getROCursor(d_tviews);
 
-  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  MDBOutVal key{}; // <view, dnsname>
   MDBOutVal val{}; // <variant>
 
   auto ret = cursor.first(key, val);
@@ -1355,7 +1373,7 @@ void LMDBBackend::viewList(vector<string>& result)
     try {
       auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
       auto variant = val.get<string>();
-      cerr << "in view [" << view << "], zone [" << zone << "] has variant [" << variant << "]" << endl; // VIEWS_DEBUG remove
+      cerr << "in view [" << view << "], zone [" << keyUnconv(zone) << "] has variant [" << variant << "]" << endl; // VIEWS_DEBUG remove
       tmp.insert(view);
     }
     catch (std::exception& e) {
@@ -1376,7 +1394,9 @@ void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 
   auto cursor = txn->getROCursor(d_tviews);
 
-  MDBOutVal key{}; // <view, dnsname> - probably needs dnsname reversed like in domains_v5_0
+  string inkey{inview + string(1, (char)0)};
+  MDBInVal prefix{inkey};
+  MDBOutVal key{}; // <view, dnsname>
   MDBOutVal val{}; // <variant>
 
   auto ret = cursor.first(key, val);
@@ -1387,8 +1407,9 @@ void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 
   do {
     try {
-      auto [view, zone] = splitField(key.getNoStripHeader<string>(), '\x0');
+      auto [view, _zone] = splitField(key.getNoStripHeader<string>(), '\x0');
       auto variant = val.get<string>();
+      auto zone = keyUnconv(_zone);
       cerr << "in view [" << view << "], zone [" << zone << "] has variant [" << variant << "]" << endl; // VIEWS_DEBUG remove
       if (view == inview) {
         result.emplace_back(ZoneName(zone, variant));
@@ -1407,8 +1428,7 @@ bool LMDBBackend::viewAddZone(const string& view, const ZoneName& zone)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();
 
-  // Note that this relies upon ZoneName::toString() intentionally NOT outputting the variant name.
-  string key = view + string(1, (char)0) + zone.toString();
+  string key = view + string(1, (char)0) + keyConv(zone.operator const DNSName&());
   string val = zone.getVariant(); // variant goes here
 
   txn->put(d_tviews, key, val);
@@ -1421,8 +1441,7 @@ bool LMDBBackend::viewDelZone(const string& view, const ZoneName& zone)
 {
   auto txn = d_tdomains->getEnv()->getRWTransaction();
 
-  // Note that this relies upon ZoneName::toString() intentionally NOT outputting the variant name.
-  string key = view + string(1, (char)0) + zone.toString();
+  string key = view + string(1, (char)0) + keyConv(zone.operator const DNSName&());
   // string val = "foo"; // variant goes here
 
   txn->del(d_tviews, key);
