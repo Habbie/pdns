@@ -250,7 +250,14 @@ vector<std::unique_ptr<DNSBackend>> BackendMakerClass::all(bool metadataOnly)
 */
 bool DNSBackend::getSOA(const ZoneName& domain, SOAData& soaData)
 {
-  this->lookup(QType(QType::SOA), domain.operator const DNSName&(), -1);
+  if (domain.hasVariant()) {
+    DomainInfo domaininfo;
+    this->getDomainInfo(domain, domaininfo, false);
+    this->lookup(QType(QType::SOA), domain.operator const DNSName&(), domaininfo.id);
+  }
+  else {
+    this->lookup(QType(QType::SOA), domain.operator const DNSName&(), -1);
+  }
   S.inc("backend-queries");
 
   DNSResourceRecord resourceRecord;
