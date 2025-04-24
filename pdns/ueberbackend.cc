@@ -546,6 +546,11 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
         remote = pkt_p->getRealRemote(); // we lose the prefix len from ECS here
       }
       if (g_zoneCache.getEntry(shorter, zoneId, &remote)) {
+        // Update the DNSPacket, so that the packet cache can use
+        // the appropriate network when caching a result for that packet.
+        if (pkt_p != nullptr && !remote.empty()) {
+          pkt_p->d_span = remote;
+        }
         if (fillSOAFromZoneRecord(shorter, zoneId, soaData)) {
           if (foundTarget(target, shorter, qtype, soaData, found)) {
             return true;
