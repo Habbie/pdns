@@ -256,6 +256,7 @@ bool DNSBackend::getSOA(const ZoneName& domain, SOAData& soaData)
     this->lookup(QType(QType::SOA), domain.operator const DNSName&(), domaininfo.id);
   }
   else {
+    // Safe to pass -1 as domain ID here
     this->lookup(QType(QType::SOA), domain.operator const DNSName&(), -1);
   }
   S.inc("backend-queries");

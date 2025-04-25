@@ -256,6 +256,7 @@ private:
 class FindNS
 {
 public:
+  // TODO: make ZoneName aware?
   vector<string> lookup(const DNSName& name, UeberBackend* b)
   {
     vector<string> addresses;

@@ -253,10 +253,12 @@ static void dbBench(const std::string& fname)
   unsigned int hits=0, misses=0;
   for(; n < 10000; ++n) {
     DNSName domain(domains[dns_random(domains.size())]);
+    // Safe to pass -1 as domain ID here
     B.lookup(QType(QType::NS), domain, -1);
     while(B.get(rr)) {
       hits++;
     }
+    // Safe to pass -1 as domain ID here
     B.lookup(QType(QType::A), DNSName(std::to_string(dns_random_uint32()))+domain, -1);
     while(B.get(rr)) {
     }
@@ -4540,6 +4542,7 @@ static int backendLookup(vector<string>& cmds, const std::string_view synopsis)
     queryPacket.setRealRemote(clientNetmask);
   }
 
+  // Safe to pass -1 as domain ID here, no use of ZoneName
   matchingBackend->lookup(type, name, -1, &queryPacket);
 
   bool found = false;
