@@ -758,6 +758,7 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
         throw std::runtime_error("Somehow, we are not at schema version 6. Giving up");
       }
 
+      // FIXME: these d_t* lines are duplicated just 50 lines later. They've already gone out of sync once.
       d_tdomains = std::make_shared<tdomains_t>(getMDBEnv(getArg("filename").c_str(), MDB_NOSUBDIR | MDB_NORDAHEAD | d_asyncFlag, 0600, mapSize), "domains_v5");
       d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
       d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
@@ -825,8 +826,8 @@ LMDBBackend::LMDBBackend(const std::string& suffix)
     d_tmeta = std::make_shared<tmeta_t>(d_tdomains->getEnv(), "metadata_v5");
     d_tkdb = std::make_shared<tkdb_t>(d_tdomains->getEnv(), "keydata_v5");
     d_ttsig = std::make_shared<ttsig_t>(d_tdomains->getEnv(), "tsig_v5");
-    d_tnetworks = d_tdomains->getEnv()->openDB("networks_v5", MDB_CREATE);
-    d_tviews = d_tdomains->getEnv()->openDB("views_v5", MDB_CREATE);
+    d_tnetworks = d_tdomains->getEnv()->openDB("networks_v6", MDB_CREATE);
+    d_tviews = d_tdomains->getEnv()->openDB("views_v6", MDB_CREATE);
   }
   d_trecords.resize(s_shards);
   d_dolog = ::arg().mustDo("query-logging");
