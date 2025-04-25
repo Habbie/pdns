@@ -910,7 +910,7 @@ bool GeoIPBackend::getDomainInfo(const ZoneName& domain, DomainInfo& info, bool 
   for (const GeoIPDomain& dom : s_domains) {
     if (dom.domain == domain) {
       SOAData sd;
-      this->getSOA(dom.domain, dom.id, sd);
+      this->getSOA(dom.domain, dom.id, sd); // NOLINT(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
       info.id = dom.id;
       info.zone = dom.domain;
       info.serial = sd.serial;
@@ -929,7 +929,7 @@ void GeoIPBackend::getAllDomains(vector<DomainInfo>* domains, bool /* getSerial 
   DomainInfo di;
   for (const auto& dom : s_domains) {
     SOAData sd;
-    this->getSOA(dom.domain, dom.id, sd);
+    this->getSOA(dom.domain, dom.id, sd); // NOLINT(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
     di.id = dom.id;
     di.zone = dom.domain;
     di.serial = sd.serial;

@@ -254,7 +254,7 @@ bool DNSBackend::getSOA(const ZoneName& domain, int zoneId, SOAData& soaData)
   if (domain.hasVariant() && zoneId == -1) {
     DomainInfo domaininfo;
     this->getDomainInfo(domain, domaininfo, false);
-    zoneId = domaininfo.id;
+    zoneId = domaininfo.id; // NOLINT(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
   }
   this->lookup(QType(QType::SOA), domain.operator const DNSName&(), zoneId);
   S.inc("backend-queries");
