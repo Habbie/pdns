@@ -263,6 +263,7 @@ public:
     this->resolve_name(&addresses, name);
 
     if (b) {
+      // Safe to pass -1 as domain ID here - name is obtained from NSRecordContent
       b->lookup(QType(QType::ANY), name, -1);
       DNSZoneRecord rr;
       while (b->get(rr))
