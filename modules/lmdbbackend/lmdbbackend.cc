@@ -1334,7 +1334,7 @@ bool LMDBBackend::replaceComments([[maybe_unused]] const uint32_t domain_id, [[m
 }
 
 // FIXME: this is not very efficient
-DNSName keyUnconv(std::string& instr)
+static DNSName keyUnconv(std::string& instr)
 {
   // instr is now com0example0
   vector<string> labels;
@@ -1378,7 +1378,8 @@ void LMDBBackend::viewList(vector<string>& result)
       cerr << e.what() << ": " << makeHexDump(key.getNoStripHeader<string>()) << " / " << makeHexDump(val.get<string>()) << endl; // VIEWS_DEBUG improve this
     }
 
-    MDBInVal bound{view + string(1, (char)1)};
+    string inkey{view + string(1, (char)1)};
+    MDBInVal bound{inkey};
     ret = cursor.lower_bound(bound, key, val); // this should use some lower bound thing to skip to the next view, also avoiding duplicates in `result`
   } while (ret != MDB_NOTFOUND);
 }
@@ -1391,7 +1392,8 @@ void LMDBBackend::viewListZones(const string& inview, vector<ZoneName>& result)
 
   auto cursor = txn->getROCursor(d_tviews);
 
-  MDBInVal prefix{inview + string(1, (char)0)};
+  string inkey{inview + string(1, (char)0)};
+  MDBInVal prefix{inkey};
   MDBOutVal key{}; // <view, dnsname>
   MDBOutVal val{}; // <variant>
 
