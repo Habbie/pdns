@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(test_netmask)
     BOOST_FAIL("bad.puns lookup from outer zone reported wrong network " + nm.toString());
   }
 
-  // Query from no particular zone
+  // Query from no particular zone, should clear netmask
   nm = makeComboAddress("1.2.3.4");
   search = ZoneName("non.existent");
   found = cache.getEntry(search, zoneId, &nm);
@@ -227,8 +227,8 @@ BOOST_AUTO_TEST_CASE(test_netmask)
   if (zoneId != 1000) {
     BOOST_FAIL("bad.puns lookup from the internet reported wrong id " + std::to_string(zoneId));
   }
-  if (nm != Netmask("1.2.3.4/32")) {
-    BOOST_FAIL("bad.puns lookup from the internet reported wrong network " + nm.toString());
+  if (!nm.empty()) {
+    BOOST_FAIL("bad.puns lookup from the internet reported restricted network " + nm.toString());
   }
 }
 
