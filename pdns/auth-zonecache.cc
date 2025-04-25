@@ -122,6 +122,9 @@ void AuthZoneCache::setZoneVariant(std::unique_ptr<DNSPacket>& packet)
   if (getEntry(zone, zoneId, &net)) {
     packet->qdomainzone = zone;
   }
+  else {
+    packet->qdomainzone = ZoneName(packet->qdomain);
+  }
 }
 
 bool AuthZoneCache::isEnabled() const
