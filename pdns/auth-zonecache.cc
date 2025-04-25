@@ -66,6 +66,13 @@ bool AuthZoneCache::getEntry(ZoneName& zone, int& zoneId, Netmask* net)
     // this handles the "empty" case, but might hide other errors
   }
 
+  // If this network doesn't match a view, then we want to clear the netmask
+  // information, as our caller might submit it to the packet cache and there
+  // is no reason to narrow caching for views-agnostic queries.
+  if (view.empty()) {
+    *net = Netmask();
+  }
+
   cerr << "view=[" << view << "]"; // VIEWS_DEBUG remove
 
   string variant;
