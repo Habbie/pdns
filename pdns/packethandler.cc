@@ -1607,7 +1607,7 @@ bool PacketHandler::opcodeQueryInner2(DNSPacket& pkt, queryState &state, bool re
   }
   DLOG(g_log<<Logger::Error<<"We have authority, zone='"<<d_sd.qname<<"', id="<<d_sd.domain_id<<endl);
 
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   if (!retargeted) {
     state.r->qdomainzone = zonename;
   } else if (!d_doResolveAcrossZones && state.r->qdomainzone.operator const DNSName&() != d_sd.qname) {
