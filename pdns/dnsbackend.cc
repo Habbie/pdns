@@ -44,7 +44,7 @@ std::function<std::string(const std::string&, int)> g_getGeo;
 
 bool DNSBackend::getAuth(const ZoneName& target, SOAData* soaData)
 {
-  return this->getSOA(target, *soaData);
+  return this->getSOA(target, -1, *soaData);
 }
 
 void DNSBackend::setArgPrefix(const string& prefix)
@@ -245,20 +245,18 @@ vector<std::unique_ptr<DNSBackend>> BackendMakerClass::all(bool metadataOnly)
     answer, in which case you need to perform a getDomainInfo call!
 
     \param domain Domain we want to get the SOA details of
-    \param sd SOAData which is filled with the SOA details
+    \param zoneId Domain id, if known
+    \param soaData SOAData which is filled with the SOA details
     \param unmodifiedSerial bool if set, serial will be returned as stored in the backend (maybe 0)
 */
-bool DNSBackend::getSOA(const ZoneName& domain, SOAData& soaData)
+bool DNSBackend::getSOA(const ZoneName& domain, int zoneId, SOAData& soaData)
 {
-  if (domain.hasVariant()) {
+  if (domain.hasVariant() && zoneId == -1) {
     DomainInfo domaininfo;
     this->getDomainInfo(domain, domaininfo, false);
-    this->lookup(QType(QType::SOA), domain.operator const DNSName&(), domaininfo.id);
+    zoneId = domaininfo.id;
   }
-  else {
-    // Safe to pass -1 as domain ID here
-    this->lookup(QType(QType::SOA), domain.operator const DNSName&(), -1);
-  }
+  this->lookup(QType(QType::SOA), domain.operator const DNSName&(), zoneId);
   S.inc("backend-queries");
 
   DNSResourceRecord resourceRecord;

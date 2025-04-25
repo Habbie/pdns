@@ -184,7 +184,7 @@ public:
   virtual ~DNSBackend() = default;
 
   //! fills the soadata struct with the SOA details. Returns false if there is no SOA.
-  virtual bool getSOA(const ZoneName& domain, SOAData& soaData);
+  virtual bool getSOA(const ZoneName& domain, int zoneId, SOAData& soaData);
 
   virtual bool replaceRRSet(uint32_t /* domain_id */, const DNSName& /* qname */, const QType& /* qt */, const vector<DNSResourceRecord>& /* rrset */)
   {
