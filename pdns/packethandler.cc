@@ -661,7 +661,7 @@ vector<ComboAddress> PacketHandler::getIPAddressFor(const DNSName &target, const
 
 void PacketHandler::emitNSEC(std::unique_ptr<DNSPacket>& r, const DNSName& name, const DNSName& next, int mode)
 {
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   NSECRecordContent nrc;
   nrc.d_next = next;
 
@@ -978,7 +978,7 @@ void PacketHandler::addNSEC(DNSPacket& /* p */, std::unique_ptr<DNSPacket>& r, c
 {
   DLOG(g_log<<"addNSEC() mode="<<mode<<" auth="<<d_sd.qname<<" target="<<target<<" wildcard="<<wildcard<<endl);
 
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   if (d_sd.db == nullptr) {
     if(!B.getSOAUncached(zonename, d_sd)) {
       DLOG(g_log<<"Could not get SOA for domain"<<endl);
