@@ -554,6 +554,7 @@ bool UeberBackend::getAuth(const ZoneName& target, const QType& qtype, SOAData* 
         }
         if (fillSOAFromZoneRecord(_shorter, zoneId, soaData)) {
           if (foundTarget(target, _shorter, qtype, soaData, found)) {
+            soaData->zonename = _shorter;
             return true;
           }
 

@@ -580,6 +580,7 @@ struct SOAData
     domain_id(-1) {};
 
   DNSName qname;
+  ZoneName zonename;
   DNSName nameserver;
   DNSName rname;
   uint32_t ttl{};
