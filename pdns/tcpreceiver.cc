@@ -464,7 +464,7 @@ bool TCPNameserver::canDoAXFR(std::unique_ptr<DNSPacket>& q, bool isAXFR, std::u
   if(::arg().mustDo("disable-axfr"))
     return false;
 
-  ZoneName zonename(q->qdomain);
+  ZoneName zonename(q->qdomainzone);
   string logPrefix=string(isAXFR ? "A" : "I")+"XFR-out zone '"+zonename.toLogString()+"', client '"+q->getInnerRemote().toStringWithPort()+"', ";
 
   if(q->d_havetsig) { // if you have one, it must be good
@@ -1192,7 +1192,7 @@ send:
 
 int TCPNameserver::doIXFR(std::unique_ptr<DNSPacket>& q, int outsock)
 {
-  ZoneName zonename(q->qdomain);
+  ZoneName zonename(q->qdomainzone);
   string logPrefix="IXFR-out zone '"+zonename.toLogString()+"', client '"+q->getRemoteStringWithPort()+"', ";
 
   std::unique_ptr<DNSPacket> outpacket=getFreshAXFRPacket(q);
