@@ -1306,7 +1306,7 @@ bool PacketHandler::tryReferral(DNSPacket& p, std::unique_ptr<DNSPacket>& r, con
   if(!retargeted)
     r->setA(false);
 
-  if(d_dk.isSecuredZone(ZoneName(d_sd.qname)) && !addDSforNS(p, r, name) && d_dnssec) {
+  if(d_dk.isSecuredZone(ZoneName(d_sd.zonename)) && !addDSforNS(p, r, name) && d_dnssec) {
     addNSECX(p, r, name, DNSName(), 1);
   }
 
