@@ -121,7 +121,7 @@ PacketHandler::~PacketHandler()
 **/
 bool PacketHandler::addCDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 {
-  ZoneName zonename(p.qdomain);
+  ZoneName zonename(r->qdomainzone);
   string publishCDNSKEY;
   d_dk.getPublishCDNSKEY(zonename,publishCDNSKEY);
   if (publishCDNSKEY.empty())
@@ -209,8 +209,9 @@ bool PacketHandler::addDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 **/
 bool PacketHandler::addCDS(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 {
+  ZoneName zonename(r->qdomainzone);
   string publishCDS;
-  d_dk.getPublishCDS(ZoneName(p.qdomain), publishCDS);
+  d_dk.getPublishCDS(zonename, publishCDS);
   if (publishCDS.empty())
     return false;
 
@@ -231,7 +232,7 @@ bool PacketHandler::addCDS(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 
   bool haveOne=false;
 
-  for (const auto& value : d_dk.getEntryPoints(ZoneName(p.qdomain))) {
+  for (const auto& value : d_dk.getEntryPoints(zonename)) {
     if (!value.second.published) {
       continue;
     }
@@ -261,7 +262,7 @@ bool PacketHandler::addNSEC3PARAM(const DNSPacket& p, std::unique_ptr<DNSPacket>
   DNSZoneRecord rr;
 
   NSEC3PARAMRecordContent ns3prc;
-  if(d_dk.getNSEC3PARAM(ZoneName(p.qdomain), &ns3prc)) {
+  if(d_dk.getNSEC3PARAM(ZoneName(r->qdomainzone), &ns3prc)) {
     rr.dr.d_type=QType::NSEC3PARAM;
     rr.dr.d_ttl=d_sd.minimum;
     rr.dr.d_name=p.qdomain;
