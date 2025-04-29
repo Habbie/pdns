@@ -743,7 +743,7 @@ void PacketHandler::emitNSEC(std::unique_ptr<DNSPacket>& r, const DNSName& name,
 
 void PacketHandler::emitNSEC3(std::unique_ptr<DNSPacket>& r, const NSEC3PARAMRecordContent& ns3prc, const DNSName& name, const string& namehash, const string& nexthash, int mode)
 {
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   NSEC3RecordContent n3rc;
   n3rc.d_algorithm = ns3prc.d_algorithm;
   n3rc.d_flags = ns3prc.d_flags;
@@ -846,7 +846,7 @@ void PacketHandler::addNSECX(DNSPacket& p, std::unique_ptr<DNSPacket>& r, const 
 {
   NSEC3PARAMRecordContent ns3rc;
   bool narrow = false;
-  if(d_dk.getNSEC3PARAM(ZoneName(d_sd.qname), &ns3rc, &narrow))  {
+  if(d_dk.getNSEC3PARAM(ZoneName(d_sd.zonename), &ns3rc, &narrow))  {
     if (mode != 5) // no direct NSEC3 queries, rfc5155 7.2.8
       addNSEC3(p, r, target, wildcard, ns3rc, narrow, mode);
   }
@@ -885,7 +885,7 @@ void PacketHandler::addNSEC3(DNSPacket& p, std::unique_ptr<DNSPacket>& r, const 
   DLOG(g_log<<"addNSEC3() mode="<<mode<<" auth="<<d_sd.qname<<" target="<<target<<" wildcard="<<wildcard<<endl);
 
   if (d_sd.db == nullptr) {
-    if(!B.getSOAUncached(ZoneName(d_sd.qname), d_sd)) {
+    if(!B.getSOAUncached(ZoneName(d_sd.zonename), d_sd)) {
       DLOG(g_log<<"Could not get SOA for domain"<<endl);
       return;
     }
