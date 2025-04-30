@@ -579,7 +579,8 @@ struct SOAData
   SOAData() :
     domain_id(-1) {};
 
-  DNSName qname;
+  DNSName qname; // FIXME: now mostly redundant with zonename, simplify usage
+  ZoneName zonename;
   DNSName nameserver;
   DNSName rname;
   uint32_t ttl{};

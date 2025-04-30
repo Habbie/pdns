@@ -121,7 +121,7 @@ PacketHandler::~PacketHandler()
 **/
 bool PacketHandler::addCDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 {
-  ZoneName zonename(p.qdomain);
+  ZoneName zonename(r->qdomainzone);
   string publishCDNSKEY;
   d_dk.getPublishCDNSKEY(zonename,publishCDNSKEY);
   if (publishCDNSKEY.empty())
@@ -173,7 +173,7 @@ bool PacketHandler::addDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
   DNSZoneRecord rr;
   bool haveOne=false;
 
-  for (const auto& value : d_dk.getKeys(ZoneName(p.qdomain))) {
+  for (const auto& value : d_dk.getKeys(r->qdomainzone)) { // FIXME: as we take this from the reply packet, I wonder what happens if this DNSKEY lookup was at the end of a CNAME chain
     if (!value.second.published) {
       continue;
     }
@@ -209,8 +209,9 @@ bool PacketHandler::addDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 **/
 bool PacketHandler::addCDS(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 {
+  ZoneName zonename(r->qdomainzone);
   string publishCDS;
-  d_dk.getPublishCDS(ZoneName(p.qdomain), publishCDS);
+  d_dk.getPublishCDS(zonename, publishCDS);
   if (publishCDS.empty())
     return false;
 
@@ -231,7 +232,7 @@ bool PacketHandler::addCDS(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
 
   bool haveOne=false;
 
-  for (const auto& value : d_dk.getEntryPoints(ZoneName(p.qdomain))) {
+  for (const auto& value : d_dk.getEntryPoints(zonename)) {
     if (!value.second.published) {
       continue;
     }
@@ -261,7 +262,7 @@ bool PacketHandler::addNSEC3PARAM(const DNSPacket& p, std::unique_ptr<DNSPacket>
   DNSZoneRecord rr;
 
   NSEC3PARAMRecordContent ns3prc;
-  if(d_dk.getNSEC3PARAM(ZoneName(p.qdomain), &ns3prc)) {
+  if(d_dk.getNSEC3PARAM(ZoneName(r->qdomainzone), &ns3prc)) {
     rr.dr.d_type=QType::NSEC3PARAM;
     rr.dr.d_ttl=d_sd.minimum;
     rr.dr.d_name=p.qdomain;
@@ -661,7 +662,7 @@ vector<ComboAddress> PacketHandler::getIPAddressFor(const DNSName &target, const
 
 void PacketHandler::emitNSEC(std::unique_ptr<DNSPacket>& r, const DNSName& name, const DNSName& next, int mode)
 {
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   NSECRecordContent nrc;
   nrc.d_next = next;
 
@@ -742,7 +743,7 @@ void PacketHandler::emitNSEC(std::unique_ptr<DNSPacket>& r, const DNSName& name,
 
 void PacketHandler::emitNSEC3(std::unique_ptr<DNSPacket>& r, const NSEC3PARAMRecordContent& ns3prc, const DNSName& name, const string& namehash, const string& nexthash, int mode)
 {
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   NSEC3RecordContent n3rc;
   n3rc.d_algorithm = ns3prc.d_algorithm;
   n3rc.d_flags = ns3prc.d_flags;
@@ -845,7 +846,7 @@ void PacketHandler::addNSECX(DNSPacket& p, std::unique_ptr<DNSPacket>& r, const 
 {
   NSEC3PARAMRecordContent ns3rc;
   bool narrow = false;
-  if(d_dk.getNSEC3PARAM(ZoneName(d_sd.qname), &ns3rc, &narrow))  {
+  if(d_dk.getNSEC3PARAM(ZoneName(d_sd.zonename), &ns3rc, &narrow))  {
     if (mode != 5) // no direct NSEC3 queries, rfc5155 7.2.8
       addNSEC3(p, r, target, wildcard, ns3rc, narrow, mode);
   }
@@ -884,7 +885,7 @@ void PacketHandler::addNSEC3(DNSPacket& p, std::unique_ptr<DNSPacket>& r, const 
   DLOG(g_log<<"addNSEC3() mode="<<mode<<" auth="<<d_sd.qname<<" target="<<target<<" wildcard="<<wildcard<<endl);
 
   if (d_sd.db == nullptr) {
-    if(!B.getSOAUncached(ZoneName(d_sd.qname), d_sd)) {
+    if(!B.getSOAUncached(ZoneName(d_sd.zonename), d_sd)) {
       DLOG(g_log<<"Could not get SOA for domain"<<endl);
       return;
     }
@@ -978,7 +979,7 @@ void PacketHandler::addNSEC(DNSPacket& /* p */, std::unique_ptr<DNSPacket>& r, c
 {
   DLOG(g_log<<"addNSEC() mode="<<mode<<" auth="<<d_sd.qname<<" target="<<target<<" wildcard="<<wildcard<<endl);
 
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   if (d_sd.db == nullptr) {
     if(!B.getSOAUncached(zonename, d_sd)) {
       DLOG(g_log<<"Could not get SOA for domain"<<endl);
@@ -1305,7 +1306,7 @@ bool PacketHandler::tryReferral(DNSPacket& p, std::unique_ptr<DNSPacket>& r, con
   if(!retargeted)
     r->setA(false);
 
-  if(d_dk.isSecuredZone(ZoneName(d_sd.qname)) && !addDSforNS(p, r, name) && d_dnssec) {
+  if(d_dk.isSecuredZone(ZoneName(d_sd.zonename)) && !addDSforNS(p, r, name) && d_dnssec) {
     addNSECX(p, r, name, DNSName(), 1);
   }
 
@@ -1605,9 +1606,9 @@ bool PacketHandler::opcodeQueryInner2(DNSPacket& pkt, queryState &state, bool re
     }
     return true;
   }
-  DLOG(g_log<<Logger::Error<<"We have authority, zone='"<<d_sd.qname<<"', id="<<d_sd.domain_id<<endl);
+  DLOG(g_log<<Logger::Error<<"We have authority, zone='"<<d_sd.qname<<"', id="<<d_sd.domain_id<<", zonename="<<d_sd.zonename<<endl);
 
-  ZoneName zonename(d_sd.qname);
+  ZoneName zonename(d_sd.zonename);
   if (!retargeted) {
     state.r->qdomainzone = zonename;
   } else if (!d_doResolveAcrossZones && state.r->qdomainzone.operator const DNSName&() != d_sd.qname) {
