@@ -67,7 +67,7 @@ __EOF__
 
         # setup catalog zone
 
-        if ! $RUNWRAPPER_PDNSUTIL $PDNSUTIL --config-dir=. --config-name=lmdb list-all-zones | grep '^.$' # detect root tests
+        if ! $RUNWRAPPER_PDNSUTIL $PDNSUTIL --config-dir=. --config-name=lmdb list-all-zones | grep '^.' # detect root tests
         then
             for zone in $(grep 'zone ' named.conf  | cut -f2 -d\" | grep -v '^nztest.com$')
             do

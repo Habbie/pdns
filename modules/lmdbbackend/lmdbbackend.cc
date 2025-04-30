@@ -28,6 +28,7 @@
 #include "pdns/base32.hh"
 #include "pdns/dns.hh"
 #include "pdns/dnsbackend.hh"
+#include "pdns/dnsname.hh"
 #include "pdns/dnspacket.hh"
 #include "pdns/dnssecinfra.hh"
 #include "pdns/logger.hh"
@@ -1345,6 +1346,11 @@ static DNSName keyUnconv(std::string& instr)
   labels.resize(labels.size() - 1);
 
   DNSName tmp;
+
+  if (labels.size() == 1 && labels[0].size() == 0) {
+    // this is the root
+    return g_rootdnsname;
+  }
 
   for (auto const& label : labels) {
     tmp.appendRawLabel(label);
