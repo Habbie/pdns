@@ -1606,7 +1606,7 @@ bool PacketHandler::opcodeQueryInner2(DNSPacket& pkt, queryState &state, bool re
     }
     return true;
   }
-  DLOG(g_log<<Logger::Error<<"We have authority, zone='"<<d_sd.qname<<"', id="<<d_sd.domain_id<<endl);
+  DLOG(g_log<<Logger::Error<<"We have authority, zone='"<<d_sd.qname<<"', id="<<d_sd.domain_id<<", zonename="<<d_sd.zonename<<endl);
 
   ZoneName zonename(d_sd.zonename);
   if (!retargeted) {
