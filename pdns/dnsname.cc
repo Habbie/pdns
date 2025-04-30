@@ -792,8 +792,9 @@ std::string ZoneName::toLogString() const
 size_t ZoneName::hash(size_t init) const
 {
   if (!d_variant.empty()) {
-    init = burtleCI((const unsigned char *)d_variant.data(), d_variant.length(), init);
+    init = burtleCI(reinterpret_cast<const unsigned char *>(d_variant.data()), d_variant.length(), init); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast): can't static_cast because of sign difference
   }
+  
   return d_name.hash(init);
 }
 
@@ -815,8 +816,8 @@ bool ZoneName::operator<(const ZoneName& rhs)  const
     if (char1 > char2) {
       return false;
     }
-    ++iter1;
-    ++iter2;
+    ++iter1; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    ++iter2; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   }
   if (iter1 == last1) {
     if (iter2 != last2) {

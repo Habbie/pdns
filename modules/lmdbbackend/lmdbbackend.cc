@@ -1342,7 +1342,7 @@ static DNSName keyUnconv(std::string& instr)
   // we get a spurious empty label at the end, drop it
   labels.resize(labels.size() - 1);
 
-  if (labels.size() == 1 && labels[0].size() == 0) {
+  if (labels.size() == 1 && labels[0].empty()) {
     // this is the root
     return g_rootdnsname;
   }

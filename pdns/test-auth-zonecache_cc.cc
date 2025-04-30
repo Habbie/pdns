@@ -125,11 +125,11 @@ BOOST_AUTO_TEST_CASE(test_netmask)
   cache.setRefreshInterval(3600);
 
   // Declare a few zones
-  ZoneName bl("bug.less");
+  ZoneName bl("bug.less"); // NOLINT(readability-identifier-length)
   ZoneName bli("bug.less:inner");
   ZoneName blo("bug.less:outer");
-  ZoneName fb("fewer.bugs");
-  ZoneName bp("bad.puns");
+  ZoneName fb("fewer.bugs"); // NOLINT(readability-identifier-length)
+  ZoneName bp("bad.puns"); // NOLINT(readability-identifier-length)
   cache.add(bli, 42);
   cache.add(blo, 43);
   cache.add(fb, 100);
@@ -149,17 +149,16 @@ BOOST_AUTO_TEST_CASE(test_netmask)
   cache.addToView(outer, blo);
 
   int zoneId{0};
-  bool found;
   ZoneName search{};
 
   // Query from no known address
-  found = cache.getEntry(bl, zoneId);
+  bool found = cache.getEntry(bl, zoneId);
   if (found) {
     BOOST_FAIL("bug.less lookup should have failed");
   }
 
   // Query from inner zone
-  Netmask nm(makeComboAddress("20.25.4.24"));
+  Netmask nm(makeComboAddress("20.25.4.24")); // NOLINT(readability-identifier-length)
   search = bl;
   found = cache.getEntry(search, zoneId, &nm);
   if (!found) {
