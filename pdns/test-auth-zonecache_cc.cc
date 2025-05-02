@@ -126,8 +126,8 @@ BOOST_AUTO_TEST_CASE(test_netmask)
 
   // Declare a few zones
   ZoneName bl("bug.less"); // NOLINT(readability-identifier-length)
-  ZoneName bli("bug.less:inner");
-  ZoneName blo("bug.less:outer");
+  ZoneName bli("bug.less@inner");
+  ZoneName blo("bug.less@outer");
   ZoneName fb("fewer.bugs"); // NOLINT(readability-identifier-length)
   ZoneName bp("bad.puns"); // NOLINT(readability-identifier-length)
   cache.add(bli, 42);

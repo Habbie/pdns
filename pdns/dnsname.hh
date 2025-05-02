@@ -331,7 +331,7 @@ class ZoneName
 {
 public:
   // The character used to separate a name from its variant.
-  constexpr static char c_separator{':'}; // TODO: bikeshed
+  constexpr static char c_separator{'@'}; // TODO: bikeshed
 
   ZoneName() = default; //!< Constructs an *empty* ZoneName, NOT the root!
   // Work around assertion in some boost versions that do not like self-assignment of boost::container::string

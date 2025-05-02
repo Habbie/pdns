@@ -11,7 +11,7 @@ Reply to question for qname='example.com.', qtype=TXT
 Rcode: 0 (No Error), RD: 0, QR: 1, TC: 0, AA: 1, opcode: 0
 Reply to question for qname='cname.example.com.', qtype=TXT
 0	cname.example.com.	3600	IN	CNAME	target.example.org.
-0	target.example.org.	3600	IN	TXT	"hello from target:foo"
+0	target.example.org.	3600	IN	TXT	"hello from target@foo"
 2	.	0	IN	OPT	AAgACAABIADAAALI
 Rcode: 0 (No Error), RD: 0, QR: 1, TC: 0, AA: 1, opcode: 0
 Reply to question for qname='cname.example.com.', qtype=TXT

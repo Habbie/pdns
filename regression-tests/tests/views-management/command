@@ -6,7 +6,7 @@ $PDNSUTIL --config-dir=. --config-name=$backend $* 2>&1 | (egrep -v 'destructor'
 }
 
 set -e # to make this first call exit us early for non-variant capable backends. This relies on the existing example.com causing "already exists"
-pdnsutil_wrapper view-add-zone myview example.org:variant3
+pdnsutil_wrapper view-add-zone myview example.org@variant3
 set +e
 
 echo == one view
@@ -19,12 +19,12 @@ pdnsutil_wrapper view-add-zone myotherview example.com
 echo == view with one zone
 pdnsutil_wrapper view-list myotherview
 
-pdnsutil_wrapper view-add-zone myview example.org:variant2
-pdnsutil_wrapper view-add-zone myview example.net:variant5
+pdnsutil_wrapper view-add-zone myview example.org@variant2
+pdnsutil_wrapper view-add-zone myview example.net@variant5
 echo == with two zones
 pdnsutil_wrapper view-list myview
 
-pdnsutil_wrapper view-del-zone myview example.org:variant2
+pdnsutil_wrapper view-del-zone myview example.org@variant2
 echo == view with one zone
 pdnsutil_wrapper view-list myview
 
@@ -34,5 +34,5 @@ pdnsutil_wrapper view-list
 
 echo == check proper variant replacement
 pdnsutil_wrapper view-list myview
-pdnsutil_wrapper view-add-zone myview example.net:completelydifferent
+pdnsutil_wrapper view-add-zone myview example.net@completelydifferent
 pdnsutil_wrapper view-list myview
