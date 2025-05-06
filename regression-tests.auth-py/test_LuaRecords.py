@@ -3,6 +3,8 @@ import unittest
 import requests
 import threading
 import dns
+import os
+import subprocess
 import time
 import clientsubnetoption
 
@@ -42,7 +44,9 @@ class BaseLuaTest(AuthTest):
     _config_template = """
 geoip-database-files=../modules/geoipbackend/regression-tests/GeoLiteCity.mmdb
 edns-subnet-processing=yes
-launch=bind geoip
+launch=lmdb geoip
+zone-cache-refresh-interval=1
+views
 any-to-tcp=no
 enable-lua-records
 lua-records-insert-whitespace=yes
@@ -50,7 +54,7 @@ lua-health-checks-interval=1
 """
 
     _zones = {
-        'example.org': """
+        'example.org..herb': """
 example.org.                 3600 IN SOA  {soa}
 example.org.                 3600 IN NS   ns1.example.org.
 example.org.                 3600 IN NS   ns2.example.org.
@@ -222,6 +226,52 @@ geoipqueryattribute IN LUA    TXT ("string.format('%d %d %d %d %d %d %d',"
                            dns.rrset.from_text('web3.example.org.', 0, dns.rdataclass.IN, 'A',
                                                '{prefix}.103'.format(prefix=cls._PREFIX))
         ]
+
+    @classmethod
+    def generateAllAuthConfig(cls, confdir):
+        # This is very similar to AuthTest.generateAllAuthConfig,
+        # but for lmdb backend, we ignore auth keys but need to load-zone
+        # into lmdb storage.
+        cls.generateAuthConfig(confdir)
+
+        for zonename, zonecontent in cls._zones.items():
+            cls.generateAuthZone(confdir,
+                                 zonename,
+                                 zonecontent)
+            pdnsutilCmd = [os.environ['PDNSUTIL'],
+                           '--config-dir=%s' % confdir,
+                           'load-zone',
+                           zonename,
+                           os.path.join(confdir, '%s.zone' % zonename)]
+
+            print(' '.join(pdnsutilCmd))
+            try:
+                subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
+
+            pdnsutilCmd = [os.environ['PDNSUTIL'],
+                           '--config-dir=%s' % confdir,
+                           'view-add-zone',
+                           'default',
+                           zonename]
+            print(' '.join(pdnsutilCmd))
+            try:
+                subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
+
+
+        pdnsutilCmd = [os.environ['PDNSUTIL'],
+                       '--config-dir=%s' % confdir,
+                       'network-set',
+                       '0.0.0.0/0',
+                       'default']
+        print(' '.join(pdnsutilCmd))
+        try:
+            subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
 
 class TestLuaRecords(BaseLuaTest):
 
@@ -1245,7 +1295,9 @@ class TestLuaRecordsShared(TestLuaRecords):
     _config_template = """
 geoip-database-files=../modules/geoipbackend/regression-tests/GeoLiteCity.mmdb
 edns-subnet-processing=yes
-launch=bind geoip
+launch=lmdb geoip
+zone-cache-refresh-interval=1
+views
 any-to-tcp=no
 enable-lua-records=shared
 lua-records-insert-whitespace=yes
@@ -1268,7 +1320,9 @@ class TestLuaRecordsNoWhiteSpace(TestLuaRecords):
     _config_template = """
 geoip-database-files=../modules/geoipbackend/regression-tests/GeoLiteCity.mmdb
 edns-subnet-processing=yes
-launch=bind geoip
+launch=lmdb geoip
+zone-cache-refresh-interval=1
+views
 any-to-tcp=no
 enable-lua-records
 lua-records-insert-whitespace=no
@@ -1284,7 +1338,9 @@ class TestLuaRecordsSlowTimeouts(BaseLuaTest):
     _config_template = """
 geoip-database-files=../modules/geoipbackend/regression-tests/GeoLiteCity.mmdb
 edns-subnet-processing=yes
-launch=bind geoip
+launch=lmdb geoip
+zone-cache-refresh-interval=1
+views
 any-to-tcp=no
 enable-lua-records
 lua-records-insert-whitespace=yes
@@ -1412,7 +1468,9 @@ class TestLuaRecordsExecLimit(BaseLuaTest):
     _config_template = """
 geoip-database-files=../modules/geoipbackend/regression-tests/GeoLiteCity.mmdb
 edns-subnet-processing=yes
-launch=bind geoip
+launch=lmdb geoip
+zone-cache-refresh-interval=1
+views
 any-to-tcp=no
 enable-lua-records
 lua-records-insert-whitespace=yes

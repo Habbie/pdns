@@ -18,7 +18,9 @@ query-cache-ttl=0
 log-dns-queries=yes
 log-dns-details=yes
 loglevel=9
-distributor-threads=1"""
+distributor-threads=1
+views
+zone-cache-refresh-interval=1"""
 
     _config_template = """
 launch=lmdb
@@ -26,7 +28,7 @@ enable-lua-records
 """
 
     _zones = {
-        'example.org': """
+        'example.org..foo': """
 example.org.                 3600 IN SOA  {soa}
 example.org.                 3600 IN NS   ns1.example.org.
 example.org.                 3600 IN NS   ns2.example.org.
@@ -43,6 +45,7 @@ nested-lua.example.org.      3600 IN LUA  A   ( ";include('config') "
                                                 "return pickrandom(EUWips)" )
 
         """
+
     }
 
     @classmethod
@@ -68,6 +71,30 @@ nested-lua.example.org.      3600 IN LUA  A   ( ";include('config') "
             except subprocess.CalledProcessError as e:
                 raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
 
+            pdnsutilCmd = [os.environ['PDNSUTIL'],
+                           '--config-dir=%s' % confdir,
+                           'view-add-zone',
+                           'default',
+                           zonename]
+            print(' '.join(pdnsutilCmd))
+            try:
+                subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
+
+
+        pdnsutilCmd = [os.environ['PDNSUTIL'],
+                       '--config-dir=%s' % confdir,
+                       'network-set',
+                       '0.0.0.0/0',
+                       'default']
+        print(' '.join(pdnsutilCmd))
+        try:
+            subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
+
+
     def testPickRandomWithNestedLua(self):
         """
         Basic pickrandom() test with a set of A records, with a bit of lua inclusion
@@ -82,6 +109,7 @@ nested-lua.example.org.      3600 IN LUA  A   ( ";include('config') "
         res = self.sendUDPQuery(query)
         self.assertRcodeEqual(res, dns.rcode.NOERROR)
         self.assertAnyRRsetInAnswer(res, expected)
+        print(res)
 
 if __name__ == '__main__':
     unittest.main()

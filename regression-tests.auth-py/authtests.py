@@ -29,8 +29,8 @@ class AuthTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     _config_template_default = """
 module-dir={PDNS_MODULE_DIR}
 daemon=no
-bind-config={confdir}/named.conf
-bind-dnssec-db={bind_dnssec_db}
+# bind-config={confdir}/named.conf
+# bind-dnssec-db={bind_dnssec_db}
 socket-dir={confdir}
 cache-ttl=0
 negquery-cache-ttl=0
