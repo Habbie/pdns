@@ -2685,17 +2685,17 @@ static void apiServerViewsAllGET(HttpRequest* /* req */, HttpResponse* resp)
 static void apiServerViewsGET(HttpRequest* req, HttpResponse* resp)
 {
   std::string view{req->parameters["view"]};
-  std::vector<ZoneName> views;
+  std::vector<ZoneName> zones;
   UeberBackend backend;
 
-  backend.viewListZones(view, views);
+  backend.viewListZones(view, zones);
 
-  if (views.empty()) {
+  if (zones.empty()) {
     throw HttpNotFoundException(); // view does not exist
   }
 
   Json::array jsonarray;
-  jsonFillZoneNameArray(jsonarray, views);
+  jsonFillZoneNameArray(jsonarray, zones);
   Json::object jsonresult{
     {"zones", jsonarray}}; // FIXME: this should probably be a list of zone objects that at least have name and variant (perhaps separated?) and a path for .../zones/[encoded domain name with variant]
   resp->setJsonBody(jsonresult);
