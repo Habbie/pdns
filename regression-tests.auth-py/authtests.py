@@ -38,7 +38,8 @@ query-cache-ttl=0
 log-dns-queries=yes
 log-dns-details=yes
 loglevel=9
-distributor-threads=1"""
+distributor-threads=1
+zone-cache-refresh-interval=0"""
 
     _config_template = ""
 
@@ -199,7 +200,6 @@ options {
         authcmd.append('--local-address=%s' % ipaddress)
         authcmd.append('--local-port=%s' % cls._authPort)
         authcmd.append('--loglevel=9')
-        authcmd.append('--zone-cache-refresh-interval=0')
         print(' '.join(authcmd))
         logFile = os.path.join(confdir, 'pdns.log')
         with open(logFile, 'w') as fdLog:
