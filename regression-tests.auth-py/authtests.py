@@ -26,13 +26,17 @@ class AuthTest(AssertEqualDNSMessageMixin, unittest.TestCase):
 
     _backend = os.getenv("AUTH_BACKEND")
 
+    _backend_configs = dict(
+        bind="""
+bind-config={confdir}/named.conf
+bind-dnssec-db={bind_dnssec_db}
+""",    lmdb="")
+
     _config_params = []
 
     _config_template_default = """
 module-dir={PDNS_MODULE_DIR}
 daemon=no
-bind-config={confdir}/named.conf
-bind-dnssec-db={bind_dnssec_db}
 socket-dir={confdir}
 cache-ttl=0
 negquery-cache-ttl=0
@@ -126,7 +130,7 @@ options {
                         PDNS_MODULE_DIR=cls._PDNS_MODULE_DIR
                         )
 
-            pdnsconf.write(cls._config_template_default.format(**args))
+            pdnsconf.write((cls._config_template_default + cls._backend_configs[cls._backend]).format(**args))
             pdnsconf.write(cls._config_template.format(**args) % params)
 
         os.system("sqlite3 ./configs/auth/powerdns.sqlite < ../modules/gsqlite3backend/schema.sqlite3.sql")

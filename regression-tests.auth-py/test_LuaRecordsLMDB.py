@@ -9,6 +9,9 @@ from authtests import AuthTest
 class TestLuaRecordsLMDB(AuthTest):
     # Copied from AuthTest, without the bind-config and bind-dnssec fields,
     # since these tests target LMDB an a backend.
+
+    _backend='lmdb'
+
     _config_template_default = """
 daemon=no
 socket-dir={confdir}
