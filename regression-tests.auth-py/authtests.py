@@ -24,6 +24,8 @@ class AuthTest(AssertEqualDNSMessageMixin, unittest.TestCase):
     _confdir = 'auth'
     _authPort = 5300
 
+    _backend = os.getenv("AUTH_BACKEND")
+
     _config_params = []
 
     _config_template_default = """
@@ -117,12 +119,15 @@ options {
         params = tuple([getattr(cls, param) for param in cls._config_params])
 
         with open(os.path.join(confdir, 'pdns.conf'), 'w') as pdnsconf:
-            pdnsconf.write(cls._config_template_default.format(
-                confdir=confdir, prefix=cls._PREFIX,
-                bind_dnssec_db=bind_dnssec_db,
-                PDNS_MODULE_DIR=cls._PDNS_MODULE_DIR,
-            ))
-            pdnsconf.write(cls._config_template % params)
+            args = dict(backend=cls._backend,
+                        confdir=confdir,
+                        prefix=cls._PREFIX,
+                        bind_dnssec_db=bind_dnssec_db,
+                        PDNS_MODULE_DIR=cls._PDNS_MODULE_DIR
+                        )
+
+            pdnsconf.write(cls._config_template_default.format(**args))
+            pdnsconf.write(cls._config_template.format(**args) % params)
 
         os.system("sqlite3 ./configs/auth/powerdns.sqlite < ../modules/gsqlite3backend/schema.sqlite3.sql")
 

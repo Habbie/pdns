@@ -12,7 +12,7 @@ from proxyprotocol import ProxyProtocol
 
 class TestProxyProtocolLuaRecords(AuthTest):
     _config_template = """
-launch=bind
+launch={backend}
 any-to-tcp=no
 proxy-protocol-from=127.0.0.1
 enable-lua-records
@@ -113,7 +113,7 @@ myip.example.org.            3600 IN LUA  TXT     "who:toString()..'/'..bestwho:
 
 class TestProxyProtocolNOTIFY(AuthTest):
     _config_template = """
-launch=bind
+launch={backend}
 any-to-tcp=no
 proxy-protocol-from=127.0.0.1
 secondary
@@ -187,7 +187,7 @@ options {
 
 class TestProxyProtocolAXFRACL(AuthTest):
     _config_template = """
-launch=bind
+launch={backend}
 any-to-tcp=no
 proxy-protocol-from=127.0.0.1
 allow-axfr-ips=192.0.2.53

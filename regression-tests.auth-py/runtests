@@ -47,6 +47,7 @@ if [ "${WITHKERBEROS}" = "YES" ]; then
     (cd kerberos-server && sudo docker compose up --detach --build)
 fi
 
+export AUTH_BACKEND=${AUTH_BACKEND:-bind}
 pytest --junitxml=pytest.xml $ignore $@
 ret=$?
 

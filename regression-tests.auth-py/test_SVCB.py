@@ -168,7 +168,7 @@ bind-dnssec-db={bind_dnssec_db}
     _config_template = (
         SVCBRecordsBase._config_template
         + """
-launch=bind
+launch={backend}
 """
     )
 
