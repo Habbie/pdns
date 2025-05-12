@@ -119,9 +119,11 @@ proxy-protocol-from=127.0.0.1
 secondary
 """
 
-    _zones = { 'example.org': '192.0.2.1',
+    _secondary_zones = { 'example.org': '192.0.2.1',
                'example.com': '192.0.2.2'
     }
+
+    _zones = {}
 
     @classmethod
     def generateAuthZone(cls, confdir, zonename, zonecontent):
@@ -132,20 +134,34 @@ secondary
 
     @classmethod
     def generateAuthNamedConf(cls, confdir, zones):
-        with open(os.path.join(confdir, 'named.conf'), 'w') as namedconf:
-            namedconf.write("""
-options {
-    directory "%s";
-};""" % confdir)
-            for zonename in zones:
-                zone = '.' if zonename == 'ROOT' else zonename
-
+        if cls._backend == 'bind':
+            with open(os.path.join(confdir, 'named.conf'), 'w') as namedconf:
                 namedconf.write("""
-        zone "%s" {
-            type secondary;
-            file "%s.zone";
-            masters { %s; };
-        };""" % (zone, zonename, cls._zones[zone]))
+    options {
+        directory "%s";
+    };""" % confdir)
+                for zonename in cls._secondary_zones:
+                    zone = '.' if zonename == 'ROOT' else zonename
+
+                    namedconf.write("""
+            zone "%s" {
+                type secondary;
+                file "%s.zone";
+                masters { %s; };
+            };""" % (zone, zonename, cls._secondary_zones[zone]))
+        elif cls._backend == 'lmdb':
+            for zonename in cls._secondary_zones:
+                pdnsutilCmd = [os.environ['PDNSUTIL'],
+                   '--config-dir=%s' % confdir,
+                   'create-secondary-zone',
+                   zonename,
+                   cls._secondary_zones[zonename]]
+
+                print(' '.join(pdnsutilCmd))
+                try:
+                    subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
 
 
     @classmethod

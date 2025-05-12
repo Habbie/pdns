@@ -175,15 +175,37 @@ options {
 
     @classmethod
     def generateAllAuthConfig(cls, confdir):
-        cls.generateAuthConfig(confdir)
-        cls.generateAuthNamedConf(confdir, cls._zones.keys())
+        if cls._backend == 'bind':
+            cls.generateAuthConfig(confdir)
+            cls.generateAuthNamedConf(confdir, cls._zones.keys())
 
-        for zonename, zonecontent in cls._zones.items():
-            cls.generateAuthZone(confdir,
-                                 zonename,
-                                 zonecontent)
-            if cls._zone_keys.get(zonename, None):
-                cls.secureZone(confdir, zonename, cls._zone_keys.get(zonename))
+            for zonename, zonecontent in cls._zones.items():
+                cls.generateAuthZone(confdir,
+                                     zonename,
+                                     zonecontent)
+                if cls._zone_keys.get(zonename, None):
+                    cls.secureZone(confdir, zonename, cls._zone_keys.get(zonename))
+        elif cls._backend == 'lmdb':
+            cls.generateAuthConfig(confdir)
+
+            for zonename, zonecontent in cls._zones.items():
+                cls.generateAuthZone(confdir,
+                                     zonename,
+                                     zonecontent)
+                pdnsutilCmd = [os.environ['PDNSUTIL'],
+                               '--config-dir=%s' % confdir,
+                               'load-zone',
+                               zonename,
+                               os.path.join(confdir, '%s.zone' % zonename)]
+
+                print(' '.join(pdnsutilCmd))
+                try:
+                    subprocess.check_output(pdnsutilCmd, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    raise AssertionError('%s failed (%d): %s' % (pdnsutilCmd, e.returncode, e.output))
+        else:
+            raise RuntimeError("unknown backend " + cls._backend + " specified")
+
 
     @classmethod
     def waitForTCPSocket(cls, ipaddress, port):
