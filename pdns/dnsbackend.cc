@@ -251,9 +251,13 @@ vector<std::unique_ptr<DNSBackend>> BackendMakerClass::all(bool metadataOnly)
 */
 bool DNSBackend::getSOA(const ZoneName& domain, domainid_t zoneId, SOAData& soaData)
 {
+  soaData.db = nullptr;
+
   if (domain.hasVariant() && zoneId == UnknownDomainID) {
     DomainInfo domaininfo;
-    this->getDomainInfo(domain, domaininfo, false);
+    if (!this->getDomainInfo(domain, domaininfo, false)) {
+      return false;
+    }
     zoneId = domaininfo.id;
   }
   // Safe for zoneId to be UnknownDomainID here - it won't be the case for variants, see above
@@ -262,8 +266,6 @@ bool DNSBackend::getSOA(const ZoneName& domain, domainid_t zoneId, SOAData& soaD
 
   DNSResourceRecord resourceRecord;
   int hits = 0;
-
-  soaData.db = nullptr;
 
   try {
     while (this->get(resourceRecord)) {
