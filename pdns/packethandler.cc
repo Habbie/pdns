@@ -172,7 +172,7 @@ bool PacketHandler::addDNSKEY(DNSPacket& p, std::unique_ptr<DNSPacket>& r)
   DNSZoneRecord rr;
   bool haveOne=false;
 
-  for (const auto& value : d_dk.getKeys(r->qdomainzone)) { // FIXME: as we take this from the reply packet, I wonder what happens if this DNSKEY lookup was at the end of a CNAME chain
+  for (const auto& value : d_dk.getKeys(r->qdomainzone)) {
     if (!value.second.published) {
       continue;
     }
