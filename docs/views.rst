@@ -16,8 +16,8 @@ The `Views` features is currently only available in the :doc:`LMDB
 <backends/lmdb>` backend, and requires the zone cache to be enabled (by setting
 :ref:`setting-zone-cache-refresh-interval` to a non-zero value).
 
-It must be explicitly enabled using :ref:`setting-views` in the configuration
-file.
+It must also be explicitly enabled using :ref:`setting-views` in the
+configuration file.
 
 Concepts
 --------
@@ -81,13 +81,27 @@ that view, as their variantless contents.
 Only one variant per zone may appear in a view; setting a new zone variant will
 replace the previous one in the view.
 
+Resolution Algorithm
+--------------------
+
+When views are enabled, the following operations take place when processing
+a DNS query:
+
+- the source address of the request (or the EDNS subnet option if present) is
+  used to check whether it matches a configured *network*.
+- if so, the *view* associated to that *network* is retrieved; otherwise,
+  views will be bypassed.
+- when searching for a given zone, if there is a specific *variant* for that
+  zone in the *view*, then that zone variant will be used; otherwise,
+  the regular variantless zone will be used.
+
 Configuration tweaks
 --------------------
 
 When views are used, the :ref:`packet-cache` will cache result results for each
-network independently, even for zones without variants. If your configuration
-benefits from the packet cache, you might need to multiply its capacity
-(:ref:`setting-max-packet-cache-entries`) by the number of networks in use.
+view independently. If your configuration benefits from the packet cache,
+you might need to multiply its capacity
+(:ref:`setting-max-packet-cache-entries`) by the number of views in use.
 
 Examples
 --------
@@ -136,8 +150,15 @@ Let's differentiate these views now::
 
   pdnsutil view-add-zone trusted example.com..trusted
 
-You will also need to create these zones, like you would do for any other
-"regular" zone.
+Note that the `view-add-zone` command does not create any zone! You will need
+to create these zones, like you would do for any other "regular" zone::
+
+  pdnsutil create-zone example.com..internal
+  pdnsutil create-zone example2.com..secret
+  pdnsutil create-zone example.com..trusted
+
+and then use `load-zone`, `edit-zone`, or `add-record` to add contents to these
+zones.
 
 With these settings in place, queries for the `example.com.` zone will be
 performed on the `example.com..internal` zone when originating from the internal
