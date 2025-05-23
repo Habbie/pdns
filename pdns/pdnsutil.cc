@@ -4886,8 +4886,8 @@ static const std::unordered_map<std::string, commandDispatcher> commands{
   {"list-member-zones", {true, listMemberZones, GROUP_ZONE,
    "list-member-zones CATALOG",
    "\tList all members of catalog zone CATALOG"}},
-  {"list-network", {true, listNetwork, GROUP_VIEWS,
-   "list-network",
+  {"list-networks", {true, listNetwork, GROUP_VIEWS,
+   "list-networks",
    "\tList all defined networks with their chosen views"}},
   {"list-tsig-keys", {true, listTSIGKeys, GROUP_TSIGKEY,
    "list-tsig-keys",
@@ -5023,7 +5023,7 @@ static const std::unordered_map<std::string, std::string> aliases{
   {"test-zone", "check-zone"},
   {"test-all-zones", "check-all-zones"},
   // Muscle memory built during views development
-  {"network-list", "list-network"},
+  {"network-list", "list-networks"},
   {"network-set", "set-network"},
   {"view-list", "list-view"}
 };

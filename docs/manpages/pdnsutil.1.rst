@@ -436,7 +436,7 @@ zonemd-verify-file *ZONE* *FILE*
 VIEWS COMMANDS
 --------------
 
-list-network
+list-networks
 
     List all defined networks with their chosen views.
 

@@ -131,7 +131,7 @@ may consider an always-existing default (nameless) view.
 
 You can check the result of these commands with::
 
-  $ pdnsutil list-network
+  $ pdnsutil list-networks
   10.0.0.0/8      internal
   172.16.0.0/12   internal
   192.168.0.0/16  internal
