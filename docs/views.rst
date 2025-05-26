@@ -1,6 +1,8 @@
 Views
 =====
 
+.. versionadded:: 5.0.0
+
 Views are an experimental feature, which allows the scope of zones to be
 narrowed, depending on the originating address of the query, by exposing
 different `variants` of zones.
