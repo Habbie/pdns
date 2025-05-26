@@ -4666,8 +4666,6 @@ static int listNetwork(vector<string>& cmds, const std::string_view synopsis)
 static int setNetwork(vector<string>& cmds, const std::string_view synopsis)
 {
   if (cmds.size() < 2) {
-    // FIXME: should there be backend choice here at all?
-    // alternatively, should backend choice be a generic pdnsutil feature?
     return usage(synopsis);
   }
 
