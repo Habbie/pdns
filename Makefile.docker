@@ -1,7 +1,7 @@
 .PHONY: all build build-nocache dep auth recursor dnsdist
 
 VERSION=experimental
-REVISION=1
+REVISION=4.9.5-trixie-slim
 
 all: build
 
