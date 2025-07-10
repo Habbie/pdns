@@ -20,6 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 #pragma once
+#include <memory>
 #include <string>
 #include <map>
 #include "ssql.hh"
@@ -125,6 +126,7 @@ protected:
       d_SearchCommentsQuery_stmt = d_db->prepare(d_SearchCommentsQuery, 3);
       d_getAllViewNamesQuery_stmt = d_db->prepare(d_getAllViewNamesQuery, 0);
       d_getViewMembersQuery_stmt = d_db->prepare(d_getViewMembersQuery, 1);
+      d_viewAddZoneQuery_stmt = d_db->prepare(d_viewAddZoneQuery, 3);
     }
   }
 
@@ -199,6 +201,7 @@ protected:
     d_SearchCommentsQuery_stmt.reset();
     d_getAllViewNamesQuery_stmt.reset();
     d_getViewMembersQuery_stmt.reset();
+    d_viewAddZoneQuery_stmt.reset();
   }
 
 public:
@@ -392,6 +395,7 @@ private:
 
   string d_getAllViewNamesQuery;
   string d_getViewMembersQuery;
+  string d_viewAddZoneQuery;
 
 
   unique_ptr<SSqlStatement> d_NoIdQuery_stmt;
@@ -464,6 +468,7 @@ private:
   unique_ptr<SSqlStatement> d_SearchCommentsQuery_stmt;
   unique_ptr<SSqlStatement> d_getAllViewNamesQuery_stmt;
   unique_ptr<SSqlStatement> d_getViewMembersQuery_stmt;
+  unique_ptr<SSqlStatement> d_viewAddZoneQuery_stmt;
 
 protected:
   std::unique_ptr<SSql> d_db{nullptr};

@@ -140,6 +140,7 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
 
   d_getAllViewNamesQuery = getArg("get-all-view-names-query");
   d_getViewMembersQuery = getArg("get-view-members-query");
+  d_viewAddZoneQuery = getArg("view-add-zone-query");
 
   d_query_stmt = nullptr;
   d_NoIdQuery_stmt = nullptr;
@@ -211,6 +212,7 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_SearchCommentsQuery_stmt = nullptr;
   d_getAllViewNamesQuery_stmt = nullptr;
   d_getViewMembersQuery_stmt = nullptr;
+  d_viewAddZoneQuery_stmt = nullptr;
 }
 
 void GSQLBackend::setNotified(domainid_t domain_id, uint32_t serial)
@@ -2426,6 +2428,22 @@ void GSQLBackend::viewListZones(const string& view, vector<ZoneName>& result)
 
 bool GSQLBackend::viewAddZone(const string& view, const ZoneName& zone)
 {
+  try {
+    reconnectIfNeeded();
+
+    // FIXME use REPLACE instead of INSERT? DB level trigger?
+    d_viewAddZoneQuery_stmt->
+      bind("view", view)->
+      bind("zone", zone.operator const DNSName&())->
+      bind("variant", zone.getVariant())->
+      execute()->
+      reset();
+  }
+  catch (SSqlException &e) {
+    throw PDNSException("GSQLBackend unable to: "+e.txtReason());
+  }
+
+  return true;
 
 }
 

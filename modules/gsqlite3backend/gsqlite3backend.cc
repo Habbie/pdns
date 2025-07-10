@@ -61,6 +61,16 @@ gSQLite3Backend::gSQLite3Backend(const std::string& mode, const std::string& suf
   g_log << Logger::Info << mode << ": connection to '" << getArg("database") << "' successful" << std::endl;
 }
 
+unsigned int gSQLite3Backend::getCapabilities()
+{
+  unsigned int caps = CAP_COMMENTS | CAP_DIRECT | CAP_LIST | CAP_CREATE | CAP_VIEWS;
+  if (d_dnssecQueries) {
+    caps |= CAP_DNSSEC;
+  }
+  return caps;
+}
+
+
 //! Constructs a gSQLite3Backend
 class gSQLite3Factory : public BackendFactory
 {
@@ -166,6 +176,7 @@ public:
 
     declare(suffix, "get-all-view-names-query", "", "SELECT DISTINCT view FROM views");
     declare(suffix, "get-view-members-query", "", "SELECT zone, variant FROM views WHERE view=:view");
+    declare(suffix, "view-add-zone-query", "", "INSERT INTO views (view, zone, variant) VALUES(:view, :zone, :variant)");
   }
 
   //! Constructs a new gSQLite3Backend object.
