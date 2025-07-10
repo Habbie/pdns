@@ -141,6 +141,8 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_getAllViewNamesQuery = getArg("get-all-view-names-query");
   d_getViewMembersQuery = getArg("get-view-members-query");
   d_viewAddZoneQuery = getArg("view-add-zone-query");
+  d_networkSetViewQuery = getArg("network-set-view-query");
+  d_getAllNetworksQuery = getArg("get-all-networks-query");
 
   d_query_stmt = nullptr;
   d_NoIdQuery_stmt = nullptr;
@@ -213,6 +215,8 @@ GSQLBackend::GSQLBackend(const string &mode, const string &suffix)
   d_getAllViewNamesQuery_stmt = nullptr;
   d_getViewMembersQuery_stmt = nullptr;
   d_viewAddZoneQuery_stmt = nullptr;
+  d_networkSetViewQuery_stmt = nullptr;
+  d_getAllNetworksQuery_stmt = nullptr;
 }
 
 void GSQLBackend::setNotified(domainid_t domain_id, uint32_t serial)
@@ -2405,7 +2409,6 @@ void GSQLBackend::viewList(vector<string>& result)
 
 void GSQLBackend::viewListZones(const string& view, vector<ZoneName>& result)
 {
-  cerr<<"hi"<<endl;
   try {
     reconnectIfNeeded();
 
@@ -2444,7 +2447,6 @@ bool GSQLBackend::viewAddZone(const string& view, const ZoneName& zone)
   }
 
   return true;
-
 }
 
 bool GSQLBackend::viewDelZone(const string& view, const ZoneName& zone)
@@ -2454,12 +2456,44 @@ bool GSQLBackend::viewDelZone(const string& view, const ZoneName& zone)
 
 bool GSQLBackend::networkSet(const Netmask& net, std::string& view)
 {
+  try {
+    reconnectIfNeeded();
 
+    // FIXME use REPLACE instead of INSERT? DB level trigger?
+    d_networkSetViewQuery_stmt->
+      bind("network", net.toString())->
+      bind("view", view)->
+      execute()->
+      reset();
+  }
+  catch (SSqlException &e) {
+    throw PDNSException("GSQLBackend unable to: "+e.txtReason());
+  }
+
+  return true;
 }
 
 bool GSQLBackend::networkList(vector<pair<Netmask, string>>& networks)
 {
-  return false;
+  try {
+    reconnectIfNeeded();
+
+    // clang-format off
+    d_getAllNetworksQuery_stmt->
+      execute()->
+      getResult(d_result)->
+      reset();
+    // clang-format on
+  }
+  catch(SSqlException &e) {
+    throw PDNSException("GSQLBackend unable to: "+e.txtReason());
+  }
+
+  for (const auto& row : d_result) { // network, view
+    networks.emplace_back(std::make_pair(row[0], row[1]));
+  }
+
+  return true;
 }
 
 void GSQLBackend::extractComment(SSqlStatement::row_t& row, Comment& comment)

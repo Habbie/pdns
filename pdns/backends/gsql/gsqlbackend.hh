@@ -127,6 +127,8 @@ protected:
       d_getAllViewNamesQuery_stmt = d_db->prepare(d_getAllViewNamesQuery, 0);
       d_getViewMembersQuery_stmt = d_db->prepare(d_getViewMembersQuery, 1);
       d_viewAddZoneQuery_stmt = d_db->prepare(d_viewAddZoneQuery, 3);
+      d_networkSetViewQuery_stmt = d_db->prepare(d_networkSetViewQuery, 2);
+      d_getAllNetworksQuery_stmt = d_db->prepare(d_getAllNetworksQuery, 0);
     }
   }
 
@@ -202,6 +204,8 @@ protected:
     d_getAllViewNamesQuery_stmt.reset();
     d_getViewMembersQuery_stmt.reset();
     d_viewAddZoneQuery_stmt.reset();
+    d_networkSetViewQuery_stmt.reset();
+    d_getAllNetworksQuery_stmt.reset();
   }
 
 public:
@@ -396,6 +400,8 @@ private:
   string d_getAllViewNamesQuery;
   string d_getViewMembersQuery;
   string d_viewAddZoneQuery;
+  string d_networkSetViewQuery;
+  string d_getAllNetworksQuery;
 
 
   unique_ptr<SSqlStatement> d_NoIdQuery_stmt;
@@ -469,6 +475,8 @@ private:
   unique_ptr<SSqlStatement> d_getAllViewNamesQuery_stmt;
   unique_ptr<SSqlStatement> d_getViewMembersQuery_stmt;
   unique_ptr<SSqlStatement> d_viewAddZoneQuery_stmt;
+  unique_ptr<SSqlStatement> d_networkSetViewQuery_stmt;
+  unique_ptr<SSqlStatement> d_getAllNetworksQuery_stmt;
 
 protected:
   std::unique_ptr<SSql> d_db{nullptr};

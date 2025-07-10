@@ -177,6 +177,8 @@ public:
     declare(suffix, "get-all-view-names-query", "", "SELECT DISTINCT view FROM views");
     declare(suffix, "get-view-members-query", "", "SELECT zone, variant FROM views WHERE view=:view");
     declare(suffix, "view-add-zone-query", "", "INSERT INTO views (view, zone, variant) VALUES(:view, :zone, :variant)");
+    declare(suffix, "network-set-view-query", "", "INSERT INTO networks (network, view) VALUES (:network, :view)");
+    declare(suffix, "get-all-networks-query", "", "SELECT network, view FROM networks");
   }
 
   //! Constructs a new gSQLite3Backend object.
