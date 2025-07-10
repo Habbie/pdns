@@ -91,3 +91,16 @@ CREATE TABLE tsigkeys (
 );
 
 CREATE UNIQUE INDEX namealgoindex ON tsigkeys(name, algorithm);
+
+-- FIXME UNIQUE on (network)
+CREATE TABLE networks (
+ network                TEXT NOT NULL,
+ view                   TEXT NOT NULL
+);
+
+-- FIXME UNIQUE on (view, zone)
+CREATE TABLE views (
+ view                   TEXT NOT NULL,
+ zone                   TEXT NOT NULL,
+ variant                TEXT NOT NULL
+)

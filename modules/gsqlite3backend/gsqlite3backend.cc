@@ -163,6 +163,9 @@ public:
     declare(suffix, "delete-comments-query", "", "DELETE FROM comments WHERE domain_id=:domain_id");
     declare(suffix, "search-records-query", "", record_query + " name LIKE :value ESCAPE '\\' OR content LIKE :value2 ESCAPE '\\' LIMIT :limit");
     declare(suffix, "search-comments-query", "", "SELECT domain_id,name,type,modified_at,account,comment FROM comments WHERE name LIKE :value ESCAPE '\\' OR comment LIKE :value2 ESCAPE '\\' LIMIT :limit");
+
+    declare(suffix, "get-all-view-names-query", "", "SELECT DISTINCT view FROM views");
+    declare(suffix, "get-view-members-query", "", "SELECT zone, variant FROM views WHERE view=:view");
   }
 
   //! Constructs a new gSQLite3Backend object.

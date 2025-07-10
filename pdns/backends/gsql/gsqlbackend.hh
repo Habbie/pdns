@@ -123,6 +123,8 @@ protected:
       d_DeleteCommentsQuery_stmt = d_db->prepare(d_DeleteCommentsQuery, 1);
       d_SearchRecordsQuery_stmt = d_db->prepare(d_SearchRecordsQuery, 3);
       d_SearchCommentsQuery_stmt = d_db->prepare(d_SearchCommentsQuery, 3);
+      d_getAllViewNamesQuery_stmt = d_db->prepare(d_getAllViewNamesQuery, 0);
+      d_getViewMembersQuery_stmt = d_db->prepare(d_getViewMembersQuery, 1);
     }
   }
 
@@ -195,6 +197,8 @@ protected:
     d_DeleteCommentsQuery_stmt.reset();
     d_SearchRecordsQuery_stmt.reset();
     d_SearchCommentsQuery_stmt.reset();
+    d_getAllViewNamesQuery_stmt.reset();
+    d_getViewMembersQuery_stmt.reset();
   }
 
 public:
@@ -261,6 +265,14 @@ public:
   string directBackendCmd(const string &query) override;
   bool searchRecords(const string &pattern, size_t maxResults, vector<DNSResourceRecord>& result) override;
   bool searchComments(const string &pattern, size_t maxResults, vector<Comment>& result) override;
+
+  void viewList(vector<string>& /* result */) override;
+  void viewListZones(const string& /* view */, vector<ZoneName>& /* result */) override;
+  bool viewAddZone(const string& /* view */, const ZoneName& /* zone */) override;
+  bool viewDelZone(const string& /* view */, const ZoneName& /* zone */) override;
+
+  bool networkSet(const Netmask& net, std::string& view) override;
+  bool networkList(vector<pair<Netmask, string>>& networks) override;
 
 protected:
   string pattern2SQLPattern(const string& pattern);
@@ -378,6 +390,9 @@ private:
   string d_SearchRecordsQuery;
   string d_SearchCommentsQuery;
 
+  string d_getAllViewNamesQuery;
+  string d_getViewMembersQuery;
+
 
   unique_ptr<SSqlStatement> d_NoIdQuery_stmt;
   unique_ptr<SSqlStatement> d_IdQuery_stmt;
@@ -447,6 +462,8 @@ private:
   unique_ptr<SSqlStatement> d_DeleteCommentsQuery_stmt;
   unique_ptr<SSqlStatement> d_SearchRecordsQuery_stmt;
   unique_ptr<SSqlStatement> d_SearchCommentsQuery_stmt;
+  unique_ptr<SSqlStatement> d_getAllViewNamesQuery_stmt;
+  unique_ptr<SSqlStatement> d_getViewMembersQuery_stmt;
 
 protected:
   std::unique_ptr<SSql> d_db{nullptr};
