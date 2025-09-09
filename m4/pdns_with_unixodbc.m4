@@ -9,7 +9,7 @@ AC_DEFUN([PDNS_WITH_UNIXODBC],[
     [
       UNIXODBC_LIBS_check="/usr/local/unixodbc/lib/unixodbc /usr/local/lib/unixodbc /opt/unixodbc/lib/unixodbc \
         /usr/lib/unixodbc /usr/lib64/unixodbc /usr/local/unixodbc/lib /usr/local/lib /opt/unixodbc/lib /usr/lib \
-        /usr/sfw/lib/ /usr/lib/odbc /usr/lib/x86_64-linux-gnu $full_libdir"
+        /usr/sfw/lib/ /usr/lib/odbc /usr/lib/x86_64-linux-gnu /usr/lib/s390x-linux-gnu $full_libdir"
       UNIXODBC_CFLAGS_check="/usr/local/unixodbc/include/unixodbc /usr/local/include/unixodbc \
         /opt/unixodbc/include/unixodbc /opt/unixodbc/include /usr/include/unixodbc /usr/sfw/include/unixodbc \
         /usr/include /usr/local/include"
