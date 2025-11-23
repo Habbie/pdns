@@ -55,6 +55,7 @@ AC_DEFUN([PDNS_CHECK_LIBCRYPTO], [
                     LIBCRYPTO_LIBS=`$PKG_CONFIG libcrypto --libs-only-l 2>/dev/null`
                     LIBCRYPTO_INCLUDES=`$PKG_CONFIG libcrypto --cflags-only-I 2>/dev/null`
                     ssldir=`$PKG_CONFIG libcrypto --variable=prefix 2>/dev/null`
+                    sslincdir=`$PKG_CONFIG libcrypto --variable=includedir 2>/dev/null`
                     found=true
                 fi
             fi
