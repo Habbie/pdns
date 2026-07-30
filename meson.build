@@ -493,6 +493,15 @@ libpdns_signers_openssl = declare_dependency(
   )
 )
 
+libpdns_signers_silly = declare_dependency(
+  link_whole: static_library(
+    'pdns-signers-silly',
+    sources: files(src_dir / 'sillysigners.cc', src_dir / 'opensslsigners.hh'),
+    dependencies: deps,
+  )
+)
+
+
 common_sources += files(
   src_dir / 'arguments.cc',
   src_dir / 'arguments.hh',
@@ -626,6 +635,7 @@ common_sources += files(
   src_dir / 'signingpipe.cc',
   src_dir / 'signingpipe.hh',
   src_dir / 'sillyrecords.cc',
+  src_dir / 'sillysigners.cc',
   src_dir / 'sstuff.hh',
   src_dir / 'stat_t.hh',
   src_dir / 'statbag.cc',
@@ -708,6 +718,7 @@ tools = {
       libpdns_ssqlite3,
       libpdns_gettime,
       libpdns_signers_openssl,
+      libpdns_signers_silly,
       libpdns_signers_sodium,
       libpdns_sqlbackend,
     ],
@@ -722,6 +733,7 @@ tools = {
       dep_modules,
       libpdns_ssqlite3,
       libpdns_signers_openssl,
+      libpdns_signers_silly,
       libpdns_signers_sodium,
       libpdns_sqlbackend,
     ],
@@ -949,6 +961,7 @@ if get_option('unit-tests')
         dep_boost_test,
         libpdns_test,
         libpdns_signers_openssl,
+        libpdns_signers_silly,
         libpdns_signers_sodium,
       ],
       'install': false,
