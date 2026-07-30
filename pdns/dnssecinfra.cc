@@ -447,6 +447,9 @@ void DNSCryptoKeyEngine::testMakers(Logr::log_t slog, unsigned int algo, maker_t
   else if(algo == DNSSEC::ED448) {
     bits = 456;
   }
+  else if(algo == 253) {
+    bits = 2048 * 8;
+  }
   else {
     throw runtime_error("Can't guess key size for algorithm " + std::to_string(algo));
   }
