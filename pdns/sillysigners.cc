@@ -1,60 +1,9 @@
 #include "dns_random.hh"
-#include <iterator>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 #include "dnssecinfra.hh"
 #include "dnssec.hh"
-
-class TestingDNSCryptoKeyEngine : public DNSCryptoKeyEngine
-{
-public:
-  explicit TestingDNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo) :
-    DNSCryptoKeyEngine(slog, algo)
-  {}
-  [[nodiscard]] string getName() const override { return "Testing Algorithm Signers dispatcher"; }
-  void create(unsigned int bits) override;
-
-  /**
-   * \brief Creates a key engine from a PEM file.
-   *
-   * Receives an open file handle with PEM contents and creates an key engine.
-   *
-   * \param[in] drc Key record contents to be populated.
-   *
-   * \param[in] inputFile An open file handle to a file containing PEM contents.
-   *
-   * \param[in] filename Only used for providing filename information in error messages.
-   *
-   * \return A key engine populated with the contents of the PEM file.
-   */
-  void createFromPEMFile(DNSKEYRecordContent& drc, std::FILE& inputFile, std::optional<std::reference_wrapper<const std::string>> filename = std::nullopt) override;
-
-  /**
-   * \brief Writes this key's contents to a file.
-   *
-   * Receives an open file handle and writes this key's contents to the
-   * file.
-   *
-   * \param[in] outputFile An open file handle for writing.
-   *
-   * \exception std::runtime_error In case of OpenSSL errors.
-   */
-  void convertToPEMFile(std::FILE& outputFile) const override;
-
-  [[nodiscard]] storvector_t convertToISCVector() const override;
-  [[nodiscard]] std::string sign(const std::string& msg) const override;
-  [[nodiscard]] bool verify(const std::string& msg, const std::string& signature) const override;
-  [[nodiscard]] std::string getPublicKeyString() const override;
-  [[nodiscard]] int getBits() const override;
-  void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override;
-  void fromPublicKeyString(const std::string& content) override;
-
-  static std::unique_ptr<DNSCryptoKeyEngine> maker(Logr::log_t slog, unsigned int algorithm)
-  {
-    return make_unique<TestingDNSCryptoKeyEngine>(slog, algorithm);
-  }
-};
 
 class TwoKDNSCryptoKeyEngine : public DNSCryptoKeyEngine
 {
@@ -203,13 +152,89 @@ bool TwoKDNSCryptoKeyEngine::verify(const std::string& /* msg */, const std::str
   return signature.length() == 2048;
 }
 
+class TestingDNSCryptoKeyEngineDispatcher : public DNSCryptoKeyEngine
+{
+public:
+  explicit TestingDNSCryptoKeyEngineDispatcher(Logr::log_t slog, unsigned int algo) :
+    DNSCryptoKeyEngine(slog, algo)
+  {}
+  explicit TestingDNSCryptoKeyEngineDispatcher(Logr::log_t slog, unsigned int algo, std::unique_ptr<DNSCryptoKeyEngine> dcke) :
+    DNSCryptoKeyEngine(slog, algo), d_dcke(std::move(dcke))
+  {}
+  [[nodiscard]] string getName() const override { return "Testing Algorithm Signers dispatcher"; }
+  void create(unsigned int bits) override {
+    d_dcke->create(bits);
+  }
+
+  /**
+   * \brief Creates a key engine from a PEM file.
+   *
+   * Receives an open file handle with PEM contents and creates an key engine.
+   *
+   * \param[in] drc Key record contents to be populated.
+   *
+   * \param[in] inputFile An open file handle to a file containing PEM contents.
+   *
+   * \param[in] filename Only used for providing filename information in error messages.
+   *
+   * \return A key engine populated with the contents of the PEM file.
+   */
+  // void createFromPEMFile(DNSKEYRecordContent& drc, std::FILE& inputFile, std::optional<std::reference_wrapper<const std::string>> filename = std::nullopt) override;
+
+  /**
+   * \brief Writes this key's contents to a file.
+   *
+   * Receives an open file handle and writes this key's contents to the
+   * file.
+   *
+   * \param[in] outputFile An open file handle for writing.
+   *
+   * \exception std::runtime_error In case of OpenSSL errors.
+   */
+  // void convertToPEMFile(std::FILE& outputFile) const override;
+
+  [[nodiscard]] storvector_t convertToISCVector() const override {
+    return d_dcke->convertToISCVector();
+  };
+  [[nodiscard]] std::string sign(const std::string& msg) const override {
+    auto ret = d_dcke->sign(msg);
+    return DNSName("2.").toDNSString() + ret;
+  };
+  [[nodiscard]] bool verify(const std::string& msg, const std::string& signature) const override {
+    return d_dcke->verify(msg, signature.substr(3, std::string::npos));
+  };
+  [[nodiscard]] std::string getPublicKeyString() const override {
+    return DNSName("2.").toDNSString() + d_dcke->getPublicKeyString();
+  };
+  [[nodiscard]] int getBits() const override {
+    return d_dcke->getBits();
+  };
+  void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override {
+    d_dcke->fromISCMap(drc, stormap);
+  };
+  void fromPublicKeyString(const std::string& content) override {
+    d_dcke->fromPublicKeyString(content.substr(3, std::string::npos));
+  };
+
+  static std::unique_ptr<DNSCryptoKeyEngine> maker(Logr::log_t slog, unsigned int algorithm)
+  {
+    algorithm = algorithm + ('2' << 8);
+    return make_unique<TestingDNSCryptoKeyEngineDispatcher>(slog, algorithm, DNSCryptoKeyEngine::make(slog, algorithm));
+    // return make_unique<TwoKDNSCryptoKeyEngine>(slog, algorithm);
+  }
+
+private:
+  std::unique_ptr<DNSCryptoKeyEngine> d_dcke;
+};
+
 namespace
 {
 const struct LoaderSillySignersStruct
 {
   LoaderSillySignersStruct()
   {
-    DNSCryptoKeyEngine::report(253, &TwoKDNSCryptoKeyEngine::maker);
+    DNSCryptoKeyEngine::report(253, &TestingDNSCryptoKeyEngineDispatcher::maker);
+    DNSCryptoKeyEngine::report(('2' << 8) + 253, &TwoKDNSCryptoKeyEngine::maker);
   }
 } loadersillysigners;
 }
