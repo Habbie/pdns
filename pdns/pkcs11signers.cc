@@ -992,7 +992,10 @@ std::string PKCS11DNSCryptoKeyEngine::getPublicKeyString() const {
   return result;
 };
 
-int PKCS11DNSCryptoKeyEngine::getBits() const {
+int PKCS11DNSCryptoKeyEngine::getBits(bool forTest) const {
+  if (forTest) {
+    throw runtime_error("getBits forTest not implemented in pkcs11signers yet");
+  }
   std::shared_ptr<Pkcs11Token> d_slot;
   d_slot = Pkcs11Token::GetToken(d_slog, d_module, d_slot_id, d_label, d_pub_label);
   if (d_slot->LoggedIn() == false)

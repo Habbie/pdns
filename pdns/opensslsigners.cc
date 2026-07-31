@@ -87,7 +87,7 @@ public:
   explicit OpenSSLRSADNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo);
 
   [[nodiscard]] string getName() const override { return "OpenSSL RSA"; }
-  [[nodiscard]] int getBits() const override;
+  [[nodiscard]] int getBits(bool forTest = false) const override;
   void create(unsigned int bits) override;
 
   /**
@@ -182,8 +182,12 @@ OpenSSLRSADNSCryptoKeyEngine::OpenSSLRSADNSCryptoKeyEngine(Logr::log_t slog, uns
   }
 }
 
-int OpenSSLRSADNSCryptoKeyEngine::getBits() const
+int OpenSSLRSADNSCryptoKeyEngine::getBits(bool forTest) const
 {
+  if (forTest) {
+    return 2048;
+  }
+
 #if OPENSSL_VERSION_MAJOR >= 3
   return EVP_PKEY_get_bits(d_key.get());
 #else
@@ -876,7 +880,7 @@ public:
   explicit OpenSSLECDSADNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo);
 
   [[nodiscard]] string getName() const override { return "OpenSSL ECDSA"; }
-  [[nodiscard]] int getBits() const override;
+  [[nodiscard]] int getBits(bool forTest = false) const override;
 
   void create(unsigned int bits) override;
 
@@ -958,7 +962,7 @@ private:
 #endif
 };
 
-int OpenSSLECDSADNSCryptoKeyEngine::getBits() const
+int OpenSSLECDSADNSCryptoKeyEngine::getBits(bool /* forTest */) const
 {
   return d_len << 3;
 }
@@ -1635,7 +1639,7 @@ public:
   explicit OpenSSLEDDSADNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo);
 
   [[nodiscard]] string getName() const override { return "OpenSSL EdDSA"; }
-  [[nodiscard]] int getBits() const override;
+  [[nodiscard]] int getBits(bool forTest = false) const override;
 
   void create(unsigned int bits) override;
 
@@ -1716,7 +1720,7 @@ OpenSSLEDDSADNSCryptoKeyEngine::OpenSSLEDDSADNSCryptoKeyEngine(Logr::log_t slog,
   }
 }
 
-int OpenSSLEDDSADNSCryptoKeyEngine::getBits() const
+int OpenSSLEDDSADNSCryptoKeyEngine::getBits(bool /* forTest */) const
 {
   return (int)d_len << 3;
 }

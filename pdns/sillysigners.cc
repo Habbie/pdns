@@ -45,7 +45,7 @@ public:
   [[nodiscard]] std::string sign(const std::string& msg) const override;
   [[nodiscard]] bool verify(const std::string& msg, const std::string& signature) const override;
   [[nodiscard]] std::string getPublicKeyString() const override;
-  [[nodiscard]] int getBits() const override;
+  [[nodiscard]] int getBits(bool forTest = false) const override;
   void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override;
   void fromPublicKeyString(const std::string& input) override;
 
@@ -87,7 +87,7 @@ void TwoKDNSCryptoKeyEngine::create(unsigned int bits)
   std::reverse(d_seckey.begin(), d_seckey.end());
 }
 
-int TwoKDNSCryptoKeyEngine::getBits() const
+int TwoKDNSCryptoKeyEngine::getBits(bool /* forTest */) const
 {
   return 2048 * 8;
 }
@@ -206,8 +206,8 @@ public:
   [[nodiscard]] std::string getPublicKeyString() const override {
     return DNSName("2.").toDNSString() + d_dcke->getPublicKeyString();
   };
-  [[nodiscard]] int getBits() const override {
-    return d_dcke->getBits();
+  [[nodiscard]] int getBits(bool forTest = false) const override {
+    return d_dcke->getBits(forTest);
   };
   void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override {
     d_dcke->fromISCMap(drc, stormap);

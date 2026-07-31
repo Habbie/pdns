@@ -49,7 +49,7 @@ class PKCS11DNSCryptoKeyEngine : public DNSCryptoKeyEngine
     bool verify(const std::string& msg, const std::string& signature) const override;
 
     std::string getPublicKeyString() const override;
-    int getBits() const override;
+    int getBits(bool forTest = false) const override;
 
     void fromISCMap(DNSKEYRecordContent& drc, stormap_t& stormap) override;
 

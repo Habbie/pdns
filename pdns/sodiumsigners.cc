@@ -52,7 +52,7 @@ public:
   [[nodiscard]] std::string sign(const std::string& msg) const override;
   [[nodiscard]] bool verify(const std::string& msg, const std::string& signature) const override;
   [[nodiscard]] std::string getPublicKeyString() const override;
-  [[nodiscard]] int getBits() const override;
+  [[nodiscard]] int getBits(bool forTest = false) const override;
   void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override;
   void fromPublicKeyString(const std::string& content) override;
 
@@ -128,7 +128,7 @@ void SodiumED25519DNSCryptoKeyEngine::convertToPEMFile(std::FILE& outputFile) co
 }
 #endif
 
-int SodiumED25519DNSCryptoKeyEngine::getBits() const
+int SodiumED25519DNSCryptoKeyEngine::getBits(bool /* forTest */) const
 {
   return crypto_sign_ed25519_SEEDBYTES * 8;
 }
