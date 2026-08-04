@@ -433,7 +433,7 @@ void DNSCryptoKeyEngine::testMakers(Logr::log_t slog, unsigned int algo, maker_t
   auto dckeSign = signer(slog, algo);
   auto dckeVerify = verifier(slog, algo);
 
-  cout<<"Testing algorithm "<<algo<<"("<<DNSSEC::algorithm2name(algo)<<"): '"<<dckeCreate->getName()<<"' ->'"<<dckeSign->getName()<<"' -> '"<<dckeVerify->getName()<<"' ";
+  cout<<"Testing algorithm "<<algo<<"("<<DNSSEC::algorithm2name(algo)<<"): '"<<dckeCreate->getName()<<"' -> '"<<dckeSign->getName()<<"' -> '"<<dckeVerify->getName()<<"' ";
   unsigned int bits = dckeCreate->getBits(true);
   if(bits == 0) {
     throw runtime_error("Don't know testing key size for algorithm " + std::to_string(algo) + " from signer " + dckeCreate->getName());
