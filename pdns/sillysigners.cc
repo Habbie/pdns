@@ -15,7 +15,7 @@ public:
   explicit OneTwoKDNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo) :
     DNSCryptoKeyEngine(slog, algo)
   {}
-  [[nodiscard]] string getName() const override { return "Testing Algorithm Signers dispatcher"; }
+  [[nodiscard]] string getName() const override { return "OneTwoK (\"" + std::string(1, char(d_algorithm >> 8)) + ".\", " + std::to_string(getBytes()) + " bytes)"; } // FIXME: this string duplicates logic from convertToISCVector below
   void create(unsigned int bits) override;
 
   /**
