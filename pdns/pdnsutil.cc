@@ -3858,7 +3858,7 @@ static int testAlgorithm(vector<string>& cmds, const std::string_view synopsis)
   if(cmds.size() != 1) {
     return usage(synopsis);
   }
-  if (testAlgorithm(pdns::checked_stoi<int>(cmds.at(0)))) {
+  if (testAlgorithm(pdns::checked_stoi<int>(cmds.at(0), nullptr, 0))) {
     return 0;
   }
   return 1;

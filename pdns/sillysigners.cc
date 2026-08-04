@@ -1,14 +1,18 @@
 #include "dns_random.hh"
+#include <string>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 #include "dnssecinfra.hh"
 #include "dnssec.hh"
 
-class TwoKDNSCryptoKeyEngine : public DNSCryptoKeyEngine
+constexpr unsigned int PRIVATEDNS = 253;
+inline unsigned int TestingAlgo(uint8_t num) { return (num << 8) + PRIVATEDNS; }
+
+class OneTwoKDNSCryptoKeyEngine : public DNSCryptoKeyEngine
 {
 public:
-  explicit TwoKDNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo) :
+  explicit OneTwoKDNSCryptoKeyEngine(Logr::log_t slog, unsigned int algo) :
     DNSCryptoKeyEngine(slog, algo)
   {}
   [[nodiscard]] string getName() const override { return "Testing Algorithm Signers dispatcher"; }
@@ -51,7 +55,7 @@ public:
 
   static std::unique_ptr<DNSCryptoKeyEngine> maker(Logr::log_t slog, unsigned int algorithm)
   {
-    return make_unique<TwoKDNSCryptoKeyEngine>(slog, algorithm);
+    return make_unique<OneTwoKDNSCryptoKeyEngine>(slog, algorithm);
   }
 
 private:
@@ -59,13 +63,13 @@ private:
   std::string d_pubkey;
 };
 
-void TwoKDNSCryptoKeyEngine::create(unsigned int bits)
+void OneTwoKDNSCryptoKeyEngine::create(unsigned int bits)
 {
-  if (bits != 2048 * 8) {
-    throw runtime_error("Unsupported key length of " + std::to_string(bits) + " bits requested, TwoK signer class");
+  if (bits != getBits()) {
+    throw runtime_error("Unsupported key length of " + std::to_string(bits) + " bits requested, OneTwoK signer class");
   }
 
-  // these strings must all be the same length, and that length must be a divisor of 2048
+  // these strings must all be the same length, and that length must be a divisor of 1024 and 2048
   std::vector<std::string> words = {
     "Implored",
     "Outreach",
@@ -79,7 +83,7 @@ void TwoKDNSCryptoKeyEngine::create(unsigned int bits)
 
   d_seckey.resize(0);
 
-  while (d_pubkey.length() < 2048) {
+  while (d_pubkey.length() < getBits() / 8) {
     d_pubkey.append(words[dns_random(words.size())]);
   }
 
@@ -87,12 +91,19 @@ void TwoKDNSCryptoKeyEngine::create(unsigned int bits)
   std::reverse(d_seckey.begin(), d_seckey.end());
 }
 
-int TwoKDNSCryptoKeyEngine::getBits(bool /* forTest */) const
+int OneTwoKDNSCryptoKeyEngine::getBits(bool /* forTest */) const
 {
-  return 2048 * 8;
+  switch(d_algorithm >> 8) {
+  case '1':
+    return 1024 * 8;
+  case '2':
+    return 2048 * 8;
+  default:
+    throw runtime_error("invalid algorithm number for OneTwoK class");
+  }
 }
 
-DNSCryptoKeyEngine::storvector_t TwoKDNSCryptoKeyEngine::convertToISCVector() const
+DNSCryptoKeyEngine::storvector_t OneTwoKDNSCryptoKeyEngine::convertToISCVector() const
 {
   /*
     Private-key-format: v1.2
@@ -100,8 +111,7 @@ DNSCryptoKeyEngine::storvector_t TwoKDNSCryptoKeyEngine::convertToISCVector() co
   */
 
   storvector_t storvector;
-  // string algorithm = "13053 (0x32FD, 2048 bytes)";
-  string algorithm = "253 (0x32FD, 2048 bytes)";
+  string algorithm = "253 (\"" + std::string(1, char(d_algorithm >> 8)) + ".\", " + std::to_string(getBits()/8) + " bytes)";
 
   storvector.emplace_back("Algorithm", algorithm);
 
@@ -110,7 +120,7 @@ DNSCryptoKeyEngine::storvector_t TwoKDNSCryptoKeyEngine::convertToISCVector() co
   return storvector;
 }
 
-void TwoKDNSCryptoKeyEngine::fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap)
+void OneTwoKDNSCryptoKeyEngine::fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap)
 {
   /*
     Private-key-format: v1.2
@@ -121,33 +131,33 @@ void TwoKDNSCryptoKeyEngine::fromISCMap(DNSKEYRecordContent& drc, std::map<std::
 
   d_seckey = stormap["privatekey"];
   if (d_seckey.length() != 2048) {
-    throw runtime_error("Key size mismatch in ISCMap, TwoK class");
+    throw runtime_error("Key size mismatch in ISCMap, OneTwoK class");
   }
 
   d_pubkey = d_seckey;
   std::reverse(d_pubkey.begin(), d_pubkey.end());
 }
 
-std::string TwoKDNSCryptoKeyEngine::getPublicKeyString() const
+std::string OneTwoKDNSCryptoKeyEngine::getPublicKeyString() const
 {
   return d_pubkey;
 }
 
-void TwoKDNSCryptoKeyEngine::fromPublicKeyString(const std::string& input)
+void OneTwoKDNSCryptoKeyEngine::fromPublicKeyString(const std::string& input)
 {
   if (input.length() != 2048) {
-    throw runtime_error("Public key size mismatch, TwoKDNS class");
+    throw runtime_error("Public key size mismatch, OneTwoKDNS class");
   }
 
   d_pubkey = input;
 }
 
-std::string TwoKDNSCryptoKeyEngine::sign(const std::string& /* msg */) const
+std::string OneTwoKDNSCryptoKeyEngine::sign(const std::string& /* msg */) const
 {
   return d_pubkey;
 }
 
-bool TwoKDNSCryptoKeyEngine::verify(const std::string& /* msg */, const std::string& signature) const
+bool OneTwoKDNSCryptoKeyEngine::verify(const std::string& /* msg */, const std::string& signature) const
 {
   return signature.length() == 2048;
 }
@@ -233,8 +243,9 @@ const struct LoaderSillySignersStruct
 {
   LoaderSillySignersStruct()
   {
-    DNSCryptoKeyEngine::report(253, &TestingDNSCryptoKeyEngineDispatcher::maker);
-    DNSCryptoKeyEngine::report(('2' << 8) + 253, &TwoKDNSCryptoKeyEngine::maker);
+    DNSCryptoKeyEngine::report(PRIVATEDNS, &TestingDNSCryptoKeyEngineDispatcher::maker);
+    DNSCryptoKeyEngine::report(TestingAlgo('1'), &OneTwoKDNSCryptoKeyEngine::maker);
+    DNSCryptoKeyEngine::report(TestingAlgo('2'), &OneTwoKDNSCryptoKeyEngine::maker);
   }
 } loadersillysigners;
 }
