@@ -50,6 +50,7 @@ public:
   [[nodiscard]] bool verify(const std::string& msg, const std::string& signature) const override;
   [[nodiscard]] std::string getPublicKeyString() const override;
   [[nodiscard]] int getBits(bool forTest = false) const override;
+  [[nodiscard]] int getBytes(void) const; // not from parent class
   void fromISCMap(DNSKEYRecordContent& drc, std::map<std::string, std::string>& stormap) override;
   void fromPublicKeyString(const std::string& input) override;
 
@@ -83,7 +84,7 @@ void OneTwoKDNSCryptoKeyEngine::create(unsigned int bits)
 
   d_seckey.resize(0);
 
-  while (d_pubkey.length() < getBits() / 8) {
+  while (d_pubkey.length() < getBytes()) {
     d_pubkey.append(words[dns_random(words.size())]);
   }
 
@@ -91,16 +92,22 @@ void OneTwoKDNSCryptoKeyEngine::create(unsigned int bits)
   std::reverse(d_seckey.begin(), d_seckey.end());
 }
 
-int OneTwoKDNSCryptoKeyEngine::getBits(bool /* forTest */) const
+int OneTwoKDNSCryptoKeyEngine::getBytes(void) const
 {
   switch(d_algorithm >> 8) {
   case '1':
-    return 1024 * 8;
+    return 1024;
   case '2':
-    return 2048 * 8;
+    return 2048;
   default:
     throw runtime_error("invalid algorithm number for OneTwoK class");
   }
+}
+
+
+int OneTwoKDNSCryptoKeyEngine::getBits(bool /* forTest */) const
+{
+  return getBytes() * 8;
 }
 
 DNSCryptoKeyEngine::storvector_t OneTwoKDNSCryptoKeyEngine::convertToISCVector() const
@@ -111,7 +118,7 @@ DNSCryptoKeyEngine::storvector_t OneTwoKDNSCryptoKeyEngine::convertToISCVector()
   */
 
   storvector_t storvector;
-  string algorithm = "253 (\"" + std::string(1, char(d_algorithm >> 8)) + ".\", " + std::to_string(getBits()/8) + " bytes)";
+  string algorithm = "253 (\"" + std::string(1, char(d_algorithm >> 8)) + ".\", " + std::to_string(getBytes()) + " bytes)";
 
   storvector.emplace_back("Algorithm", algorithm);
 
@@ -130,7 +137,7 @@ void OneTwoKDNSCryptoKeyEngine::fromISCMap(DNSKEYRecordContent& drc, std::map<st
   pdns::checked_stoi_into(drc.d_algorithm, stormap["algorithm"]);
 
   d_seckey = stormap["privatekey"];
-  if (d_seckey.length() != 2048) {
+  if (d_seckey.length() != getBytes()) {
     throw runtime_error("Key size mismatch in ISCMap, OneTwoK class");
   }
 
@@ -145,7 +152,7 @@ std::string OneTwoKDNSCryptoKeyEngine::getPublicKeyString() const
 
 void OneTwoKDNSCryptoKeyEngine::fromPublicKeyString(const std::string& input)
 {
-  if (input.length() != 2048) {
+  if (input.length() != getBytes()) {
     throw runtime_error("Public key size mismatch, OneTwoKDNS class");
   }
 
@@ -159,7 +166,7 @@ std::string OneTwoKDNSCryptoKeyEngine::sign(const std::string& /* msg */) const
 
 bool OneTwoKDNSCryptoKeyEngine::verify(const std::string& /* msg */, const std::string& signature) const
 {
-  return signature.length() == 2048;
+  return signature.length() == getBytes();
 }
 
 class TestingDNSCryptoKeyEngineDispatcher : public DNSCryptoKeyEngine
