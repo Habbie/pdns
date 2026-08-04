@@ -110,6 +110,8 @@ class DNSCryptoKeyEngine
     [[nodiscard]] virtual bool verify(const std::string& msg, const std::string& signature) const =0;
 
     [[nodiscard]] virtual std::string getPublicKeyString()const =0;
+
+    // FIXME in a cleanup PR: make this unsigned int getBits
     [[nodiscard]] virtual int getBits(bool forTest=false) const =0; // set forTest to true to get a size suggestion for testing purposes
     [[nodiscard]] virtual unsigned int getAlgorithm() const
     {
