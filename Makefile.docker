@@ -1,12 +1,12 @@
 .PHONY: all build build-nocache dep auth recursor dnsdist
 
-VERSION=experimental
+VERSION=4.9.18
 REVISION=1
 
 all: build
 
 auth:
-	docker build --build-arg VERSION=$(VERSION) -t powerdns/pdns-auth-master:$(VERSION)-$(REVISION) --rm -f Dockerfile-auth .
+	docker build --build-arg VERSION=$(VERSION) --build-arg DOCKER_FAKE_RELEASE=YES -t powerdns/pdns-auth-49:$(VERSION)-$(REVISION) --rm -f Dockerfile-auth .
 
 recursor:
 	docker build --build-arg VERSION=$(VERSION) -t powerdns/pdns-recursor-master:$(VERSION)-$(REVISION) --rm -f Dockerfile-recursor .
